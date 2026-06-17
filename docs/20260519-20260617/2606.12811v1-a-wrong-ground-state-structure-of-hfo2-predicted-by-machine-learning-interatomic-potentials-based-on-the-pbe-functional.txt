@@ -1,0 +1,862 @@
+Title: 2606.12811v1.pdf
+
+URL Source: https://arxiv.org/pdf/2606.12811v1
+
+Published Time: Fri, 12 Jun 2026 00:23:29 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+A wrong  ground -state  structure of  HfO 2 predicted by  machine -learning 
+
+interatomic potentials  based on the  PBE  functiona l
+
+Shuqi Tang †, Jinchen  Wei †, Kang Wang, Junjie Zhou, Yihan Zhang,  Menglin Huang *,
+
+Shiyou Chen *
+
+> †
+
+These authors contributed to this work equally. 
+
+S.  Tang,  J. Wei , K. Wang, J.  Zhou , Y.  Zha ng , M.  Huang, S.  Chen 
+
+College of Integrated Circuits and Micro -Nano Electronics, and Key Laboratory of 
+
+Computational Physical Sciences (MOE), Fudan University, Shanghai 200433, China 
+
+E-mail: menglinhuang@fudan.edu.cn; chensy@fudan.edu.cn 
+
+Abstract 
+
+Machine -learning interatomic potentials (MLIPs)  have become powerful tools for 
+
+material  simulations . Many  MLIPs  are  train ed based on density functional theory (DFT) 
+
+datasets  generated  with  the  Perdew –Burke –Ernzerhof (PBE)  exchange -correlation 
+
+functional. Using a PBE -bas ed MLIP  for  HfO₂, we identify a previously unreported 
+
+low -energy  I4₁/amd  structure , which is  predicted to be  more stable  than the  well -known 
+
+ground -state structure,  the monoclinic  P2₁/c  structure. Since experiments show clearly 
+
+that  HfO₂  takes the  P2₁/c  structure as the ground state, this is obviously a wrong 
+
+prediction. Unfortunately, the same prediction is also made by widely used PBE -based 
+
+foundation models  such as  Nequ IP -OAM -L and  MatterSim -v1 -5M . Comparisons 
+
+among different DFT  functional s show  that this  error originates  from the  PBE 
+
+functional, which  overstabilizes  low -density  structures containing  sixfold Hf –O
+
+octahedral unit s, such as the  I4₁/amd  and  Pbcn  phases . The error also affects the 
+
+calculated  energy landscape s and barrier heights  along ferroelectric  HfO₂  polarization 
+
+switching paths  when there are large  lattice  relaxations. Fortunately, the error can be 
+
+largely suppressed by other functionals such as PBEsol and local density approximation. 
+
+Our study  serves as a warning  about the impact of errors in exchange -correlation 
+
+functional approximations on the reliability of MLIP simulations of crystal structures 
+
+and phase transitions .Introduction 
+
+Machine -learning interatomic potentials (MLIPs) have become an essential tool in 
+
+materials modelling, combining first -principles accuracy and the computational 
+
+efficiency required for large -scale atomistic simulations. Neural -network -based 
+
+MLIPs —encompassi ng specialized potentials based on advanced architectures (such as 
+
+SchNet 1,2 , DeepMD 3, and Allegro 4) and pre -trained foundation models (such as 
+
+M3GNet 5, MACE -MP 6,7 , MatterSim 8 and NequIP 9)—have demonstrated a remarkable 
+
+ability to reproduce reference DFT energies and atomic forces while substantially 
+
+reducing computational cost, thereby enabling large -scale simulations with near –first -
+
+principles accuracy. This capability has driven their w idespread deployment across 
+
+diverse material systems 10 -16 . For example, MLIPs have been applied to a wide range 
+
+of HfO₂ -related studies, including  the amorphous structures 17 , phase transitions 
+
+analysis 18 , oxygen -vacancy formation -energy distributions in a -HfO 219  and radiation -
+
+induced displacement damage 20 . These MLIP -driven studies have extended the spatial 
+
+and temporal scales of simulations and have significantly advanced our understanding 
+
+of HfO₂, which is a key material for advanced microelectronic devices. 
+
+The predictive performance of MLIPs critically depends on the quality of the 
+
+training datasets, which are typically generated from density functional theory (DFT) 
+
+calculations and are therefore inherently influenced by the choice of the approximation 
+
+to th e exchange –correlation functional.  One of the most widely adopted approximations 
+
+in contemporary DFT calculations 21  and MLIP training dataset generation 6,8  is the 
+
+Perdew –Burke –Ernzerhof (PBE) generalized gradient approximation (GGA), owing to 
+
+its favorable  computational efficiency and numerical stability 6,8,9 . Notably, the MLIP 
+
+studies 17 -20  on HfO 2 mentioned above also employed the PBE functional to generate the 
+
+training datasets.  However,  given the strong polymorphic competition in HfO 2 (e.g., the 
+
+monoclinic structures with  P2 1/c  and  P2 1/m  symmetries  (Figure 1 (b) and 1(c)) , the 
+
+orthorhombic structures with  Pca2₁ , Pbcn , and  Pbca  symmetries  (Figure 1(d) –1(f)) , the 
+
+tetragonal structure with  P4₂/nmc  symmetry  (Figure 1(g)) 22 -24 ) and its high sensitivity 
+
+to external fields and strain 24 , a natural question arises: can PBE  and PBE -trained 
+
+MLIPs reliably describe  the small energy differences among competing phases and the intricate energy landscapes of HfO₂  across diverse physical scenarios ?
+
+In this work, we systematically investigate the reliability of PBE -based MLIPs in 
+
+describing the relative energetics of various HfO ₂ phases. By performing global 
+
+structure search, we reveal a serious misprediction, i.e., PBE -based models incorrectly 
+
+predict an  I4₁/amd  phase as the ground state, rather than the experimentally established 
+
+monoclinic  P2₁/c  ground -state. This misprediction is consistently made by both our 
+
+specifically trained MLIP and several widely used PBE -based models (e.g.,  NequIP -
+
+OAM -L9,25  and MatterSim -v1 -5M 8).  Through a comparative analysis across different 
+
+exchange -correlation functional approximations, we trace th e origin of this error to 
+
+systematic errors in the PBE energy landscape. In particular, PBE overstabilizes low -
+
+density structures with sixfold Hf –O octahedral units. Furthermore, we demonstrate 
+
+that these biases affect the calculated energy landscapes and  polarization switching 
+
+barriers in ferroelectric HfO₂  under large lattice relaxation . Fortunately, these 
+
+functional -driven errors are not inevitable. Alternative functionals, such as PBEsol and 
+
+LDA, can effectively resolve this issue. Overall, our study  gi ves  a warning about the 
+
+impact of errors in exchange -correlation functional approximations on the reliability of 
+
+MLIP simulations of crystal structures and phase transitions. 
+
+Results 
+
+Identification of an Incorrect PBE Ground State of HfO₂ 
+
+In the past decade, a  series  of studies  have employed PBE -based MLIPs to 
+
+investigate the structural stability and phase transition behaviors of HfO₂ 23 . To evaluate 
+
+whether these MLIPs can accurately describe the energies across different HfO₂ 
+
+structures correctly , we trained a n MLIP  based on the PBE dataset calculated using  the 
+
+Vienna Ab initio Simulation Package (VASP) code , and conducted a global structur al 
+
+search using the CALYPSO software.  In principle, if the identified lowest -energy 
+
+structure agrees with the  well -known  ground -state  structure  with  P2₁/c  symmetry 26,27 
+
+in experiments,  the PBE -based MLIPs can be regarded as demonstrating  the  baseline 
+
+pre dictive capability  to describe  the ground -state structur e correctly . Surprisingly , our 
+
+search  identified  a low -energy structure with I4₁/amd symmetry , a s shown  in Figure 1(j). This structure exhibits lattice parameters of approximately a = b = 4.01 Å and c = 
+
+10.59 Å, with a unit cell volume of 42.5 Å³/f.u., and its atomic arrangement closely 
+
+resembles that of rutile TiO₂ 28  (Figure S1 ). As far as we know, such a low -energy 
+
+I4₁/amd  structure has not been previously reported for HfO₂. Notably, the MLIP 
+
+calculation shows that its energy is about 17 meV/f.u. lower than that of the monoclinic 
+
+structure with P2₁/c symmetry, indicating it is at the global minimum on the energy 
+
+land scape described by the PBE -based MLIP. However, given that experimental 
+
+evidence definitively confirmed the  P2₁/c  structure as the ground state of HfO 226,27 , this 
+
+result represents an incorrect prediction of the calculation. Such a discrepancy 
+
+challenges the reliability of the PBE -based MLIP in correctly describing the energies 
+
+of different HfO 2 phases. 
+
+Figure 1  ． Schematic representations of the  I4₁/amd  structure and several HfO ₂
+
+structures. Blue and red spheres represent Hf and O atoms, respectively. 
+
+To rule out possible errors arising from our specific MLIP training, we performed 
+
+additional structural searches using the PBE -based MLIPs publicly available (e.g., 
+
+NequIP -OAM -L9,25 , MatterSim -v1 -5M 8, and  MACE -MP -06,7,29 ). Remarkably, the 
+
+I4₁/amd  phase remained the most stable structure across these diverse models. These 
+
+results indicate that the emergence of this “new ground state” is not unique to our MLIP, 
+
+but represents a general feature observable across multiple PBE -based MLIPs. 
+
+Consequently , a critic al question arises: does the error originate from the machine 
+
+learning fitting of the interatomic potentials, or is it inherited directly from the training 
+
+dataset? To address this, we calculated the relative energies of various HfO₂ crystal structures using both DFT (PBE) and MLIPs ( Figure 2a -c). The comparison reveals 
+
+that, despite minor discrepancies in the energy rankings of certain higher -energy phases, 
+
+the MLIPs faithfully reproduce the direct DFT (PBE) results, which also predict the 
+
+I4₁/amd  phase as the global energy minimum. The results definitively prove that the 
+
+wrong prediction of the lowest -energy  I4₁/amd  phase is not a machine -learning fitting 
+
+error, but rather an intrinsic error rooted in the PBE functional itself. 
+
+Since the wrong ground state originates from the DFT training data, we further 
+
+investigated whether it represents a general limitation of DFT or a specific 
+
+misprediction of the PBE functional. As Figure 2d -e shows, we calculated the relative 
+
+energies of va rious HfO₂ crystal structures using different exchange -correlation 
+
+functionals, including PBE, PBE -vdW, SCAN, PBEsol, and LDA. Notably, the  I4₁/amd 
+
+phase emerges as the lowest -energy structure exclusively under the PBE functional, 
+
+confirming that this wron g ground state is unique to the PBE energy landscape. 
+
+Furthermore, the relative stabilities of the  I4₁/amd  and  Pbcn  structures exhibit extreme 
+
+sensitivity to the functional choice. Within the PBE framework, the  I4₁/amd  phase lies 
+
+17 meV/f.u. below the  P2 1/c  phase. However, its relative energy progressively increases 
+
+across PBE -vdW, SCAN, PBEsol , and LDA, ultimately becoming the highest -energy 
+
+structure among all considered phases in the LDA calculation. A similar trend of energy 
+
+variation is observed for the  Pbcn  structure: it ranks as the third -lowest energy phase in 
+
+PBE functional (0.05 eV/f.u. higher than the  P2 1/c  phase) but rises significantly to the 
+
+second -highest under the LDA functional (0.18 eV/f.u. higher than the  P2 1/c  phase). Figure 2.  Energy ranking and functional dependence of HfO ₂ crystal structures 
+
+predicted by PBE -DFT and PBE -based MLIPs. (a) Energy ranking of HfO₂ crystal 
+
+structures obtained from first -principles DFT calculations using the PBE functional and 
+
+several public PBE -based MLIPs. DFT denotes the PBE first -principles r eference 
+
+calculations; Allegro (this work) refers to the HfO₂ -specific PBE -based MLIP 
+
+developed in this study; Allegro -OAM -L25 , MACE -MP -06,7,29 , PET -OAM -XL 30 ,
+
+NequIP -OAM -L9,25 ,ORB -v3 -cons -inf -OMAT 31 , and MatterSim v1 5M 8 are 
+
+representative public foundatio n MLIPs selected from recently developed models 
+
+benchmarked on Matbench Discovery and released through their corresponding model repositories. (b) Relative energies and volumes of the I4₁/amd structure and 
+
+representative HfO₂ phases predicted by the PBE -MLIP developed in this work. (c) 
+
+Relative energies and volumes of the same structures calculated using PBE -DFT. (d) 
+
+Comparison of relative energies obtained using different exchange –correlation 
+
+functionals. (e) Comparison of phase volumes obtained using different exchange –
+
+correlation functionals. In panels (b –d), the monoclinic m phase is used as the energy 
+
+reference. 
+
+Furthermore, we analyzed the structural characteristics of the  I4₁/amd  and  Pbcn 
+
+phases to better understand the origin of their functional sensitivity. Although an 
+
+analysis of bond lengths and angles reveals no clear common structural features ( Figure 
+
+S2 ), both of these phases exhibit larger volumes than other structures considered 
+
+(Figure 2e) and distinct coordination environments: Hf atoms are six -coordinated and 
+
+O atoms are three -coordinated, forming local Hf –O octahedral units ( Figure 3 ). The 
+
+relatively  large equilibrium volumes and the associated low -coordination environments 
+
+are likely responsible for the strong functional sensitivity observed in these structures. 
+
+Equilibrium volumes show a clear systematic dependence on the choice of exchange –
+
+correlat ion functional: PBE favors the largest equilibrium volumes, whereas LDA 
+
+yields the smallest. As a result, relatively low -density and low -coordination structures 
+
+such as  I4₁/amd  and  Pbcn  are energetically stabilized at larger volumes under the PBE 
+
+functiona l, while functionals favoring more compact structures, such as PBEsol and 
+
+LDA, penalize these low -density configurations, thereby increasing their relative 
+
+energies. Figure 3 ．Structural characteristics of different HfO ₂ crystal phases. (a) Distribution 
+
+of atomic coordination numbers in each phase. (b –e) Polyhedral units centered on Hf 
+
+atoms in the  I4₁/amd , Pbcn , P2₁/c , and  P4₂/nmc  phases, respectively. 
+
+Overall, these results indicate that the PBE functional tends to overestimate the 
+
+stability of large -volume HfO₂ phases, t hereby spuriously stabilizing a lower -energy 
+
+symmetric phase on its energy landscape.  Such systematic tendencies may be inherited 
+
+by MLIPs, highlighting the importance of carefully evaluating functional dependence 
+
+when constructing MLIPs based on DFT calculations using a certain exchange –
+
+correlation functional. 
+
+Polarization switching pathways evaluated using different functionals 
+
+To illustrate how the intrinsic biases of the PBE functional affect transition state 
+
+calculations, we investigate the polarization switching of orthorhombic ferroelectric 
+
+HfO₂ ( Pca2₁ ). Specifically, we compare four switching paths computed using the PBE 
+
+and PBEsol functionals, with PBEsol  serving as a comparative reference. 
+
+Figure 4 ．Polarization switching energy profiles along four principal pathways under the fixed -lattice condition (with the lattice constants fixed), calculated using PBE and 
+
+PBEsol functionals. For all four pathways, the transition states predicted by PBE and 
+
+PBEsol correspond to the same crystal phase. 
+
+We first evaluated these four representative pathways  32,33  under the fixed -lattice 
+
+condition (Figure 4). Under this constraint, both functionals yield comparable 
+
+switching barriers and structurally similar intermediate states. This indicates that when 
+
+lattice degrees of freedom are artificially suppressed, the overall shape of the potential 
+
+energy surface  is largely consistent between the two functional calculations, enabling 
+
+both PBE and PBEsol to capture similar key configurations for polarization revers al. 
+
+Figure 5 ．Polarization switching energy profiles along four principal pathways under 
+
+the relaxed -lattice condition, calculated using PBE and PBEsol functionals. 
+
+However, once lattice relaxation is allowed, the switching energy profiles exhibit 
+
+substantial differences in the calculations using the two functionals. As shown in Figure 
+
+5, the discrepancies between PBE and PBEsol become substantially larger (especially 
+
+for pathway2) than those under the fixed -lattice constraint. For pathways 1 and 3, while 
+
+the predicted intermediate structures remain similar, their corresponding energy profiles exhibit moderate differences. For pathway 4, both functionals predict a tetragonal (t -
+
+phase) intermediate, yet their atomic arrangements differ obviously. Pathway 2 shows 
+
+the most obvious discrepancy: while PBEsol maintains the conventional t -phase 
+
+transit ion state, PBE predicts a distinctly different  Pbcn -like intermediate state. 
+
+To explain this behavior, we refer back to the relative energy rankings and volumes 
+
+of the HfO 2 phases (Figure 2). In the PBE functional, the  Pbcn  phase is lower in energy 
+
+than other intermediate candidates, such as the  P4 2/nmc  phase. Consequently, when 
+
+lattice degrees of freedom are released, the system tends to evolve along a lower -energy 
+
+Pbcn -related pathway. In contrast, within the PBEsol framework, the  Pbcn  phase is 
+
+significantly higher in energy and cannot act as a competitive intermediate state, so t he 
+
+system maintains the  t-like transition state. 
+
+From the perspective of the energy landscape, the system explores a broader 
+
+configurational space when the volume is taken as a critical degree of freedom. PBE 
+
+systematically favors larger lattice volumes, whereas PBEsol prefers more compact 
+
+structural arr angements. As a result, the energy barriers and transition states along 
+
+polarization switching paths differ between the two functionals. Specifically, within the 
+
+PBEsol energy landscape, the  Pbcn  phase corresponds to a high -energy region, 
+
+imposing stronger  lattice constraints during polarization switching and resulting in 
+
+more localized atomic displacements and lattice distortions. By contrast, within the 
+
+PBE energy landscape, the  Pbcn  phase forms a competing low -energy basin with a 
+
+lower barrier from  Pca2₁ , making it energetically accessible during relaxed -lattice 
+
+switching and enabling the emergence of alternative intermediate structures absent 
+
+under the fixed -lattice condition. 
+
+In addition, the choice of functional profoundly affects the local topology of the 
+
+potential energy surface. Under the fixed -lattice condition, for pathways 1 and 2, 
+
+PBEsol predicts shallow local minima at the intermediate structures, whereas PBE 
+
+identifie s these corresponding configurations as energy maxima. Similar functional -
+
+dependent features have also been reported in previous studies of ferroelectric HfO₂ 34 .
+
+This difference reflects subtle variations in how the two functionals describe local 
+
+atomic co nfigurations. PBEsol  tends to weakly stabilize higher -symmetry intermediates characterized by more uniform interatomic distances. In contrast, PBE 
+
+yields no such local minima, leaving these symmetric structures stranded at the apex of 
+
+the kinetic barrier. When lattice relaxation is allowed under the relaxed -lattice co ndition, 
+
+the shallow minima in PBEsol become more pronounced for both pathways 1 and 2. 
+
+This indicates that releasing lattice degrees of freedom amplifies the functional’s 
+
+inherent stabilization of symmetric states. 
+
+Our  polarization switching calculations  demonstrate  that while the potential 
+
+energy surface remains largely consistent under fixed -lattice constraints, structural 
+
+relaxation with lattice relaxation exposes errors inherent to the PBE functional. 
+
+Specifically, PBE’s systematic overestimation of lattice volumes and its lower energy 
+
+ranking of the  Pbcn  phase fundamentally change the predicted switching pathways, 
+
+thereby generating qualitatively different intermediate states and obvious different 
+
+switching energ y profiles.  These findings underscore the importance of carefully 
+
+assessing functional dependence when employing MLIPs trained on DFT -PBE datasets 
+
+to simulate the processes involving lattice deformation, such as phase transitions or 
+
+ferroelectric switching dynamics. 
+
+Discussion 
+
+We demonstrated that MLIPs trained on PBE -based DFT datasets incorrectly 
+
+predict the  I4₁/amd  structure as the ground -state structure of HfO₂, contradicting the 
+
+experimentally verified monoclinic  P2₁/c  structure. Comparative DFT calculations 
+
+reveal that this incorrect prediction —which is also present in widely used foundation 
+
+models —stems from inherent errors within the PBE exchange -correlation functional. 
+
+Specifically, the PBE functional underestimates  the energy of low -density structures 
+
+containing sixfold  Hf –O octahedral units, such as the  I4₁/amd  and  Pbcn  phases. 
+
+Furthermore, we showed that this functional -driven error propagates into the evaluation 
+
+of ferroelectric polarization switching, significantly altering the calculated energy 
+
+landscapes and barrier heights when large lattice relaxations are involved. 
+
+Our findings provide a cautionary message for MLIP -based materials simulations: 
+
+an MLIP may faithfully reproduce its reference DFT data while still giving physically unreliable predictions if the underlying exchange –correlation functional is biased. 
+
+Therefore, the reliability of MLIPs should be evaluated not only by their fitting errors 
+
+against reference datasets, but also by the physical validity of the exchange –corre lation 
+
+functional used to generate those datasets. 
+
+Methods 
+
+Machine -learning interatomic potential 
+
+The MLIP was trained using the Allegro -based implementation described in Ref. 35 ,
+
+which builds on the Allegro equivariant neural network architecture 4. The training 
+
+dataset was collected using the on -the -fly machine learning mode 36 -38  implemented in 
+
+the Vienna Ab initio Simulation Package 39  (VASP) during ab initio molecular dynamics 
+
+(AIMD) simulations. The dataset comprises configurations sampled from multiple 
+
+HfO₂ crystal phases, including the tetragonal (t), monoclinic (m), orthorhombic (o), and 
+
+Pbcn phases, as well as additional distorted  and metastable structures. All AIMD 
+
+simulati ons were carried out in the isothermal –isobaric (NPT) ensemble over a 
+
+temperature range of 100 –3300 K. Each trajectory was  propagated  for 10,000 timesteps 
+
+to ensure sufficient sampling of diverse local atomic environments and thermally 
+
+induced lattice distortions. In total, 8,500 configurations were collected for training. 
+
+The MLIP was trained to reproduce total energies, atomic forces,  and stress tensors, 
+
+with the dataset divided into training and validation subsets at a 9:1 ratio. The trained 
+
+potential ac hieves an average energy error of 1.43 meV/atom. All subsequent MLIP -
+
+based energy evaluations were carried out using LAMMPS 40  with the Allegro plugin. 
+
+DFT calculation 
+
+All DFT calculations were performed using VASP 39 . To systematically assess the 
+
+influence of exchange –correlation approximations on the structural and energetic 
+
+properties of HfO₂, a representative set of functionals was employed. These include the 
+
+local density approximation (LDA) 41,42 , the generalized gradient approximations 
+
+(GGAs) in the PBE 21  and PBEsol 43  forms, the meta -GGA functional SCAN 44 , as well 
+
+as the PBE functional augmented with van der Waals interactions (PBE_vdW) 45 . The 
+
+projector -augmented wav e (PAW) method was used to describe the electron –ion interactions, and a plane -wave kinetic energy cutoff of 560 eV was adopted throughout. 
+
+Brillouin -zone integrations were performed using  Γ-centered Monkhorst –Pack k -point 
+
+meshes, which were chosen according to the cell size and symmetry to ensure 
+
+convergenc e; for example, a 6 × 6 × 6 k -point grid was used for 12 -atom primitive cells. 
+
+Electronic self -consistency was achieved with an energy convergence criterion of 1 × 
+
+10⁻⁶ eV, while atomic relaxations were continued until the residual forces on each atom 
+
+were  below 0.01 eV Å⁻¹. 
+
+Structural search 
+
+Structural searches were conducted using the CALYPSO 46  package interfaced 
+
+with the trained MLIP to  sample  potential local minima across a broad energy landscape. 
+
+Initial structures were randomly generated with group symmetry constraints while 
+
+randomizing cell parameters and atomic positions to ensure population diversity. All 
+
+generated structures were optimize d using the PBE -trained MLIP until forces 
+
+converged to 10 ⁻³ eV/Å, and the lowest -energy configurations were extracted for 
+
+further analysis. 
+
+Calculation of polarization switching process 
+
+The polarization switching process in ferroelectric HfO₂ was calculated using the 
+
+Nudged Elastic Band (NEB) 47  method. For fixed -lattice paths, the Climbing -Image 
+
+NEB (CINEB) 48  approach was used to obtain energy –reaction coordinate curves under 
+
+intrinsic lattice constraints. Fully lattice -relaxed paths were modeled using the 
+
+Generalized Solid -State NEB (GSSNEB) 49  method to capture possible configurational 
+
+evolution when lattice relaxation is allowed. Initial and final states correspond to 
+
+orthorhombic HfO₂ s tructures with opposite polarizations. Complete switching paths 
+
+were computed using both PBE and PBEsol functionals to systematically compare how 
+
+different functionals describe the polarization switching energy surfaces and key 
+
+transition configurations of  HfO₂. 
+
+Data availability 
+
+The data supporting the findings of this study are included in the main text, 
+
+Supplementary Information and Source Data files. The Source Data will be made available with the published paper upon acceptance. 
+
+Code availability 
+
+The machine -learning interatomic potentials in this work were trained using the Allegro 
+
+architecture , which  is publicly available at https://github.com/mir -group/allegro . The 
+
+corresponding LAMMPS interface is available at https://github.com/mir -
+
+group/pair_nequip_allegro. Custom scripts used for structure processing, energy 
+
+ranking, switching -path analysis and figure generation are available from the 
+
+corresponding author upon  reasonable request. 
+
+References 
+
+1 Schütt, K. T., Sauceda, H. E., Kindermans, P. -J., Tkatchenko, A. & Müller, K. -R. SchNet: a deep 
+
+learning architecture for molecules and materials.  J. Chem. Phys.  148 , 241722 (2018). 
+
+2 Schütt, K.  et al.  SchNet: a continuous -filter convolutional neural network for modeling quantum 
+
+interactions.  Adv. Neural Inf. Process. Syst.  30 , 992 –1002 (2017). 
+
+3 Zhang, L., Han, J., Wang, H., Car, R. & E, W. Deep potential molecular dynamics: a scalable 
+
+model with the accuracy of quantum mechanics.  Phys. Rev. Lett.  120 , 143001 (2018). 
+
+4 Musaelian, A.  et al.  Learning local equivariant representations for large -scale atomistic 
+
+dynamics.  Nat. Commun.  14 , 579 (2023). 
+
+5 Chen, C. & Ong, S. P. A universal graph deep learning interatomic potential for the periodic 
+
+table.  Nat. Comput. Sci.  2, 718 –728 (2022). 
+
+6 Batatia, I., Kovacs, D. P., Simm, G., Ortner, C. & Csányi, G. MACE: higher order equivariant 
+
+message passing neural networks for fast and accurate force fields.  Adv. Neural Inf. Process. 
+
+Syst.  35 , 11423 –11436 (2022). 
+
+7 Batatia, I.  et al.  The design space of E(3) -equivariant atom -centred interatomic potentials.  Nat. 
+
+Mach. Intell.  7, 56 –67 (2025). 
+
+8 Yang, H.  et al.  MatterSim: a deep learning atomistic model across elements, temperatures and 
+
+pressures.  Preprint at arXiv:2405.04967  (2024). 
+
+9 Kavanagh, S. R. & MIR Group at Harvard. NequIP and Allegro foundation potentials, version 
+
+0.1.  Zenodo  https://doi.org/10.5281/zenodo.17087883  (2025). 
+
+10  Rowe, P., Csányi, G., Alfè, D. & Michaelides, A. Development of a machine learning potential 
+
+for graphene.  Phys. Rev. B  97 , 054303 (2018). 
+
+11  Jacobsen, T., Jørgensen, M. & Hammer, B. On -the -fly machine learning of atomic potential in 
+
+density functional theory structure optimization.  Phys. Rev. Lett.  120 , 026102 (2018). 
+
+12  Bartók, A. P., Kermode, J., Bernstein, N. & Csányi, G. Machine learning a general -purpose 
+
+interatomic potential for silicon.  Phys. Rev. X  8, 041048 (2018). 
+
+13  Ye, W., Chen, C., Wang, Z., Chu, I. -H. & Ong, S. P. Deep neural networks for accurate 
+
+predictions of crystal stability.  Nat. Commun.  9, 3800 (2018). 
+
+14  Wang, C., Tharval, A. & Kitchin, J. R. A density functional theory parameterised neural network 
+
+model of zirconia.  Mol. Simul.  44 , 623 –630 (2018). 
+
+15  Hesamzadeh, P.  et al.  De novo antioxidant peptide design via machine learning and DFT studies. 
+
+Sci. Rep.  14 , 6473 (2024). 16  Artrith, N. & Behler, J. High -dimensional neural network potentials for metal surfaces: A 
+
+prototype study for copper.  Phys. Rev. B  85 , 045439 (2012). 
+
+17  Sivaraman, G.  et al.  Machine -learned interatomic potentials by active learning: amorphous and 
+
+liquid hafnium dioxide.  npj Comput. Mater.  6, 104 (2020). 
+
+18  Hetti Kankanamalage, Y., Xi, Y., Zhang, S., Singh, S. & Abdolrahim, N. Machine learning -
+
+based interatomic potential development and phase transition analysis of ferroelectric hafnium 
+
+dioxide.  Phys. Rev. Mater.  10 , 014414 (2026). 
+
+19  Tang, S., Wang, K., Huang, M. & Chen, S. Statistics on oxygen vacancy defects in amorphous 
+
+HfO 2: a neural‐network interatomic potential assisted high‐throughput prediction.  Small 
+
+Methods  9, e01111 (2025). 
+
+20  Chen, H., Zhang, Y., Zhou, C. & Zhou, Y. Deep learning potential model of displacement 
+
+damage in hafnium oxide ferroelectric films.  npj Comput. Mater.  10 , 270 (2024). 
+
+21  Perdew, J. P., Burke, K. & Ernzerhof, M. Generalized gradient approximation made simple. 
+
+Phys. Rev. Lett.  77 , 3865 (1996). 
+
+22  Schroeder, U., Park, M. H., Mikolajick, T. & Hwang, C. S. The fundamentals and applications 
+
+of ferroelectric HfO 2. Nat. Rev. Mater.  7, 653 –669 (2022). 
+
+23  Zhu, T., Ma, L., Deng, S. & Liu, S. Progress in computational understanding of ferroelectric 
+
+mechanisms in HfO 2. npj Comput. Mater.  10 , 188 (2024). 
+
+24  Han, R.  et al.  The effect of stress on HfO 2-based ferroelectric thin films: A review of recent 
+
+advances.  J. Appl. Phys.  133 , 240702 (2023). 
+
+25  Tan, C. W.  et al.  High -performance training and inference for deep equivariant interatomic 
+
+potentials.  Digit. Discov.  5, 1558 –1567 (2026). 
+
+26  Ruh, R. & Corfield, P. W. Crystal structure of monoclinic hafnia and comparison with 
+
+monoclinic zirconia.  J. Am. Ceram. Soc.  53 , 126 –129 (1970). 
+
+27  Curtis, C., Doney, L. & Johnson, J. Some properties of hafnium oxide, hafnium silicate, calcium 
+
+hafnate, and hafnium carbide.  J. Am. Ceram. Soc.  37 , 458 –465 (1954). 
+
+28  De Lile, J. R., Kang, S. G., Son, Y. -A. & Lee, S. G. Investigating polaron formation in anatase 
+
+and brookite TiO 2 by density functional theory with hybrid -functional and DFT+U methods. 
+
+ACS Omega  4, 8056 –8064 (2019). 
+
+29  Batatia, I.  et al.  A foundation model for atomistic materials chemistry.  J. Chem. Phys.  163 ,
+
+184110 (2025). 
+
+30  Mazitov, A.  et al.  PET -MAD as a lightweight universal interatomic potential for advanced 
+
+materials modeling.  Nat. Commun.  16 , 10653 (2025). 
+
+31  Rhodes, B.  et al.  Orb -v3: atomistic simulation at scale.  Preprint at arXiv:2504.06231  (2025). 
+
+32  Chen, Y. -W., Fan, S. -T. & Liu, C. Energy preference of uniform polarization switching for HfO 2
+
+by first -principle study.  J. Phys. D Appl. Phys.  54 , 085304 (2020). 
+
+33  Choe, D. -H.  et al.  Unexpectedly low barrier of ferroelectric switching in HfO 2 via topological 
+
+domain walls.  Mater. Today  50 , 8 –15 (2021). 
+
+34  Fan, D., Zhu, T. & Liu, S. Unexpected density functional dependence of the antipolar Pbcn 
+
+phase in HfO 2. npj Comput. Mater.  11 , 140 (2025). 
+
+35  Yu, H.  et al.  Spin -dependent graph neural network potential for magnetic materials.  Phys. Rev. 
+
+B 109 , 144426 (2024). 
+
+36  Jinnouchi, R., Lahnsteiner, J., Karsai, F., Kresse, G. & Bokdam, M. Phase transitions of hybrid 
+
+perovskites simulated by machine -learning force fields trained on the fly with Bayesian inference.  Phys. Rev. Lett.  122 , 225701 (2019). 
+
+37  Jinnouchi, R., Karsai, F., Verdi, C., Asahi, R. & Kresse, G. Descriptors representing two - and 
+
+three -body atomic distributions and their effects on the accuracy of machine -learned inter -
+
+atomic potentials.  J. Chem. Phys.  152 , 234102 (2020). 
+
+38  Jinnouchi, R., Karsai, F. & Kresse, G. On -the -fly machine learning force field generation: 
+
+application to melting points.  Phys. Rev. B  100 , 014105 (2019). 
+
+39  Hafner, J. & Kresse, G. The Vienna ab -initio simulation program VASP: an efficient and 
+
+versatile tool for studying the structural, dynamic, and electronic properties of materials. In 
+
+Properties of Complex Inorganic Solids  69 –82 (Springer, Boston, MA, 1997). 
+
+40  Thompson, A. P.  et al.  LAMMPS: a flexible simulation tool for particle -based materials 
+
+modeling at the atomic, meso, and continuum scales.  Comput. Phys. Commun.  271 , 108171 
+
+(2022). 
+
+41  Dirac, P. A. Note on exchange phenomena in the Thomas atom.  Math. Proc. Camb. Philos. Soc. 
+
+26 , 376 –385 (1930). 
+
+42  Perdew, J. P., McMullen, E. R. & Zunger, A. Density -functional theory of the correlation energy 
+
+in atoms and ions: a simple analytic model and a challenge.  Phys. Rev. A  23 , 2785 (1981). 
+
+43  Perdew, J. P.  et al.  Restoring the density -gradient expansion for exchange in solids and surfaces. 
+
+Phys. Rev. Lett.  100 , 136406 (2008). 
+
+44  Sun, J., Ruzsinszky, A. & Perdew, J. P. Strongly constrained and appropriately normed semilocal 
+
+density functional.  Phys. Rev. Lett.  115 , 036402 (2015). 
+
+45  Grimme, S., Antony, J., Ehrlich, S. & Krieg, H. A consistent and accurate ab initio 
+
+parametrization of density functional dispersion correction (DFT -D) for the 94 elements H –Pu. 
+
+J. Chem. Phys.  132 , 154104 (2010). 
+
+46  Wang, Y., Lv, J., Zhu, L. & Ma, Y. CALYPSO: a method for crystal structure prediction.  Comput. 
+
+Phys. Commun.  183 , 2063 –2070 (2012). 
+
+47  Jónsson, H., Mills, G. & Jacobsen, K. W. Nudged elastic band method for finding minimum 
+
+energy paths of transitions. In  Classical and Quantum Dynamics in Condensed Phase 
+
+Simulations  385 –404 (World Scientific, Singapore, 1998). 
+
+48  Henkelman, G., Uberuaga, B. P. & Jónsson, H. A climbing image nudged elastic band method 
+
+for finding saddle points and minimum energy paths.  J. Chem. Phys.  113 , 9901 –9904 (2000). 
+
+49  Sheppard, D., Xiao, P., Chemelewski, W., Johnson, D. D. & Henkelman, G. A generalized solid -
+
+state nudged elastic band method.  J. Chem. Phys.  136 , 074103 (2012). 
+
+Acknowledgments 
+
+This work is supported by National Key Research and Development Program of 
+
+China (2022YFA1402904), National Natural Science Foundation of China (12334005, 
+
+12188101 and 12404089), Science and Technology Commission of Shanghai 
+
+Municipality (24JD1400600). 
+
+Author contributions S.T. and J.W. contributed equally to this work. S.T. performed the DFT 
+
+calculations, MLIP training, MLIP testing, structure search, polarization switching 
+
+calculations, data analysis and manuscript writing. J.W. contributed to the 
+
+conceptualization of the  study, performed DFT calculations and revised the manuscript. 
+
+K.W. supervised part of the work and contributed to manuscript writing. J.Z. and Y.Z. 
+
+contributed to MLIP testing. M.H. and S.C. conceived the project, supervised the 
+
+research, guided the analys is and interpretation of the results, and revised the 
+
+manuscript. All authors discussed the results and approved the final version of the 
+
+manuscript. 
+
+Competing interests 
+
+The authors declare no competing interests.

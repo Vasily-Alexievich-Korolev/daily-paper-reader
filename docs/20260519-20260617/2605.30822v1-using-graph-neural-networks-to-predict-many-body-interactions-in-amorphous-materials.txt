@@ -1,0 +1,708 @@
+Title: Using graph neural networks to predict many-body interactions in amorphous materials
+
+URL Source: https://arxiv.org/pdf/2605.30822v1
+
+Published Time: Mon, 01 Jun 2026 00:43:00 GMT
+
+Number of Pages: 26
+
+Markdown Content:
+# Using graph neural networks to predict many-body interactions in amorphous materials 
+
+Mehryar Jannesari Ghomsheh 1, Donald L. Koch 1, and Sarah Hormozi 1
+
+> 1
+
+Robert Frederick Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithaca, NY 14853, USA 
+
+Abstract 
+
+Many-body interactions govern the complex behavior of many amorphous materials, from metallic glasses to biological tissues, yet are often replaced by pairwise additive frameworks for computational efficiency. Here, we use classical density functional theory (DFT) to study a model soft glass of solvent-free polymer-grafted nanoparticles (PGNs), where the absence of solvent forces grafted chains to uniformly fill the interstitial space, generating strong angular-dependent many-body interactions between the cores. We show that NequIP, an equivariant message-passing graph neural network (GNN), learns the high-dimensional, rugged potential energy landscape of the system and reproduces classical DFT energies across a range of PGN design parameters at four orders of magnitude lower cost. Systematic analysis of GNN hyperparameters offers physical insights into the range, anisotropy, and effective body order of interactions. GNN-driven Monte Carlo simulations reveal locally favored icosahedral-like structures at equilibrium, and strikingly, recover equilibrium structures in agreement with experiments, despite the network being trained only on high-energy, out-of-equilibrium configurations. 
+
+Introduction 
+
+Many-body interactions are fundamental to a wide range of disciplines, from social systems 1,2 and ecological communities 3,4 to colloidal science 5–7 and amorphous materials. 8–10 The computational cost of accurately modeling higher-order interactions has limited many-body frameworks to small length and time scales. 11 
+
+This presents a central challenge in characterizing the heterogeneous and slow nature of amorphous materials and has restricted our understanding of glassy physics to pairwise-additive potentials that are fundamentally incapable of capturing higher-order interactions. 12,13 Over the last decade, machine learning has shown great promise to model many-body interactions in materials and molecules, presenting the accuracy of first-principles methods at a fraction of the cost. 14–21 However, whether machine learning approaches can successfully resolve the high-dimensional, rugged potential energy landscape (PEL) of many-body glassy systems remains an open question. The PEL of amorphous materials, which describes the total potential energy of the system for all the possible particle configurations, unravels many complex problems in glassy physics. 22–24 Relaxation dynamics 1
+
+> arXiv:2605.30822v1 [cond-mat.dis-nn] 29 May 2026
+
+can be modeled as exploration of PEL through thermally activated transitions from one local minimum (inherent structure) to an adjacent one. 25,26 Such local energy barriers are responsible for the slow dynamics of glasses. 27 The PEL viewpoint explains the experimentally observed 𝛼 (slow) and 𝛽 (fast) relaxations 28,29 
+
+and enables predicting the location of future relaxation events as they strongly correlate with the energetic and spatial features of previous rearrangements. 30 These valuable insights emerge from extensive exploration of the PEL, requiring millions of energy evaluations that are only tractable with pairwise-additive potentials. A new class of interaction potentials, called machine-learning interatomic potentials (MLIPs), has emerged to model many-body atomic interactions and accelerate ab-initio molecular dynamics simulations of large systems over long time scales. MLIPs are trained on quantum-mechanical calculations such as density functional theory (DFT) to predict the total potential energy of a system from the geometry of local atomic environments, capturing both distance- and angular-dependent many-body effects. 16,17 Early approaches relied on hand-crafted descriptors of these environments, 14,15 while more recent architectures employ message passing between atoms to learn many-body representations from the data. 18–20 Although MLIPs have shown early success in modeling metallic glasses, 31 accurately learning the high-dimensional PEL of glasses demands a substantially large and configurationally diverse training dataset. 32 MLIPs based on equivariant representations can potentially solve this problem by requiring significantly less training data while offering superior accuracy and generalization; 19–21 yet, they have not been applied to glassy systems. Moreover, to the best of our knowledge, MLIPs have not been extended to soft glasses. In this work, we train neural equivariant interatomic potential (NequIP) 20 to learn the PEL of a model soft glass of solvent-free polymer-grafted nanoparticles (PGNs), see Fig. 1. NequIP is a graph neural network (GNN) where nodes and edges represent the atoms/particles and their interactions, respectively. Its internal features utilize not only scalars but also higher-order tensors that are equivariant with respect to the group of translations, rotations, and reflections in 3D space. This architecture allows for highly accurate and efficient modeling of angular many-body interactions, 20 making NequIP potentially an ideal candidate for PGNs, in which the grafted polymer chains generate effective many-body interactions between particles. 33–35 In PGNs embedded in a polymer matrix, previous studies show that steric repulsion from the grafted polymers creates angular-dependent three-body contributions irreproducible with pairwise-additive potentials. 36–38 
+
+Polymeric interactions are enhanced in solvent-free conditions, 39,40 suggesting stronger angular-dependent and higher-order many-body interactions, which are challenging to model. The configurational and translational entropy of the grafted polymers controls the core configuration in solvent-free PGNs, resulting in a large free energy penalty for structural rearrangements, causing the particles to become caged by their neighbors. 41–43 Therefore, solvent-free PGNs can be viewed as jammed soft particles. Rheological experiments show that the system relaxes very slowly, exhibiting a soft glassy behavior, reminiscent of foams, emulsions, and tissues, over extended time periods. 42–49 This glassy behavior arises from polymer entropic constraints and can be observed at core volume fractions well below the colloidal glass transition, allowing the thermal fluctuations to relax the nanostructure towards equilibrium states over long, but experimentally accessible, time scales. 43,47,48 Our previously developed classical DFT predicts that the activation energy, and thus the macroscopic relaxation time, can be tuned by design parameters such as grafting density, polymer molecular weight, and core volume fraction, in agreement with experimental 2observations. 41 However, for computational tractability, these results were limited to face-centered-cubic (FCC) arrangement of cores. Here, we extend our framework to model the high-dimensional PEL of the system and show that trained on disordered configurations and their corresponding many-body potential energies, NequIP successfully learns the PEL in low-energy and high-energy regions and across different design parameters (Fig. 1). GNN-accelerated Monte Carlo (MC) simulations recover the equilibrium structure in agreement with experiments and reveal locally favored structures. Furthermore, we extract fundamental physical insights into the nature of many-body interactions by analyzing the GNN’s hyperparameters. Classical DFT  
+
+> GNN Training
+> <latexit sha1_base64="kQKp9kbhJBHSqcgnMHsD9kce6vo=">AAAB/3icbVDLSsNAFJ3UV61Vo4IbQQYbwUUJScHHRii4cdmCfUAbymQ6aYdOJmFmIpTYhQt/xI0LRVzW33DnN/gTTh8LrR64cDjnXu69x48ZlcpxPo3M0vLK6lp2PbeR39zaNnd26zJKBCY1HLFINH0kCaOc1BRVjDRjQVDoM9LwB1cTv3FLhKQRv1HDmHgh6nEaUIyUljrmvmVBBi+hU4RuEZaK0LZtaFkds+DYzhTwL3HnpFDOj6tfD4fjSsf8aHcjnISEK8yQlC3XiZWXIqEoZmSUayeSxAgPUI+0NOUoJNJLp/eP4LFWujCIhC6u4FT9OZGiUMph6OvOEKm+XPQm4n9eK1HBhZdSHieKcDxbFCQMqghOwoBdKghWbKgJwoLqWyHuI4Gw0pHldAju4st/Sb1ku2f2aVWnUQIzZMEBOAInwAXnoAyuQQXUAAZ34BE8gxfj3ngyXo23WWvGmM/sgV8w3r8BVliU0g==</latexit>
+
+l = 0 , 1, 2, ... 𝑖 
+
+𝑝 
+
+𝑘 𝑗  
+
+> <latexit sha1_base64="BvXjeAAVclViON7VUlenQCel1lQ=">AAAB9HicbVDJSgNBEK0xLjFuUfHkpTEjeAozgssx4MVjBLNAMoSeTidp0rPYXRMIQ77DiwdFvPoP/oIHwZOfop3loIkPCh7vVVFVz4+l0Og4n9ZSZnlldS27ntvY3Nreye/uVXWUKMYrLJKRqvtUcylCXkGBktdjxWngS17z+1djvzbgSosovMVhzL2AdkPREYyikTzbJqqVsgRHxLZb+YJTdCYgi8SdkUIp8/H9dvDFy638e7MdsSTgITJJtW64ToxeShUKJvko10w0jynr0y5vGBrSgGsvnRw9IsdGaZNOpEyFSCbq74mUBloPA990BhR7et4bi/95jQQ7l14qwjhBHrLpok4iCUZknABpC8UZyqEhlClhbiWsRxVlaHLKmRDc+ZcXSfW06J4Xz25MGg5MkYVDOIITcOECSnANZagAgzu4h0d4sgbWg/VsvUxbl6zZzD78gfX6A4r1lQc=</latexit>
+
+rcut 
+
+GNN 
+
+GNN -driven MC 
+
+Coordinates (3N dimensional) 
+
+> Potential energy
+
+Out -of -equilibrium (GNN training) 
+
+Equilibrium (GNN prediction) 
+
+Coordinates (3N dimensional) 
+
+> Potential energy
+
+Coordinates (3N dimensional) 
+
+> Potential energy
+
+Figure 1. Overview of the computational framework. Out-of-equilibrium particle configurations, 𝒟 (R), are sampled via hard-sphere dynamics and their many-body potential energies are evaluated with classical DFT, producing a dataset 
+
+𝒟 (R, 𝐸 ) that spans the high-energy region of the PEL (top left). The GNN is trained on this dataset. Each particle is represented as a node connected to its neighbors within a cutoff radius, 𝑟 cut , and node features are updated using tensor representations of increasing angular resolution, 𝑙 = 0, 1, 2, . . . . The trained GNN drives MC simulations, enabling exploration of the deep minima of the PEL (bottom left) that are inaccessible during training. The equilibrium configurations obtained by GNN-driven MC (red) lie well outside the training distribution (blue), demonstrating robust out-of-distribution generalization. 
+
+Many-body potential 
+
+Theoretical and experimental studies indicate that in solvent-free PGNs, the grafted polymers uniformly fill the interstitial space as an incompressible fluid as the particle’s thermal energy is insufficient to compress the grafted polymers. 50–52 A schematic of solvent-free PGNs is shown in Fig. 2a. Displacing a single particle creates local polymer density perturbations (Fig. 2b) that trigger a cascade of rearrangements involving polymers grafted to other core particles to establish a new thermodynamically favorable state of uniform number density (Fig. 2c). This change in the potential energy of the system cannot be simplified to pairwise-additive contributions. We use classical DFT to model polymer-mediated interactions between particles, in analogy to electron-mediated atomic interactions in quantum DFT. Relaxing the core configuration requires the collective movement of all grafted polymers, whereas individual polymer relaxation involves a single chain. We can assume the polymers remain in equilibrium as they relax significantly faster than 3the cores. 50,51,53 This distinct separation of time scales is a mesoscopic analogue of the Born-Oppenheimer approximation in quantum mechanics. 54 Assuming the cores interact only through their polymers, for a given configuration of 𝑁 particles at positions R1, . . . , R𝑁 , the potential energy, 𝐸 (R1, . . . , R𝑁 ), can be written based on the free energy of the grafted polymers (Methods).    
+
+> (a) (b) (c)
+> Figure 2. Schematic of solvent-free PGNs. (a) Polymers uniformly fill the void space for a given configuration of particles. (b) Same configuration as (a) but with an arbitrary displacement of a random particle (shown in red). (c) Displacement of a single particle creates a cascade of polymer rearrangements to minimize the free energy by reaching a uniform number density.
+
+The equilibrium polymer number density profiles are illustrated in Fig. 3a and Fig. 3b for a given configuration of PGNs with and without solvent, respectively. In the presence of solvent, chains localize near grafting sites to minimize their free energy, leaving solvent-filled gaps that effectively decouple the particles. Conversely, the strict incompressibility constraint in solvent-free conditions forces the polymers to stretch and uniformly fill regions even far away from their grafting location. This creates a highly connected network with significant polymer interpenetration, forms strong cages around the cores, and dramatically slows down the nanostructure relaxation. While a uniform density profile increases the translational entropy of the beads, it strongly suppresses the configurational entropy of the chains by restricting the number of accessible chain conformations. Since the loss of configurational entropy dominates, solvent-free PGNs have a much larger polymer free energy compared with PGNs with solvent. 41 This configurational entropic frustration is the molecular origin of slow dynamics and glassy behavior observed in solvent-free PGNs. 45,51 The manner in which the balance between translational and configurational entropy of polymer chains governs energy barrier formation is explained in depth in our previous work. 41 
+
+We initially probe the PEL by sampling high-dimensional configuration space of particles through 5000 
+
+uncorrelated snapshots of equivalent hard spheres (Methods). The potential energy of each configuration is evaluated with classical DFT, and the resulting energy distributions are demonstrated in Fig. 3c and Fig. 3d for PGNs with and without solvent, respectively. With solvent, the energy distribution is nearly Gaussian with a mild right tail due to polymer-core excluded volume interactions. A pronounced long tail appears for high energies in the absence of solvent, corresponding to the increased cost of filling large void regions. The solvent-free system exhibits a substantially larger energy variance, reflecting greater heterogeneity across the PEL. This necessary, though not sufficient, condition for a rugged landscape with deep minima is absent from the system with solvent. Increasing the core volume fraction at fixed polymer molecular weight or increasing 4the molecular weight at fixed core volume fraction reduces the heterogeneity in the PEL (Supplementary Fig. 1), owing to mitigated entropic frustration as the grafted chains are required to fill a smaller or more accessible void volume per core. 41 This hypothesis will be further tested through a detailed analysis of local structures at equilibrium. For the remainder of this study, we only focus on solvent-free conditions.               
+
+> (a) (b) −4−20246
+> Energy per particle ( kBT)
+> 025 50 75 100 125 150
+> Count
+> (c) −100 0100 200 300 400
+> Energy per particle ( kBT)
+> 050 100 150 200
+> Count (d)
+
+Figure 3. Classical DFT results for 100 PGNs with a core volume fraction of 𝜙 𝑐 = 0.1, polymer molecular weight of 
+
+𝑀 𝑤 = 5 𝑘 𝐷𝑎 , and a grafting density of 𝜎 𝑔 = 1.8 chains /𝑛𝑚 2. The normalized number density of the grafted polymers is shown across multiple planes for (a) the system with excess implicit solvent, displaying significant density fluctuations, and (b) the solvent-free system, showing a uniform density distribution. The dark blue regions represent the cores. Per particle energy distribution, shifted by the mean, for (c) the system with solvent and (d) the solvent-free system. The red vertical lines represent the standard deviation. 
+
+Graph neural network 
+
+The analysis above provides molecular-level insights into the PEL of solvent-free PGNs and soft glasses in general. However, our sampling primarily accesses high-energy configurations and does not capture local minima that govern equilibrium and near-equilibrium behavior. Probing equilibrium states requires long simulations with millions of energy evaluations which are computationally prohibitive with classical DFT. 5We train NequIP, which is an equivariant message-passing GNN, 20 on this dataset to learn the complex PEL of the system. Since only energy differences in our classical DFT are relevant, the energies are shifted by the mean and scaled by the standard deviation. Across the full range of PGN design parameters studied, the network predicts classical DFT energies with a mean absolute error (MAE) of around 0.01 𝜎 𝐸 on the test dataset, where 𝜎 𝐸 is the standard deviation of energy (Fig. 4a). This corresponds to per particle MAEs well below thermal energy scale, 𝑘 B𝑇 , relevant for structural organization (see Supplementary Fig. 2 for raw energy values). These results correspond to the optimal set of NequIP’s hyperparameters (see Methods section for the definition of these hyperparameters and the optimal values chosen in this study). A striking feature of the optimal models is the large cutoff radius required for accurate predictions. The MAE drops by more than an order of magnitude as 𝑟 cut /𝑑 increases from 2 to 6 before saturating (Fig. 4b). This implies that the effective interaction range in the system extends well beyond the immediate particle neighborhood. This is not a signature of long-range pair interactions, as direct PGN interactions require corona overlap and are therefore inherently short-ranged, but rather of many-body correlations that extend the effective interaction range. To disentangle these many-body contributions, we vary the number of message-passing layers, 𝑛 𝑙 , while holding other hyperparameters fixed. For this test, we omit nonlinear activations between message-passing layers to prevent the introduction of implicit higher-order correlations. 55 Accuracy improves monotonically with 𝑛 𝑙 up to three layers across all angular resolutions, 𝑙 max , tested (Fig. 4c). No statistically significant gains are observed beyond 𝑛 𝑙 = 3. Since each message-passing layer increments the correlation order by one in the linear regime, this convergence pinpoints the crucial effects of four-body correlations in energy predictions. In contrast, for PGNs in solvent, three-body interactions are generally considered sufficient. 37,38 We attribute these higher-order interactions to the cooperation of grafted polymers to uniformly fill the interstitial space. These higher-order correlations are strongly directional, a consequence of anisotropic local particle environments that impose preferential directions on how grafted polymers configure themselves to fill the interstitial space. For a fixed 𝑛 𝑙 (except for 𝑛 𝑙 = 1 which represents a pairwise network), the MAE decreases sharply upon switching from invariant ( 𝑙 max = 0) to equivariant ( 𝑙 max ≥ 1) networks. The data-efficiency of different network architectures further corroborates this picture. Generalization error follows the typical power-law scaling 𝜖 ∼ 𝑁 −𝑎 𝑡 with the number of training examples 𝑁 𝑡 (Fig. 4d). Equivariant networks consistently outperform invariant ones and, crucially, learn faster, reflected in larger exponents 𝑎 . Within equivariant networks, higher angular resolution continues to improve data efficiency, an effect we attribute to capturing intricate angular many-body interactions that are revealed as new data become available. An analogous acceleration in learning is observed when the number of message-passing layers is increased instead (see Supplementary Fig. 3), suggesting that matching the network architecture to the physics of the system accelerates learning. 
+
+GNN-driven Monte Carlo simulations 
+
+While retaining the DFT-level accuracy, the GNN reduces the cost of energy evaluations by four orders of magnitude, enabling long MC simulations to reach equilibrium. Fig. 5a shows the energy distribution of out-of-equilibrium configurations (used for training the GNN) and the equilibrium energies predicted by GNN-driven MC simulations (see Methods section for details on MC simulation). The equilibrium 6−2 0 2 4 6
+
+(EDF T − μ)/σ E
+
+−20246               
+
+> (EGNN  − μ)/σ E
+> φ= 0.1, σg= 1.8: MAE = 0.011
+> φ= 0.1, σg= 1.0: MAE = 0.010
+> φ= 0.2, σg= 0.8: MAE = 0.010
+> φ= 0.3, σg= 0.5: MAE = 0.009
+> φ= 0.4, σg= 0.3: MAE = 0.015
+
+(a) 10 0      
+
+> 10 1
+> MAE per particle ( kBT )
+> 2345678
+
+rcut /d 
+
+> 10 −2
+> 10 −1
+> MAE /  σE
+
+(b) 10 0    
+
+> 10 1
+> MAE per particle ( kBT )
+> 12345
+
+nl   
+
+> 10 −2
+> 10 −1
+> MAE /  σE
+> 0123
+
+lmax 
+
+(c) 10 0  
+
+> 10 1
+> MAE per particle ( kBT )
+> 10 110 210 3
+
+Nt     
+
+> 10 −2
+> 10 −1
+> MAE /  σE
+> lmax = 0: a = 0.463
+> lmax = 1: a = 0.587
+> lmax = 2: a = 0.676
+> lmax = 3: a = 0.720
+
+(d) 
+
+Figure 4. (a) Parity plot comparing GNN predictions to classical DFT energies for solvent-free PGNs across varying design parameters. The energies are shifted by the mean value, 𝜇 , and scaled by the standard deviation, 𝜎 𝐸 , for each sample. All samples have a polymer molecular weight of 𝑀 𝑤 = 5 𝑘 𝐷𝑎 , except for the sample with a grafting density of 𝜎 𝑔 = 1.0 chains /𝑛𝑚 2 which has 𝑀 𝑤 = 9 𝑘 𝐷𝑎 . (b) The energy MAE as a function of the normalized cutoff radius. In (b)-(d), the left y-axis corresponds to energy MAE of validation dataset normalized by the standard deviation of energy, and the right y-axis shows MAE per particle. (c) The energy MAE as a function of number of message-passing layers for different angular resolutions. (d) Learning curves illustrating energy MAE as a function of training set size for different angular resolutions. Tests in (b)-(d) correspond to the sample with 𝜎 𝑔 = 1.8 chains /𝑛𝑚 2.
+
+distribution lies well outside the training range. To validate out-of-distribution accuracy, we passed the GNN-predicted equilibrium configurations to the classical DFT. The GNN accurately captures the standard deviation and shape of the equilibrium energy distribution, but the predicted mean is slightly shifted relative to classical DFT predictions for such configurations, leading to a per particle MAE of 1.08 𝑘 B𝑇 . This small error (within thermal energy scale) combined with the fact that only relative energy differences govern MC acceptance, confirms reliable out-of-distribution generalization. The error decreases as the difference between training and equilibrium energies decreases, implying that the landscape becomes easier to learn (Supplementary Fig. 4) The equilibrium pair distribution function (Fig. 5b) exhibits expected trends: decreasing core volume 7fraction shifts the first peak to larger separations and strongly suppresses particle contacts. For a fixed 𝜙 𝑐 ,reducing the grafting density by increasing polymer molecular weight has little effect on peak position but significantly reduces the peak height. This arises from a milder space-filling penalty imposed on longer chains, permitting greater thermal fluctuations of the cores. At low 𝜙 𝑐 , the polymers are significantly stretched while at high 𝜙 𝑐 , the polymers are compressed in some regions. The equilibrium structures are substantially different from the out-of-equilibrium structures used for GNN training (Supplementary Fig. 5). At equilibrium, the Voronoi volume distribution is markedly narrow to accommodate a more uniform polymer stretch. By contrast, out-of-equilibrium configurations display a broad Voronoi volume distribution (Supplementary Fig. 6), particularly at low 𝜙 𝑐 , reflecting the large energetic cost of filling extensive void regions. A distinctive feature of solvent-free PGNs is evidenced in the static structure factor (Fig. 5c): long-range density fluctuations are strongly suppressed across all design parameters studied. In the monodisperse limit, each particle must exclude exactly one neighbor, making the system an incompressible single-component fluid with 𝑆 (𝑞 → 0) → 0.50,53 Polydispersity in experiments slightly raises 𝑆 (0) slightly above zero, yet it remains well below that of a hard-sphere suspension at the same core volume fraction, 51,52 confirming that the equilibrium structures are disordered hyperuniform. 52,56 The out-of-equilibrium snapshots (sampled via hard-sphere dynamics) do not show hyperuniformity as they follow Percus–Yevick approximation for hard-sphere liquids (Supplementary Fig. 5b). The nearest-neighbor distances extracted from the GNN-driven MC simulations agree closely with SAXS measurements across all core volume fractions studied (Fig. 5d). The small discrepancies can be mainly attributed to unavoidable polydispersity in particle radius, polymer molecular weight, and grafting density in the experimental samples. This agreement confirms that the GNN, despite being trained solely on out-of-equilibrium configurations, accurately predicts the equilibrium nanostructure across the full range of design parameters. 
+
+Locally favored structures 
+
+We characterize local particle environments using Steinhardt’s bond orientational order (BOO) parameters 57 
+
+and its modifications 58 (Methods). We observe no trace of crystal-like structures (Fig. 6a). This conclusion is further corroborated by MC simulations initialized from a perfect FCC lattice, which relax to the same disordered equilibrium structure as runs started from disordered configurations (Supplementary Fig. 7). Within this disordered landscape, the (𝑤 6, ¯𝑞 6) map reveals a clear signature of local icosahedral-like ordering (Fig. 6b). The five-fold symmetry of icosahedron is incompatible with long-range periodicity, and thus limits the number of icosahedral-like structures in the system. Icosahedral ordering is regarded as reference structure in amorphous materials particularly in dense hard sphere packing and hard sphere glasses, 59,60 soft jammed materials, 61,62 and dense metallic liquids and glasses 63,64 and is often linked to maximizing local density of packing and enhancing attractive interactions. 65–67 We find strong correlations between icosahedral-like structures and Voronoi volumes (Fig. 6c). Such locally dense structures are only present at equilibrium (Supplementary Fig. 8) as they provide a thermodynamically favorable state for grafted polymers. The Voronoi volume associated with an icosahedron, namely dodecahedron, is geometrically close to a sphere, 68 which is the most favorable shape for grafted polymers since it leads to uniform polymer 8−2.5 0.0 2.5 0.0 0.5 1.0 1.5 2.0 2.5     
+
+> Density - Eq.
+> 250 500 750 0.000 0.001 0.002 0.003 0.004 0.005 0.006 0.007 Density - Out of Eq.
+
+Energy per particle ( kBT )
+
+> DFT (Eq.) GNN pred. (Eq.) GNN training
+
+(a) 1.0 1.5 2.0 2.5 3.0 3.5 
+
+r /d                
+
+> 01234
+> g(r )
+> φ= 0.1, σg= 1.8
+> φ= 0.1, σg= 1.0
+> φ= 0.2, σg= 0.8
+> φ= 0.3, σg= 0.5
+> φ= 0.4, σg= 0.3
+
+(b) 1 2 3 4 5 6 7 8 9 10 
+
+qR    
+
+> 0.0 0.5 1.0 1.5 2.0 2.5
+> S(q) 0.0 0.5 1.0 1.5 10 −3
+> 10 −2
+> 10 −1
+
+(c) 0.10 0.15 0.20 0.25 0.30 0.35 0.40 
+
+φc 
+
+> 1.2 1.4 1.6 1.8
+> rnn /d
+> Ref. 46 Ref. 52 Ref. 43 Current work
+
+(d) 
+
+Figure 5. (a) Per particle energy distribution for out-of-equilibrium configurations (sampled by hard-sphere dynamics and used for training GNN) and equilibrium configurations evaluated by GNN and classical DFT for the sample with 𝜙 𝑐 = 0.1 and 𝜎 𝑔 = 1.8 chains /𝑛𝑚 2. (b) Equilibrium pair distribution function and (c) static structure factor for solvent-free PGNs with different design parameters. (d) Nearest neighbors distance normalized by particle diameter predicted by GNN-driven MC simulations compared with experimental measurements for solvent-free PGNs with polymer molecular weight of 𝑀 𝑤 = 5 𝑘 𝐷𝑎 .
+
+stretches. The icosahedral ordering appears only at low 𝜙 𝑐 and high grafting densities where the system shows a glassy behavior. 
+
+Discussion 
+
+We demonstrated that many-body interactions in amorphous materials can be accurately captured by NequIP, an equivariant GNN. As a model soft glass, we studied solvent-free PGNs in which grafted polymers uniformly fill the interstitial space giving rise to angular-dependent many-body interactions between the particles. We found that the range of energies in the PEL can be tuned through the design parameters such as core volume fraction, grafting density, and polymer molecular weight. GNN-driven MC simulations reproduced previously reported structural features, including hyperuniformity, suppression of particle contacts, and nearest-neighbor 90.00 0.05 0.10 0.15 0.20       
+
+> ¯q4
+> 0.0 0.1 0.2 0.3 0.4 0.5 0.6
+> ¯q6 FCC HCP BCC
+> 10 0
+> 10 1
+> 10 2
+> Count (a) −0.04 −0.02 0.00
+> w6
+> 0.0 0.1 0.2 0.3 0.4 0.5 0.6
+> ¯q6
+> FCC Ico
+> 10 0
+> 10 1
+> 10 2
+> Count (b) −0.1 0.0 0.1
+> ˆw6
+> 02468
+> Probability density
+> 0.96 0.97 0.98 0.99 1.00 1.01
+> VV /〈VV 〉(c)
+
+Figure 6. Distribution of BOO parameters characterizing local particle configurations in solvent-free PGNs with 
+
+𝜙 𝑐 = 0.1, 𝜎 𝑔 = 1.8 chains /𝑛𝑚 2, and 𝑀 𝑤 = 5 𝑘 𝐷𝑎 . The characteristic BOO values associated with perfect reference structures are marked on each map. (a) The ( ¯𝑞 4, ¯𝑞 6) plane and (b) the (𝑤 6, ¯𝑞 6) plane. (c) Distribution of normalized 
+
+ˆ𝑤 6 and the Voronoi volumes of the structures in each ˆ𝑤 6 bin normalized by the average Voronoi volume. The dashed vertical line represents ˆ𝑤 6 of a perfect icosahedron. 
+
+distances, and additionally revealed locally favored structures at equilibrium. Previous studies showed that low core volume fraction and high grafting densities produce large activation energies 41 and strong cages around the particles 52,69 due to greater degree of polymer entropic frustration. We found that this leads to a greatly heterogeneous PEL and appearance of local icosahedral ordering at equilibrium. Establishing a quantitative connection between PEL topology, distribution of energy barriers, and local structural motifs is now computationally tractable given the dramatically reduced cost of energy evaluation with MLIPs. We attributed the appearance of nearly icosahedral structures to the Voronoi volume. However, at low core volume fractions, the particles are also expected to develop effective attractions to relieve entropic frustration. Disentangling the role of Voronoi geometry from that of effective attraction remains an open question, which could be addressed by constructing a reference Lennard-Jones fluid with the same activation energy to isolate the geometric contribution. A particularly striking finding is that the GNN predicted equilibrium energies with DFT-level accuracy and recovered equilibrium structures in agreement with experiments, despite being trained only on out-of-equilibrium data with high-energy configurations. This robust out-of-distribution generalization implies the existence of hidden structural features, possibly shared between equilibrium and out-of-equilibrium structures, that the network extracts during training. These structural features extend beyond pair distribution functions and even local bond order parameters studied here. Identifying and interpreting these hidden features could motivate new physics-based order parameters and deepen our understanding of the structure–dynamics relationship in glassy systems. 70,71 More broadly, this result suggests a practical workflow: train on accessible high-temperature data and deploy at conditions that would otherwise be computationally prohibitive. Our results demonstrate that recent advances in MLIPs can be readily translated to colloidal and soft-matter systems. Prior machine learning approaches in these systems have largely been restricted to low-dimensional training data involving only two- and three-body potential of mean forces. 35,38,72–75 Such invariant approaches typically rely on hand-crafted descriptors that demand large training sets and generalize poorly to unseen conditions. Furthermore, the exceptional accuracy and data-efficiency of equivariant models show great promise in inverse design of amorphous materials with targeted properties and structures, particularly when 10 many-body interactions cannot be neglected. Such frameworks can be further extended to enhance the understanding and control of colloidal self-assembly. 76 
+
+Methods 
+
+Classical DFT 
+
+The potential energy of a given particle configuration, 𝐸 (R1, . . . , R𝑁 ), normalized by the Boltzmann constant, 
+
+𝑘 B, and temperature, 𝑇 , can be written as follows: 
+
+𝐸 (R1, . . . , R𝑁 )
+
+𝑘 B𝑇 =
+
+## ∫
+
+> 𝑉
+
+## ∫
+
+> 𝐴
+
+"
+
+𝑃 (r, r0)
+
+h
+
+ln 
+
+
+
+𝑃 (r, r0)Λ3
+
+> 𝑏
+
+
+
+− 1
+
+i
+
++ 𝑃 (r, r0) |r − r0 |2
+
+4𝑅 2
+
+> 𝑔
+
+#
+
+𝑑 r0 𝑑 r
+
++ 𝛼 
+
+2
+
+## ∫
+
+> 𝑉
+
+(𝑛 (r) − 𝑛 0)2 𝑑 r.
+
+(1) We model the polymers as bead-springs attached to the surface of the cores, where 𝑃 (r, r0) represents the probability density of finding a polymer bead position r given that it is grafted at a position r0. Within the first integral, the first term captures the translational entropy of the polymers via the ideal gas Helmholtz free energy of the beads, where Λ𝑏 is the thermal de Broglie wavelength of the beads, 𝑉 is the volume of the system, and 𝐴 is the surface area of all the cores. The second term models the configurational entropy of polymer chains by linear and massless springs with energy 𝐸 spring = 12 𝜉𝑥 2 where 𝜉 = 𝑘 𝐵 𝑇 
+
+> 2𝑅 2
+> 𝑔
+
+is the spring constant, 𝑥 is the displacement of the spring from its rest length of zero, and 𝑅 𝑔 is the radius of gyration of an ideal, unattached linear chain. The last term imposes the incompressibility constraint as a free energy penalty based on an incompressibility parameter, 𝛼 . In the limit of 𝛼 → ∞ , there is a large free energy penalty for any number density, 𝑛 (r), deviations from the mean value, 𝑛 0. This corresponds to the solvent-free case, whereas 
+
+𝛼 = 0 can be viewed as having excess implicit, theta solvent. The specific form of the energy penalty is derived from the variations in free energy of a Lennard-Jones liquid of monomer beads, where 𝛼 is a function of the ratio of the inter-bead potential to the thermal energy. 53,77 The physical implications of different 
+
+𝛼 values are explained in our previous work. 41 Here, we mainly focus on the incompressible solvent-free limit ( 𝛼 → ∞ ). The incompressibility constraint effectively replaces excluded volume considerations of monomers in solvent-swollen polymer brushes. 78,79 The excluded volume interactions between the cores and the polymers were enforced by modeling the core impenetrability via a soft potential which makes the integrands vanish inside the cores. For a given configuration of cores, the probability density of the grafted polymers at equilibrium is obtained by minimizing the free energy: 
+
+𝛿𝐸 (R1, . . . , R𝑁 )
+
+𝛿𝑃 = 0 → 𝑃 (r, r0) = 𝐾 (r0) exp 
+
+"
+
+− |r − r0 |2
+
+4𝑅 2
+
+> 𝑔
+
+#
+
+exp [− 𝛼 (𝑛 (r) − 𝑛 0)] (2) 11 where 𝐾 (r0) is a normalization coefficient determined by the grafting density, 𝜎 𝑔 , as follows: 
+
+𝜎 𝑔 =
+
+∫
+
+> 𝑉
+
+𝑃 (r, r0) 𝑑 r = 𝑁 𝑔 
+
+𝐴 𝑐 
+
+. (3) Here, 𝑁 𝑔 is the number of grafted polymers per particle, and 𝐴 𝑐 is the surface area of a single core. The mean number density is defined as 𝑛 0 = 𝑁 𝑁 𝑔  
+
+> 𝑉 void
+
+, where 𝑉 void represents the void volume in the system. The number density, 𝑛 (r), of the grafted polymers is given by: 
+
+𝑛 (r) =
+
+∫
+
+> 𝐴
+
+𝑃 (r, r0) 𝑑 r0. (4) We simulated a system of 𝑁 = 100 monodisperse, solvent-free PGNs and set the core diameter, 𝑑 , as the unit of length. To calculate the potential energy, 𝐸 (R1, . . . , R𝑁 ), for each particle configuration, we must determine the probability and number density of the polymers at every point in the space. This requires solving a highly coupled system of equations (Eqs. (2) to (4) ). Naively, these coupled volume and area integrals lead to a quadratic computational scaling with the number of particles. We introduced local neighborhood cutoffs around each particle. Restricting the volume integrals exclusively to these local regions results in linear scaling with the number of particles. The size of these local regions was chosen to be sufficiently larger than typical interparticle distances such that polymer stretches beyond this distance carry negligible probability. This cutoff only constrains the reach of individual chains and does not restrict the range of many-body interactions. To solve for 𝛼 → ∞ , we employed an iterative scheme detailed in our previous work, 41 gradually increasing 𝛼 while using the previous solution as an initial guess. Numerical integration was performed using a fourth-order accurate, six-point quadrature rule 80 for the volume integrals and Lebedev quadrature rule 81 for the surface integrals over the cores. 
+
+Hard-sphere configuration sampling of the PEL 
+
+We randomly sampled the configurational space of 𝑁 nanoparticles at each core volume fraction using the LAMMPS package. Particles were placed at random positions, and initial overlaps were eliminated by applying a damped harmonic repulsive potential. The system was then evolved under hard-sphere-like dynamics at finite temperature, with a harmonic spring potential preventing particle contact. Snapshots of particle positions were collected at large regular intervals such that the mean squared displacement (MSD) of the particles in successive snapshots exceeded the square of the simulation box size. The potential energy of each snapshot was then calculated with our classical DFT, producing a dataset of configuration–energy pairs used to train the GNN. Since configurations are sampled without energy bias, the dataset spans a broad and diverse region of the PEL, including high-energy configurations that would be inaccessible in equilibrium sampling. 
+
+NequIP architecture 
+
+In NequIP, nodes within a cutoff radius, 𝑟 cut , are connected by an edge. Node features are updated via message-passing as a tensor product of learnable radial functions (parameterized by a multilayer perceptron) 12 and spherical harmonics to impose equivariance. The maximum degree of spherical harmonics, 𝑙 max , sets the angular resolution. 20 Isotropic distance-dependent potentials are well described by 𝑙 max = 0 (invariant representation), whereas strongly anisotropic interactions require higher 𝑙 max . Many-body correlations are captured through 𝑛 𝑙 successive message-passing layers, leading to chain-like propagation of information over an effective receptive field of 𝑛 𝑙 𝑟 cut . A single message-passing layer captures only pairwise interactions while each additional layer raises the correlation order by one. However, this breaks down when using nonlinear activations and readout as such nonlinearities generate implicit higher-order terms. 55 
+
+Hyperparameters were optimized independently for each set of PGN design parameters using an extensive sweep monitored via Weights & Biases. 82 We used NequIP version 0.13.0 and trained on 4, 000 configurations with 500 held out for validation and 500 for testing. For learning curves, we fixed the validation and test sets and only added new frames to the existing training dataset. For all samples, the optimal angular resolution and number of message-passing layers are 𝑙 max = 3 and 𝑛 𝑙 = 3, respectively. The optimal cutoff radius scales with interparticle spacing, 𝑟 cut ∼ 𝜙 −1/3 
+
+> 𝑐
+
+, and is equal to 𝑟 cut /𝑑 = 6 for 𝜙 𝑐 = 0.1. All remaining hyperparameters were set to the recommended defaults in https://github.com/mir-group/nequip as they produced no significant effect on validation accuracy. In Figs. 4b–4d, the hyperparameter under investigation is varied while all others are held at their optimal values. Further details of the equivariant architecture and NequIP hyperparameters can be found in References 20,55,83–85 . All models were trained using single-GPU training on an NVIDIA A100 GPU with float32 precision. 
+
+Monte Carlo simulations 
+
+We performed Markov Chain Monte Carlo (MCMC) sampling in the canonical ensemble. At each step, a particle is selected at random and displaced by a random vector. The energy of the proposed configuration was obtained by the GNN, and the moves were accepted or rejected according to Metropolis criterion. Moves leading to core overlaps were rejected immediately. The maximum displacement magnitude in each Cartesian direction was tuned to achieve an acceptance ratio of around 30% . To verify equilibration, we started the simulations from four uncorrelated disordered configurations and a FCC configuration, and monitored the evolution of the energy and structure. All runs converged to the same structure with a mean per-particle energy difference of less than 𝑘 B𝑇 between any two replica. Systems at lower 𝜙 𝑐 required more MC cycles than those at higher 𝜙 𝑐 , consistent with the deeper energy barriers at those conditions. After equilibration, configurations were collected every 20,000 MC moves, an interval confirmed to exceed the energy autocorrelation time, yielding 2,000 uncorrelated snapshots per sample for analysis. All calculations were performed on an NVIDIA A100 GPU. 
+
+Structure analysis 
+
+We analyzed the structure using Freud library. 86 For each particle 𝑖 , the complex bond-order vector is defined as 57 :
+
+𝑞 𝑙𝑚 (𝑖 ) = 1
+
+𝑁 𝑏 (𝑖 ) 
+
+> 𝑁 𝑏 (𝑖 )
+
+∑︁ 
+
+> 𝑗 =1
+
+𝑌 𝑙𝑚 (ˆr𝑖 𝑗 ) (5) 13 where 𝑁 𝑏 (𝑖 ) is the number of nearest neighbors of particle 𝑖 , 𝑌 𝑙𝑚 (r𝑖 𝑗 ) are spherical harmonics of degree 𝑙 and order 𝑚 = −𝑙, . . . , 𝑙 , evaluated along the unit bond vector ˆr𝑖 𝑗 . The rotationally invariant Steinhardt order parameters are defined as 57 :
+
+𝑞 𝑙 =
+
+vut 4𝜋 
+
+2𝑙 + 1
+
+> 𝑙
+
+∑︁ 
+
+> 𝑚 =−𝑙
+
+|𝑞 𝑙𝑚 |2, (6) 
+
+𝑤 𝑙 =∑︁ 
+
+> 𝑚 1+𝑚 2+𝑚 3=0
+
+𝑙 𝑙 𝑙 𝑚 1 𝑚 2 𝑚 3
+
+!
+
+𝑞 𝑙𝑚 1 𝑞 𝑙𝑚 2 𝑞 𝑙𝑚 3 , (7) 
+
+ˆ𝑤 𝑙 = 𝑤 𝑙 
+
+> 𝑙
+
+∑︁ 
+
+> 𝑚 =−𝑙
+
+|𝑞 𝑙𝑚 |2
+
+! − 32
+
+, (8) where the bracketed symbol in Eq. (7) is the Wigner 3 𝑗 symbol. To improve sensitivity to crystalline ordering, we use the neighbor-averaged order parameters that incorporate second-shell information: 58 
+
+¯𝑞 𝑙𝑚 (𝑖 ) = 1
+
+𝑁 𝑏 (𝑖 ) + 1
+
+©«
+
+𝑞 𝑙𝑚 (𝑖 ) +  
+
+> 𝑁 𝑏 (𝑖 )
+
+∑︁ 
+
+> 𝑗 =0
+
+𝑞 𝑙𝑚 ( 𝑗 )ª®¬
+
+, (9) where ¯𝑞 𝑙 (𝑖 ) is obtained analogously to Eq. (6) . The pair ( ¯𝑞 4, ¯𝑞 6) discriminates between FCC, HCP, and BCC crystal structures, while 𝑤 6 and its normalized form ˆ𝑤 6 are sensitive indicators of local icosahedral-like order. 60 Nearest neighbors are identified as particles that share a Voronoi face with particle 𝑖 .14 Supplementary Information 
+
+PGN design parameters 
+
+We assume that the space is filled either by the cores or the grafted polymers. Therefore, the core volume fraction, polymer molecular weight, and grafting density are related through the space-filling constraint. For a given core volume fraction, 𝜙 𝑐 , polymer molecular weight, 𝑀 𝑤 , and polymer mass density, 𝜌 𝑝 , the number of grafted polymers per particle, 𝑁 𝑔 , is given by: 
+
+𝑁 𝑔 = (1 − 𝜙 𝑐 )𝑉 core 𝜌 𝑝 𝑁 𝐴 
+
+𝜙 𝑐 𝑀 𝑤 
+
+(S1) where 𝑉 core is the volume of a single core, 𝑁 𝐴 is Avogadro’s number, 1− 𝜙 𝑐  
+
+> 𝜙 𝑐
+
+𝑉 core represents the void volume per core, and 𝑀 𝑤   
+
+> 𝜌 𝑝 𝑁 𝐴
+
+represents the volume per polymer molecule. Consistent with previous experiments, we choose polyethylene glycol (PEG) as the grafted polymer. Table 1 lists the design parameters of solvent-free PGNs chosen in this study. 
+
+Supplementary Table 1. Solvent-free PGN design parameters 
+
+Parameter Value Core particle diameter, 𝑑 10 𝑛𝑚 
+
+Core particle volume fraction 0.1 − 0.4
+
+Polymer molecular weight, 𝑀 𝑤 5 and 9 𝑘 𝐷𝑎 
+
+Ratio of polymer radius of gyration to particle diameter, 𝑅 𝑔 /𝑑 0.27 and 0.37 
+
+Polymer mass density, 𝜌 𝑝 1 𝑔 /𝑐𝑚 3
+
+Grafting density, 𝜎 𝑔 0.3 − 1.8 chains /𝑛𝑚 2
+
+15 −50 0 50 100 
+
+Energy per particle ( kBT )
+
+> 050 100 150 200
+> Count
+
+(a) −20 0 20 40 60 
+
+Energy per particle ( kBT ) 
+
+> 050 100 150 200
+> Count
+
+(b) −5 0 5 10 15 
+
+Energy per particle ( kBT )
+
+> 050 100 150
+> Count
+
+(c) −2 0 2 4
+
+Energy per particle ( kBT ) 
+
+> 025 50 75 100 125 150
+> Count
+
+(d) 
+
+Supplementary Figure 1. Per particle energy distribution, shifted by the mean, for solvent-free PGNs with (a) 
+
+𝜙 𝑐 = 0.1, 𝜎 𝑔 = 1.0 chains /𝑛𝑚 2, and 𝑀 𝑤 = 9 𝑘 𝐷𝑎 , (b) 𝜙 𝑐 = 0.2, 𝜎 𝑔 = 0.8 chains /𝑛𝑚 2, and 𝑀 𝑤 = 5 𝑘 𝐷𝑎 , (c) 𝜙 𝑐 = 0.3,
+
+𝜎 𝑔 = 0.5 chains /𝑛𝑚 2, and 𝑀 𝑤 = 5 𝑘 𝐷𝑎 , and (d) 𝜙 𝑐 = 0.4, 𝜎 𝑔 = 0.3 chains /𝑛𝑚 2, and 𝑀 𝑤 = 5 𝑘 𝐷𝑎 . The red vertical lines represent the standard deviation. 
+
+16 3500 3600 3700 3800 3900 4000 
+
+EDF T (kBT )
+
+3500 3600 3700 3800 3900 4000 
+
+> EGNN  (kBT )
+> MAE: 0.711
+
+(a) 1350 1400 1450 
+
+EDF T (kBT )
+
+1325 1350 1375 1400 1425 1450  
+
+> EGNN  (kBT )
+> MAE: 0.171
+
+(b) 1260 1280 1300 1320 
+
+EDF T (kBT )
+
+1260 1280 1300 1320 
+
+> EGNN  (kBT )
+> MAE: 0.114
+
+(c) 645 650 655 660 
+
+EDF T (kBT )
+
+645 650 655 660  
+
+> EGNN  (kBT )
+> MAE: 0.027
+
+(d) 375 376 377 378 379 380 381 
+
+EDF T (kBT )
+
+375 376 377 378 379 380 381 
+
+> EGNN  (kBT )
+> MAE: 0.014
+
+(e) 
+
+Supplementary Figure 2. Parity plots comparing per particle GNN energies to per particle classical DFT energies for solvent-free PGNs with (a) 𝜙 𝑐 = 0.1 and 𝜎 𝑔 = 1.8 chains /𝑛𝑚 2, (b) 𝜙 𝑐 = 0.1 and 𝜎 𝑔 = 1.0 chains /𝑛𝑚 2, (c) 𝜙 𝑐 = 0.2
+
+and 𝜎 𝑔 = 0.8 chains /𝑛𝑚 2, (d) 𝜙 𝑐 = 0.3 and 𝜎 𝑔 = 0.5 chains /𝑛𝑚 2, and (e) 𝜙 𝑐 = 0.4 and 𝜎 𝑔 = 0.3 chains /𝑛𝑚 2.
+
+17 10 0
+
+10 1
+
+> MAE per particle ( kBT )
+
+10 1 10 2 10 3
+
+Nt
+
+10 −2
+
+10 −1
+
+> MAE /  σE
+
+nl = 1: a = 0.137 
+
+nl = 2: a = 0.561 
+
+nl = 3: a = 0.671 Supplementary Figure 3. Learning curve for different number of message-passing layers. −3 0 30.0 0.5 1.0 1.5 2.0     
+
+> Density - Eq.
+> 50 100 0.00 0.01 0.02 0.03 0.04 Density - Out of Eq. Energy per particle ( kBT)
+> DFT (Eq.) GNN pred. (Eq.) GNN training
+
+(a) −2 0 20.0 0.5 1.0 1.5 2.0 2.5 3.0       
+
+> Density - Eq.
+> 10 20 30 0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14 Density - Out of Eq. Energy per particle ( kBT)
+
+(b) 0 2 4 6 8 10    
+
+> Energy per particle ( kBT)
+> 01234
+> Density - Eq.
+> 0.0 0.1 0.2 0.3 0.4 Density - HS
+
+(c) 
+
+Supplementary Figure 4. Per particle energy distribution for out-of-equilibrium configurations (sampled by hard-sphere dynamics and used for training GNN) and equilibrium configurations evaluated by GNN and classical DFT for the sample with (a) 𝜙 𝑐 = 0.2, 𝜎 𝑔 = 0.8 chains /𝑛𝑚 2, and 𝑀 𝑤 = 5 𝑘 𝐷𝑎 , (b) 𝜙 𝑐 = 0.3, 𝜎 𝑔 = 0.5 chains /𝑛𝑚 2, and 𝑀 𝑤 = 5 𝑘 𝐷𝑎 , and (c) 𝜙 𝑐 = 0.4, 𝜎 𝑔 = 0.3 chains /𝑛𝑚 2, and 𝑀 𝑤 = 5 𝑘 𝐷𝑎 .1.0 1.5 2.0 2.5 
+
+r /d
+
+0123
+
+> g(r )
+
+φ = 0.1 
+
+φ = 0.2 
+
+φ = 0.3 
+
+φ = 0.4 
+
+(a) 0 2 4 6 8 10 
+
+qR 
+
+0.0 0.5 1.0 1.5 2.0 
+
+> S(q)
+
+φ = 0.1 
+
+φ = 0.2 
+
+φ = 0.3 
+
+φ = 0.4 (b) 
+
+Supplementary Figure 5. (a) Pair distribution function and (b) static structure factor for out-of-equilibrium configurations sampled via hard-sphere dynamics. The dashed lines in (b) are Percus–Yevick approximation for hard-sphere liquids. 
+
+18 0.50 0.75 1.00 1.25 1.50 1.75 
+
+VV /〈VV 〉    
+
+> PV
+> φ= 0.1
+> φ= 0.2
+> φ= 0.3
+> φ= 0.4
+
+(a) 0.8 0.9 1.0 1.1 1.2 
+
+VV /〈VV 〉                
+
+> PV
+> φ= 0.1, σg= 1.8
+> φ= 0.1, σg= 1.0
+> φ= 0.2, σg= 0.8
+> φ= 0.3, σg= 0.5
+> φ= 0.4, σg= 0.3
+
+(b) 
+
+Supplementary Figure 6. The Voronoi volume distribution normalized by the average Voronoi volume for (a) out-of-equilibrium and (b) equilibrium configurations at different PGN design parameters. 0.0 0.5 1.0 1.5 2.0 2.5 3.0 
+
+r /d
+
+0123
+
+> g(r )
+> IC: FCC IC: HS
+
+Supplementary Figure 7. The equilibrium pair distribution function for solvent-free PGNs with 𝜙 𝑐 = 0.2 and 
+
+𝜎 𝑔 = 0.8 chains /𝑛𝑚 2 resulting from MC simulations starting from hard-sphere sampled configurations vs FCC arrangement of cores. 
+
+19 −0.1 0.0 0.1 
+
+ˆw6
+
+> 0246810
+> Probability Density
+> HS sampling Equilibrium
+
+Supplementary Figure 8. The Steinhardt bond order parameter ˆ𝑤 6 for solvent-free PGNs with 𝜙 𝑐 = 0.1 and 
+
+𝜎 𝑔 = 1.8 chains /𝑛𝑚 2 at equilibrium vs that for the structures sampled via hard-sphere dynamics at the same core volume fraction. The out-of-equilibrium structures show no local icosahedral ordering. 
+
+20 References 
+
+[1] Federico Battiston, Enrico Amico, Alain Barrat, Ginestra Bianconi, Guilherme Ferraz de Arruda, Benedetta Franceschiello, Iacopo Iacopini, Sonia Kéfi, Vito Latora, Yamir Moreno, et al. The physics of higher-order interactions in complex systems. Nature physics , 17(10):1093–1098, 2021. [2] Iacopo Iacopini, Giovanni Petri, Alain Barrat, and Vito Latora. Simplicial models of social contagion. Nature communications , 10(1):2485, 2019. [3] Jacopo Grilli, György Barabás, Matthew J Michalska-Smith, and Stefano Allesina. Higher-order interactions stabilize dynamics in competitive network models. Nature , 548(7666):210–213, 2017. [4] Jonathan M Levine, Jordi Bascompte, Peter B Adler, and Stefano Allesina. Beyond pairwise mechanisms of species coexistence in complex communities. Nature , 546(7656):56–64, 2017. [5] Jason W. Merrill, Sunil K. Sainis, and Eric R. Dufresne. Many-body electrostatic forces between colloidal particles at vanishing ionic strength. Phys. Rev. Lett. , 103:138301, Sep 2009. [6] Michael A Boles and Dmitri V Talapin. Many-body effects in nanocrystal superlattices: departure from sphere packing explains stability of binary phases. Journal of the American Chemical Society , 137(13):4494–4502, 2015. [7] Wenlong Cheng, Michael J Campolongo, Judy J Cha, Shawn J Tan, Christopher C Umbach, David A Muller, and Dan Luo. Free-standing nanoparticle superlattice sheets controlled by dna. Nature materials , 8(6):519–525, 2009. [8] YQ Cheng, E Ma, and HW Sheng. Atomic level structure in multicomponent bulk metallic glass. Physical review letters , 102(24):245501, 2009. [9] Reinhard Höhler and Sylvie Cohen-Addad. Many-body interactions in soft jammed materials. Soft matter ,13(7):1371–1383, 2017. [10] Dapeng Bi, JH Lopez, Jennifer M Schwarz, and M Lisa Manning. A density-independent rigidity transition in biological tissues. Nature Physics , 11(12):1074–1079, 2015. [11] Sandip De, Bastian Schaefer, Ali Sadeghi, Michael Sicher, DG Kanhere, and Stefan Goedecker. Relation between the dynamics of glassy clusters and characteristic features of their energy landscape. Physical Review Letters ,112(8):083401, 2014. [12] Hajime Tanaka, Hua Tong, Rui Shi, and John Russo. Revealing key structural features hidden in liquids and glasses. Nature Reviews Physics , 1(5):333–348, 2019. [13] Haoyu Li, Hongyi Xiao, Takeshi Egami, and Yue Fan. Infinitely rugged intra-cage potential energy landscape in metallic glasses caused by many-body interaction. Materials Today Physics , 49:101582, 2024. [14] Jörg Behler and Michele Parrinello. Generalized neural-network representation of high-dimensional potential-energy surfaces. Physical review letters , 98(14):146401, 2007. [15] Albert P Bartók, Risi Kondor, and Gábor Csányi. On representing chemical environments. Physical Review B—Condensed Matter and Materials Physics , 87(18):184115, 2013. [16] Ralf Drautz. Atomic cluster expansion for accurate and transferable interatomic potentials. Physical Review B ,99(1):014104, 2019. 
+
+21 [17] Felix Musil, Andrea Grisafi, Albert P Bartók, Christoph Ortner, Gábor Csányi, and Michele Ceriotti. Physics-inspired structural representations for molecules and materials. Chemical Reviews , 121(16):9759–9815, 2021. [18] Kristof T Schütt, Huziel E Sauceda, P-J Kindermans, Alexandre Tkatchenko, and K-R Müller. Schnet–a deep learning architecture for molecules and materials. The Journal of chemical physics , 148(24), 2018. [19] Ilyes Batatia, David P Kovacs, Gregor Simm, Christoph Ortner, and Gábor Csányi. Mace: Higher order equivariant message passing neural networks for fast and accurate force fields. Advances in neural information processing systems , 35:11423–11436, 2022. [20] Simon Batzner, Albert Musaelian, Lixin Sun, Mario Geiger, Jonathan P Mailoa, Mordechai Kornbluth, Nicola Molinari, Tess E Smidt, and Boris Kozinsky. E (3)-equivariant graph neural networks for data-efficient and accurate interatomic potentials. Nature communications , 13(1):2453, 2022. [21] Albert Musaelian, Simon Batzner, Anders Johansson, Lixin Sun, Cameron J Owen, Mordechai Kornbluth, and Boris Kozinsky. Learning local equivariant representations for large-scale atomistic dynamics. Nature Communications , 14(1):579, 2023. [22] Martin Goldstein. Viscous liquids and the glass transition: a potential energy barrier picture. The Journal of Chemical Physics , 51(9):3728–3739, 1969. [23] Burkhard Doliwa and Andreas Heuer. What does the potential energy landscape tell us about the dynamics<? format?> of supercooled liquids and glasses? Physical review letters , 91(23):235501, 2003. [24] Pablo G Debenedetti and Frank H Stillinger. Supercooled liquids and the glass transition. Nature , 410(6825):259– 267, 2001. [25] Yoshihiko Nishikawa, Misaki Ozawa, Atsushi Ikeda, Pinaki Chaudhuri, and Ludovic Berthier. Relaxation dynamics in the energy landscape of glass-forming liquids. Physical Review X , 12(2):021001, 2022. [26] Ludovic Berthier and David R Reichman. Modern computational studies of the glass transition. Nature Reviews Physics , 5(2):102–116, 2023. [27] Massimo Pica Ciamarra, Wencheng Ji, and Matthieu Wyart. Local vs. cooperative: Unraveling glass transition mechanisms with seer. Proceedings of the National Academy of Sciences , 121(22):e2400611121, 2024. [28] Yue Fan, Takuya Iwashita, and Takeshi Egami. How thermally activated deformation starts in metallic glass. 
+
+Nature communications , 5(1):5083, 2014. [29] Kumpei Shiraishi, Hideyuki Mizuno, and Atsushi Ikeda. Johari–goldstein 𝛽 relaxation in glassy dynamics originates from two-scale energy landscape. Proceedings of the National Academy of Sciences , 120(14):e2215153120, 2023. [30] Wencheng Ji, Massimo Pica Ciamarra, and Matthieu Wyart. The role of excitations in supercooled liquids: Density, geometry, and relaxation dynamics. Proceedings of the National Academy of Sciences , 122(11):e2416800122, 2025. [31] Rui Zhao, Shucheng Wang, Zhuangzhuang Kong, Yunlei Xu, Kuan Fu, Ping Peng, and Cuilan Wu. Development of a neuroevolution machine learning potential of pd-cu-ni-p alloys. Materials & Design , 231:112012, 2023. 
+
+22 [32] Silvia Bonfanti, Ralf Busch, Jesper Byggmästar, Jeppe C Dyre, Jürgen Eckert, Spencer Fajardo, Michael L Falk, Isabella Gallino, Jamie J Kruzic, Jiayin Lu, et al. Recent advances in metallic glasses. arXiv preprint arXiv:2512.16590 , 2025. [33] Pinar Akcora, Hongjun Liu, Sanat K Kumar, Joseph Moll, Yu Li, Brian C Benicewicz, Linda S Schadler, Devrim Acehan, Athanassios Z Panagiotopoulos, Victor Pryamitsyn, et al. Anisotropic self-assembly of spherical polymer-grafted nanoparticles. Nature materials , 8(4):354–359, 2009. [34] Sanat K Kumar, Nicolas Jouault, Brian Benicewicz, and Tony Neely. Nanocomposites with polymer grafted nanoparticles. Macromolecules , 46(9):3199–3214, 2013. [35] Melody Yiyuan Zhang, Shih-Kuang Alex Lee, Sharon C Glotzer, and Rebecca K Lindsey. A generalized machine-learning framework for developing alchemical many-body interaction models for polymer-grafted nanoparticles. 
+
+Journal of Chemical Theory and Computation , 21(19):9853–9867, 2025. [36] Victor Pryamtisyn, Venkat Ganesan, Athanassios Z Panagiotopoulos, Hongjun Liu, and Sanat K Kumar. Modeling the anisotropic self-assembly of spherical polymer-grafted nanoparticles. The Journal of chemical physics , 131(22), 2009. [37] Tsung-Yeh Tang and Gaurav Arya. Anisotropic three-particle interactions between spherical polymer-grafted nanoparticles in a polymer matrix. Macromolecules , 50(3):1167–1183, 2017. [38] Yilong Zhou, Sigbjørn Løland Bore, Andrea R Tao, Francesco Paesani, and Gaurav Arya. Many-body potential for simulating the self-assembly of polymer-grafted nanoparticles in a polymer matrix. npj Computational Materials ,9(1):224, 2023. [39] Alexandros Chremos and Athanassios Z Panagiotopoulos. Structural transitions of solvent-free oligomer-grafted nanoparticles. Physical review letters , 107(10):105503, 2011. [40] Alexandros Chremos and Jack F Douglas. Self-assembly of polymer-grafted nanoparticles in solvent-free conditions. Soft Matter , 12(47):9527–9537, 2016. [41] Mehryar Jannesari Ghomsheh, Anubhab Roy, Donald L Koch, and Sarah Hormozi. Linking the rheology of thermal amorphous materials to molecular-scale physics. Journal of Fluid Mechanics , 1027:A32, 2026. [42] Praveen Agarwal and Lynden A Archer. Strain-accelerated dynamics of soft colloidal glasses. Physical Review E—Statistical, Nonlinear, and Soft Matter Physics , 83(4):041402, 2011. [43] Xiaotun Liu, Brooks A Abel, Qing Zhao, Shuke Li, Snehashis Choudhury, Jingxu Zheng, and Lynden A Archer. Microscopic origins of caging and equilibration of self-suspended hairy nanoparticles. Macromolecules ,52(21):8187–8196, 2019. [44] Praveen Agarwal, Haibo Qi, and Lynden A Archer. The ages in a self-suspended nanoparticle liquid. Nano letters ,10(1):111–115, 2010. [45] Praveen Agarwal, Sung A Kim, and Lynden A Archer. Crowded, confined, and frustrated: dynamics of molecules tethered to nanoparticles. Physical review letters , 109(25):258301, 2012. [46] Snehashis Choudhury, Akanksha Agrawal, Sung A Kim, and Lynden A Archer. Self-suspended suspensions of covalently grafted hairy nanoparticles. Langmuir , 31(10):3222–3231, 2015. 
+
+23 [47] Samanvaya Srivastava, Praveen Agarwal, Rahul Mangal, Donald L Koch, Suresh Narayanan, and Lynden A Archer. Hyperdiffusive dynamics in newtonian nanoparticle fluids. ACS Macro Letters , 4(10):1149–1153, 2015. [48] Yu Ho Wen, Jennifer L Schaefer, and Lynden A Archer. Dynamics and rheology of soft colloidal glasses. ACS Macro Letters , 4(1):119–123, 2015. [49] Daniele Parisi, Eileen Buenning, Nikolaos Kalafatakis, Leo Gury, Brian C Benicewicz, Mario Gauthier, Michel Cloitre, Michael Rubinstein, Sanat K Kumar, and Dimitris Vlassopoulos. Universal polymeric-to-colloidal transition in melts of hairy nanoparticles. ACS nano , 15(10):16697–16708, 2021. [50] Hsiu-Yu Yu and Donald L Koch. Structure of solvent-free nanoparticle- organic hybrid materials. Langmuir ,26(22):16801–16811, 2010. [51] Hsiu-Yu Yu, Samanvaya Srivastava, Lynden A Archer, and Donald L Koch. Structure factor of blends of solvent-free nanoparticle–organic hybrid materials: density-functional theory and small angle x-ray scattering. Soft Matter ,10(45):9120–9135, 2014. [52] Samanvaya Srivastava, Snehashis Choudhury, Akanksha Agrawal, and Lynden A Archer. Self-suspended polymer grafted nanoparticles. Current opinion in chemical engineering , 16:92–101, 2017. [53] Alexandros Chremos, Athanassios Z Panagiotopoulos, Hsiu-Yu Yu, and Donald L Koch. Structure of solvent-free grafted nanoparticles: Molecular dynamics and density-functional theory. The Journal of chemical physics ,135(11), 2011. [54] Richard M Martin. Electronic structure: basic theory and practical methods . Cambridge university press, 2020. [55] Ilyes Batatia, Simon Batzner, Dávid Péter Kovács, Albert Musaelian, Gregor NC Simm, Ralf Drautz, Christoph Ortner, Boris Kozinsky, and Gábor Csányi. The design space of e (3)-equivariant atom-centred interatomic potentials. Nature Machine Intelligence , 7(1):56–67, 2025. [56] Alexandros Chremos and Jack F Douglas. Particle localization and hyperuniformity of polymer-grafted nanoparticle materials. Annalen der Physik , 529(5):1600342, 2017. [57] Paul J Steinhardt, David R Nelson, and Marco Ronchetti. Bond-orientational order in liquids and glasses. Physical Review B , 28(2):784, 1983. [58] Wolfgang Lechner and Christoph Dellago. Accurate determination of crystal structures based on averaged local bond order parameters. The Journal of chemical physics , 129(11), 2008. [59] Alfons Van Blaaderen and Pierre Wiltzius. Real-space structure of colloidal hard-sphere glasses. Science ,270(5239):1177–1179, 1995. [60] Mathieu Leocmach and Hajime Tanaka. Roles of icosahedral and crystal-like order in the hard spheres glass transition. Nature communications , 3(1):974, 2012. [61] Vishwas Venkatesh Vasisht, Gabrielle Roberts, and Emanuela Del Gado. Emergence and persistence of flow inhomogeneities in the yielding and fluidization of dense soft solids. Physical Review E , 102(1):010604, 2020. [62] HA Vinutha, Manon Marchand, Marco Caggioni, Vishwas V Vasisht, Emanuela Del Gado, and Veronique Trappe. Memory of shear flow in soft jammed materials. PNAS nexus , 3(10):pgae441, 2024. 
+
+24 [63] H Reichert, O Klein, H Dosch, M Denk, V Honkimäki, T Lippmann, and G Reiter. Observation of five-fold local symmetry in liquid lead. Nature , 408(6814):839–841, 2000. [64] Andrea Di Cicco, Angela Trapananti, Silena Faggioni, and Adriano Filipponi. Is there icosahedral ordering in liquid and undercooled metals? Physical review letters , 91(13):135505, 2003. [65] Frederick Charles Frank. Supercooling of liquids. Proceedings of the Royal Society of London. Series A. Mathematical and Physical Sciences , 215(1120):43–46, 1952. [66] Frans Spaepen. Five-fold symmetry in liquids. Nature , 408(6814):781–782, 2000. [67] Bart De Nijs, Simone Dussi, Frank Smallenburg, Johannes D Meeldijk, Dirk J Groenendijk, Laura Filion, Arnout Imhof, Alfons Van Blaaderen, and Marjolein Dijkstra. Entropy-driven formation of large icosahedral colloidal clusters by spherical confinement. Nature materials , 14(1):56–60, 2015. [68] Erin G Teich, Greg Van Anders, Daphne Klotsa, Julia Dshemuchadse, and Sharon C Glotzer. Clusters of polyhedra in spherical confinement. Proceedings of the National Academy of Sciences , 113(6):E669–E678, 2016. [69] Akanksha Agrawal, Hsiu-Yu Yu, Samanvaya Srivastava, Snehashis Choudhury, Suresh Narayanan, and Lynden A Archer. Dynamics and yielding of binary self-suspended nanoparticle fluids. Soft Matter , 11(26):5224–5234, 2015. [70] Victor Bapst, Thomas Keck, A Grabska-Barwińska, Craig Donner, Ekin Dogus Cubuk, Samuel S Schoenholz, Annette Obika, Alexander WR Nelson, Trevor Back, Demis Hassabis, et al. Unveiling the predictive power of static structure in glassy systems. Nature physics , 16(4):448–454, 2020. [71] Gerhard Jung, Rinske M Alkemade, Victor Bapst, Daniele Coslovich, Laura Filion, François P Landes, Andrea J Liu, Francesco Saverio Pezzicoli, Hayato Shiba, Giovanni Volpe, et al. Roadmap on machine learning glassy dynamics. Nature Reviews Physics , 7(2):91–104, 2025. [72] Gerardo Campos-Villalobos, Emanuele Boattini, Laura Filion, and Marjolein Dijkstra. Machine learning many-body potentials for colloidal systems. The Journal of Chemical Physics , 155(17), 2021. [73] Giuliana Giunta, Gerardo Campos-Villalobos, and Marjolein Dijkstra. Coarse-grained many-body potentials of ligand-stabilized nanoparticles from machine-learned mean forces. ACS nano , 17(23):23391–23404, 2023. [74] Gerardo Campos-Villalobos, Rodolfo Subert, Giuliana Giunta, and Marjolein Dijkstra. Machine-learned coarse-grained potentials for particles with anisotropic shapes and interactions. npj Computational Materials , 10(1):228, 2024. [75] Rinske M Alkemade, Rastko Sknepnek, Frank Smallenburg, and Laura Filion. Machine learning short-ranged many-body interactions in colloidal systems using descriptors based on voronoi cells. The Journal of chemical physics , 162(23), 2025. [76] Marjolein Dijkstra and Erik Luijten. From predictive modelling to machine learning and reverse engineering of colloidal self-assembly. Nature materials , 20(6):762–773, 2021. [77] FF Betancourt-Cárdenas, LA Galicia-Luna, and SI Sandler. Equation of state for the lennard–jones fluid based on the perturbation theory. Fluid phase equilibria , 264(1-2):174–183, 2008. 
+
+25 [78] S Alexander. Adsorption of chain molecules with a polar head a scaling description. Journal De Physique ,38(8):983–987, 1977. [79] PrG de Gennes. Conformations of polymers attached to an interface. Macromolecules , 13(5):1069–1075, 1980. [80] Thomas JR Hughes. The finite element method: linear static and dynamic finite element analysis . Courier Corporation, 2003. [81] Thomas Ericson and Victor Zinoviev. Codes on Euclidean spheres , volume 63. Elsevier, 2001. [82] Lukas Biewald. Experiment tracking with weights and biases, 2020. Software available from wandb.com. [83] Mario Geiger and Tess Smidt. e3nn: Euclidean neural networks. arXiv preprint arXiv:2207.09453 , 2022. [84] Boris Kozinsky, Albert Musaelian, Anders Johansson, and Simon Batzner. Scaling the leading accuracy of deep equivariant models to biomolecular simulations of realistic size. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis , pages 1–12, 2023. [85] Chuin Wei Tan, Marc L Descoteaux, Mit Kotak, Gabriel de Miranda Nascimento, Seán R Kavanagh, Laura Zichi, Menghang Wang, Aadit Saluja, Yizhong R Hu, Tess Smidt, Anders Johansson, William C. Witt, Boris Kozinsky, and Albert Musaelian. High-performance training and inference for deep equivariant interatomic potentials. arXiv preprint arXiv:2504.16068 , 2025. [86] Vyas Ramasubramani, Bradley D. Dice, Eric S. Harper, Matthew P. Spellings, Joshua A. Anderson, and Sharon C. Glotzer. freud: A software suite for high throughput analysis of particle simulation data. Computer Physics Communications , 254:107275, 2020. 
+
+26

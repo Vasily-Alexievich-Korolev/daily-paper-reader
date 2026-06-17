@@ -1,0 +1,1121 @@
+Title: Stein Kernelized Molecular Dynamics for Active Learning of Interatomic Potentials
+
+URL Source: https://arxiv.org/pdf/2606.04100v1
+
+Published Time: Thu, 04 Jun 2026 00:06:40 GMT
+
+Number of Pages: 23
+
+Markdown Content:
+# Stein Kernelized Molecular Dynamics for Active Learning of Interatomic Potentials 
+
+Joanna Zou 1, ∗ Fraser Birks 2 Dallas Foster 3 Youssef Marzouk 1
+
+> 1
+
+Center for Computational Science & Engineering, Schwarzman College of Computing, MIT 
+
+> 2
+
+Warwick Centre for Predictive Modelling, School of Engineering, University of Warwick 
+
+> 3
+
+NVIDIA 
+
+# Abstract 
+
+Machine learning interatomic potentials (MLIPs) enable efficient and accurate atomistic simulations but depend critically on the quality and diversity of the training data. We introduce Stein kernelized molecular dynamics (SKMD), an enhanced sampling method that uses interacting particle dynamics to acquire informative training configurations for the active learning and fine-tuning of MLIPs. SKMD corresponds to a stochastic variant of Stein variational gradient descent that is adapted for molecular dynamics by incorporating asynchronous particle updates and a kernel of global atomic descriptors, which provides a symmetry-aware measure of configurational similarity. Unlike other enhanced samplers used in molecular dynamics, SKMD preserves the Boltzmann distribution as the asymptotic distribution of the dynamics. This property enforces a balance between the exploration of diverse configurations and attraction toward high-probability regions of the energy landscape. We further propose an approach to efficient online data acquisition using an adaptive stopping criterion that selects non-redundant training data over the course of simulation. We demonstrate SKMD for the active learning of a neural network model of the Müller–Brown potential and the fine-tuning of a MACE interatomic potential for alanine dipeptide. Compared to active learning baselines, our method achieves higher model accuracy in fewer training iterations, with the same number of acquired training samples. 
+
+# 1 Introduction 
+
+Many modern advances in the atomistic simulation of chemical phenomena stem from the use of machine learning interatomic potentials (MLIPs), data-driven surrogate models of atomistic force fields that enable molecular dynamics (MD) simulation at greater system sizes and time scales than what is feasible with ab initio methods. The accuracy of MLIPs depends critically on the quality of the training data: training configurations must be representative of both key thermodynamic states of the system and the transitional states bridging between them in order for the MLIP to correctly characterize chemical properties. Training data of these transitional states, or of unobserved thermodynamic states, are challenging to acquire due to the infrequency of transitions during simulation. Moreover, the high cost of labeling data with quantum-mechanical reference calculations limits the number of samples which can be feasibly added to the training set. In active learning of MLIPs, we progressively improve the accuracy of the model by alternating between the collection of training data and retraining of the model on the augmented dataset. A wide array of existing active learning approaches for MLIPs leverage subset selection methods—based, e.g., on D-optimal design [1], CUR decomposition [2], the MaxVol algorithm [3, 4], Gaussian process variance [5, 6, 7, 8, 9], entropy-maximization [10, 11], query-by-committee [12], and determinantal  
+
+> ∗Correspondence to jjzou@mit.edu .Preprint.
+> arXiv:2606.04100v1 [cs.LG] 2 Jun 2026
+
+point processes [13]—for selecting informative subsets of the simulated MD trajectory to add to the training set. However, standard MD trajectories can remain trapped in energy basins, producing highly correlated data irrespective of the subset selection technique, which limits model improvement. For this reason, recent active learning methods utilize enhanced sampling in molecular dynamics to promote the exploration of novel regions of configuration space, including metadynamics [14], uncertainty-driven dynamics [15], and hyperactive learning [16]. These methods introduce an adaptive biasing force which drives dynamics toward underrepresented regions of the configuration space and define acquisition criteria for selecting nonredundant training data over the course of simulation. However, the biased dynamics do not retain fidelity to the Boltzmann distribution associated with the MLIP, and the acquisition criteria generally do not take into account the underlying energy landscape. Therefore, the chosen training configurations may not be representative of physically meaningful configurations or the true distribution of thermodynamic states. We address these problems with Stein kernelized molecular dynamics (SKMD), a novel enhanced sampling method for active learning of MLIPs. Our idea is to adapt variational inference approaches in Bayesian inference and statistics for sampling problems in molecular dynamics. SKMD is derived from Stein variational gradient descent (SVGD) [17], a particle-based variational inference algorithm which utilizes an interacting particle set to approximate a target distribution. Our method improves upon the other enhanced samplers by retaining the Boltzmann distribution of the MLIP as the asymptotic distribution of the dynamics. Furthermore, the SKMD biasing force offers a means to define an acquisition criterion which balances the selection of diverse configurations with those informed by the energy landscape. Active learning is related to model fine-tuning, which improves the accuracy of model outputs in re-gions of data space as specified by a reward function. While flow-based generative methods have been adopted for Boltzmann sampling and fine-tuning [18, 19, 20], they require that training data already exist in regions which are targeted for additional sampling and can struggle to sufficiently sample regions with poor data coverage. We argue that an enhanced sampling framework is better suited for the task of active learning, as local particle transforms enable the discovery of thermodynamic states which are unseen by the existing training data. We summarize our contributions as follows: • We propose SKMD as a stochastic variant of SVGD implemented with asynchronous particle updates and a kernel of global atomic descriptors, thus adapting the algorithm to molecular dynamics settings. • We prove that the asymptotic distribution of SKMD dynamics is the Boltzmann distribution of the system. In Proposition 1, we show that its mean-field limit coincides with that of SVGD, which converges to the Boltzmann distribution under appropriate conditions. • We develop an approach to online data acquisition in the form of an adaptive stopping criterion for SKMD, discussed in greater detail in Section C.3 and Section D.1. • We show that SKMD outperforms other sampling techniques for data generation and active learning of MLIPs, demonstrated on problems of learning a neural network model of the Müller-Brown potential and fine-tuning a MACE foundation model of organic molecules for alanine dipeptide. 
+
+# 2 Background 
+
+2.1 Machine learning atomistic force fields Interatomic potentials model the total potential energy of a configuration of N atoms as a function of the atomic positions x = ( x1, . . . , x N ) ∈ R3N , where xn ∈ R3. Whereas classical empirical potentials [21, 22, 23, 24] are analytical functions taking simple parametric forms, machine learning interatomic potentials (MLIPs) are flexible function approximations learned from higher-fidelity reference data such as density functional theory (DFT) calculations. Let V : R3N → R and 
+
+−∇ xV : R3N → R3N correspond to reference DFT calculations of the potential energy and forces. A MLIP Vθ : R3N → R is typically learned from a weighted least squares objective, where the model 2parameters θ ∈ Θ are the minimizer of the loss function L,
+
+L(θ) = λ0
+
+K
+
+> K
+
+X
+
+> k=1
+
+|Vθ (xk) − V (xk)|2 + λ1
+
+K
+
+> K
+
+X
+
+> k=1
+
+||∇ xVθ (xk) − ∇ xV (xk)|| 2 , (1) defined by λ0, λ 1 > 0 and evaluated at a training set D := {(xk, V (xk), ∇xV (xk)) }Kk=1 .
+
+Atomic descriptors are feature representations of local atomic environments which form the basis of many MLIPs. A local descriptor ˜g(x) ∈ ˜Ω ⊆ Rd can be learned from data, as with invariant latent representations from GNN potentials such as NequIP [25], Allegro [26], or MACE [27, 28], or constructed explicitly from symmetry-adapted bases of local atomic neighborhoods which enforce invariances under SO(3), such as SOAP descriptors [29], bispectrum components [30], and ACE basis functions [31]. Whereas local descriptors are per-atom representations, global descriptors 
+
+g(x) ∈ Ω ⊆ Rd are representations of the multi-atom configuration, typically a composition of local descriptors ˜g(x) = [˜ g1(x), . . . , ˜gN (x)] ∈ ˜ΩN ⊆ RN d . An example of a global descriptor which is used in [10] is the mean of the local descriptors, g(x) = 1
+
+> N
+
+PNn=1 ˜gn(x). Depending on the application, a more informative global descriptor could be the mean of local descriptors of a subset of the atoms, e.g., of interfacial atoms within a bulk configuration. 
+
+Boltzmann sampling in molecular dynamics consists of generating samples distributed according to the Boltzmann distribution of configurations of the atomic system, π(x) = 1 
+
+> Z
+
+exp   − βV (x), where 
+
+Z is the normalizing constant. Given a MLIP which is cheaper to evaluate than the reference, one generally approximates π with the Boltzann distribution of the MLIP, πθ (x) = 1 
+
+> Zθ
+
+exp   − βV θ (x).A common approach to Boltzmann sampling is to perform molecular dynamics simulation with a Langevin thermostat, which corresponds to underdamped Langevin dynamics. If the dynamics are ergodic, then the marginal invariant distribution of positions coincides with πθ [32]. In the overdamped limit of Langevin dynamics, πθ remains the marginal invariant distribution of positions and the molecular dynamics according to dxt = −∇ xVθ (xt)dt + p2β−1dWt (2) can be used to sample from the Boltzmann distribution. However, on practical simulation time scales, the simulation of either underdamped or overdamped Langevin dynamics does not guarantee an accurate sample from πθ , as the dynamics are susceptible to metastability. As the Boltzmann distribution of molecular systems is typically highly multi-modal, trajectories can remain confined for long times within metastable basins separated by high barriers in the free energy landscape, leading to slow mixing and poor sampling of the full distribution [33]. 
+
+2.2 Particle-based variational inference Stein variational gradient descent (SVGD) is a particle-based variational inference algorithm which approximates a target density π on a state space X with the empirical distribution ˆqt of a set of interacting particles ¯Xt = {xit}Ji=1 . The evolution of each particle for i = 1 , . . . , J is given by the following update equation, for time step ϵ > 0 and symmetric positive semi-definite kernel 
+
+k : X × X → R,
+
+xit+1 ← xit + ϵ ˆϕ∗ 
+
+> t
+
+(xit; ¯Xt) , (3a) 
+
+ˆϕ∗ 
+
+> t
+
+(·; ¯Xt) = 1
+
+J
+
+> J
+
+X
+
+> i=1
+
+h
+
+∇xjt
+
+log π(xjt )k(xjt , ·) + ∇xjt
+
+k(xjt , ·)
+
+i
+
+, xjt ∈ ¯Xt . (3b) One can show that (3a) corresponds to the Euler discretization of a continuous-time ODE describing the particle dynamics, and (3b) corresponds to a Monte Carlo estimator of an expectation resulting from Stein’s identity [34], dxit = ϕ∗ 
+
+> t
+
+(xit)dt , (4a) 
+
+ϕ∗ 
+
+> t
+
+(·) = Ex∼ˆqt [∇x log π(x)k(x, ·) + ∇xk(x, ·)] . (4b) In the limit of infinite time t → ∞ and infinite particles J → ∞ , the empirical distribution ˆqt
+
+converges weakly to π in Kullback–Leibler (KL) divergence [35, 36]. Section C.2 describes the SVGD formulation in further detail. 33 Stein kernelized molecular dynamics 
+
+Active learning is performed with an iterative scheme of (i) sampling configuration space, (ii) selecting configurations to add as training data, and (iii) retraining the MLIP on the augmented training set. In the following, we introduce the SKMD sampling algorithm and its associated adaptive stopping criterion, which is a kernel-based strategy for online data acquisition. 
+
+3.1 Sampling algorithm 
+
+Let ¯Xs = {xjs}Jj=1 be an ensemble of J particles at a given time step s > 0. Let k : Rn × Rn → R
+
+be a symmetric positive semi-definite kernel. For stopping time ℓ > 0, step size ϵ > 0, constant 
+
+η > 0, scale parameter A : Rn → R, and ξit ∼ N (0 , In), the evolution of the ith particle in the set for t = s, ..., s + ℓ − 1 is given by dxit+1 ← xit + ϵ − A(xit)β ∇xit Vθ (xit) + F SKMD  
+
+> θ,s
+
+(xit; ¯Xs) +
+
+q 2ϵη J ξit , (5a) 
+
+F SKMD  
+
+> θ,s
+
+(·; ¯Xs) = 1
+
+J − 1
+
+> J−1
+
+X
+
+> j=1
+
+h
+
+− β ∇xjs Vθ (xjs)k(xjs, ·) + ∇xjs k(xjs, ·)
+
+i
+
+, xjs ∈ ¯Xs \ { xis}. (5b) After ℓ steps, the current point xis+ℓ replaces xis in the ensemble and we switch to evolving the next particle in the ensemble starting at step s + ℓ. The sampling algorithm, summarized in Algorithm 2, has the following characteristics: 
+
+Adaptive biasing force. The force field in (5a) is the combination of −β ∇xit Vθ (xit), referred to as the gradient force, and F SKMD  
+
+> θ,s
+
+(xit; ¯Xs), referred to as the SKMD biasing force. In the first term in the summand of (5b) , the gradient force at each particle in the ensemble scaled by the kernel acts as an attractive force that draws the trajectory toward low-energy configurations to promote fidelity to the free energy landscape. The second term, the gradient of the kernel, acts as a repulsive force that drives particles apart in order to promote exploration of the configuration space. The attractive and repulsive forces strike a balance between the exploration of novel configurations and exploitation of high-probability regions which ensures the accuracy of the asymptotic distribution of samples. We introduce a scale parameter A to differentially weigh the strength of the gradient force relative to the SKMD biasing force at the current point in the simulation path. By setting A(x) = k(x, x) = a,
+
+∀x ∈ Rn, the drift of (5a) coincides with the velocity field of SVGD at t = s. Setting a larger kernel amplitude a > 0 can enhance the repulsive effect of the dynamics, but setting A = a would in turn magnify the scale of the negative gradient of the potential, making it more difficult for the path to cross an energy barrier. Therefore, for greater flexibility, we do not strictly require that A equal the kernel self-similarity in the SKMD algorithm. In our implementation, we generally set A = 1 .
+
+Kernel of global descriptors . The kernel measures the degree of similarity between two config-urations. We assume that configurations are more clearly separated in the Euclidean geometry of the descriptor space Ω than in Cartesian space, since the descriptor map encodes invariance or equivariance relations. Therefore, we use translation-invariant kernels based on distances between the descriptors; for example, a Gaussian kernel with amplitude a > 0 and length scale b > 0,
+
+k(x, x′) = kg (g(x), g (x′)) = a exp 
+
+
+
+− || g(x) − g(x′)|| 2
+
+2b2
+
+
+
+. (6) The gradient of the kernel with respect to its first argument is computed via chain rule as 
+
+∇xk(x, x′) = − 1
+
+b2 k(x, x′)J (x)⊤ g(x) − g(x′) , (7) where the Jacobian J ∈ Rd×3N is a block matrix with Jij (x) = ∂g i 
+
+> ∂xj
+
+(x).
+
+Asynchronous particle updates. Rather than updating the positions of all particles in the ensemble at once, as is typically done in interacting particle systems, one particle is updated at a time for a finite number of steps ℓ. The asynchronous scheme allows one to use single-particle simulation to approximate the ensemble dynamics of the interacting particle system. This approach both reduces the computational overhead associated with inter-particle communication and simplifies the integration of SKMD into existing molecular dynamics workflows, such as those in LAMMPS [37]. We evaluate 4Algorithm 1 SKMD for active learning with online data acquisition 
+
+Require: Initial ensemble ¯X0 = {x10, . . . , xJ 
+
+> 0
+
+}, training set D0, model Vθ0 , kernel k, threshold ζ0
+
+for training iteration τ = 0 , 1, . . . do for ensemble member j = 1 , . . . , J do 
+
+Initialize trajectory at x0 ← xjτ
+
+repeat for t = 0 , 1, . . . 
+
+Simulate one step of (5): xt+1 ← SKMD (xt, ¯Xτ , V θτ , k )
+
+until acquisition criterion (8) is met at xt+1 with threshold ζ0
+
+Add xt+1 to the set Dτ +1 
+
+Update ensemble: replace xiτ with xit+1 in ¯Xτ
+
+Train new model Vθτ +1 on the augmented training set Sτ +1  
+
+> k=0
+
+Dk
+
+return Final model Vθfinal and training set Dfinal 
+
+the effect of asynchronous particle updates on the fidelity of SKMD samples to the Boltzmann distribution in Section B.1. 
+
+Isotropic stochastic noise. The addition of stochastic noise in (5a) serves to improve the mixing of the simulation path for small ensemble sizes ( O(10) ) and relates the update equation to a stochastic variant of SVGD first proposed in [38]. In [38, 39], stochastic SVGD is defined by a kernel-dependent diffusion coefficient. However, we found in numerical experiments that the asynchronous scheme in (5a) with the isotropic, state-independent diffusion coefficient produces samples which exhibit better agreement with the Boltzmann distribution compared to the implementation with the kernel-dependent diffusion coefficient. A state-independent diffusion coefficient is also adopted in [40] for a single-trajectory variant of stochastic SVGD. Our choice of diffusion coefficient does not perturb the mean-field limit of the dynamics, as shown in Section A.1. 
+
+Fidelity to the Boltzmann distribution. A key property of SKMD is that, in the limit of ϵ → 0,
+
+ℓ → 0, and J → ∞ , the empirical distribution of the particles approaches the solution to a mean-field equation whose stationary solution is the Boltzmann distribution. We show this result in Proposition 1. Consequently, SKMD inherits the convergence properties of SVGD that are derived from the mean-field equation, and the asymptotic behavior of (5) remains consistent with the Boltzmann distribution πθ . Intuitively, the local attractive and repulsive dynamics in configuration space correspond to global transport of the empirical measure of particles in probability space, such that in the appropriate asymptotic regime, the empirical distribution weakly converges to πθ in KL divergence. See Section A.1 for the necessary assumptions and further discussion. 
+
+3.2 Data acquisition 
+
+In Section 3.1, we presented SKMD as a general purpose sampling algorithm for a given Boltzmann distribution. In this section, we discuss approaches to adapt the sampling algorithm for active learning, where the goal is to select new training data which improve model quality while minimizing the cost of data acquisition and labeling. 
+
+Offline data acquisition is performed by choosing a subset of a pre-collected pool of candidate configurations to label with the oracle and add to the training data. In many such methods, the chosen subset is the one that maximizes some functional measuring the dissimilarity of elements—such as the determinant of a feature kernel, as with MaxVol algorithm [3, 4] and determinantal point processes [41, 13], or the distance between elements, as with farthest point sampling (FPS). These methods may be directly adopted by utilizing samples generated by SKMD as the pool of candidate configurations, as described in Algorithm 3. Offline methods for data acquisition often incur high computational costs, as the selection of subsets from a candidate pool is a combinatorially hard problem. Practical algorithms rely on greedy approximations of optimal subset selection, which requires repeated matrix determinant evaluations whose cost scales with the total set size. 
+
+Online data acquisition is a cost-effective alternative to offline approaches, performed by specifying criteria for collecting training data during simulation. While the sampling algorithm in (5) is defined for a fixed stopping time ℓ > 0, SKMD can be oriented into a technique for online data acquisition by introducing an adaptive stopping criterion. Let the Euclidean norm of the SKMD biasing force define an acquisition function αs. For a given particle that evolves from a time s ≥ 0, the adaptive 5stopping time ℓ(s; ζ0) is the first time after a set number of steps ℓ0 that acquisition function falls below a threshold ζ0 > 0, i.e., 
+
+ℓ(s; ζ0) := inf {t ≥ ℓ0 : αs(xs+t) < ζ 0}, αs(x) = || F SKMD  
+
+> θ,s
+
+(x; ¯Xs)|| . (8) At the point xs+ℓ where the criterion is met, we collect that point as a new training datum and switch the simulation to the next particle in ¯Xs. After advancing each particle in the ensemble and collecting J configurations, we label the data with reference calculations and retrain the model on the augmented training set. This approach is outlined in Algorithm 1. The acquisition criterion is a Stein-informed heuristic for when a given point is informative with respect to both the potential energy surface and the existing training set. It promotes the selection of points at key geometric features of the potential energy surface, since the gradient of the potential in the SKMD biasing force is small in energy basins and at saddle points. Moreover, it promotes the selection of points which are distinct from previously added training data, since the kernel and its gradient become small when the point is far from ¯Xs in descriptor space. 
+
+# 4 Related work 
+
+Enhanced sampling [33] encompasses a broad class of methods used to promote some desired sampling behavior in molecular dynamics, reviewed in Section C.1. The method most closely related to our application is uncertainty-driven dynamics (UDD) [15], dxt =   − ∇ xVθ (xt) − ∇ xV UDD  
+
+> t
+
+(xt)dt + p2β−1dWt , (9) a query-by-committee approach to active learning which introduces a biasing potential based on a Gaussian kernel of the empirical variance in energy predictions by a committee of MLIPs. The committee is composed of the MLIP with different parameters learned from k-fold splits of the training data. Hyperactive learning [16] employs a sampler of the same form, but with the committee parameters drawn from a Bayesian posterior. Online data acquisition is performed by querying points at which the committee uncertainty exceeds a certain threshold. Both methods are designed to preferentially sample regions of high uncertainty, but unlike SKMD, they do not maintain the Boltzmann distribution as the invariant distribution and do not incorporate information on the free energy landscape in the acquisition criteria. Moreover, because UDD requires the training and simulation of multiple MLIPs, each active learning iteration with UDD incurs a higher computational cost than with SKMD, as reflected by their run times and memory usage detailed in Section E.3. 
+
+Kernel herding constructs a set of representative points whose empirical distribution closely matches a target distribution π in terms of their kernel mean embeddings. The SKMD acquisition criterion can be compared to kernel herding via Stein points [42], where points are selected greedily according to 
+
+xn ∈ argmin 
+
+> x∈X
+> n−1
+
+X
+
+> i=1
+
+Sxi 
+
+> π
+
+Sx 
+
+> π
+
+⊗ k(xi, x) (10) given previously chosen points {x1, ..., xn−1} and Stein operator Sx 
+
+> π
+
+. In our acquisition criterion, the previously chosen points are training data ¯X ⊆ D , the target distribution is the Boltzmann distribution 
+
+πθ , and rather than searching for a minimum over the full configuration space X , we select points along the simulation path with low values of PJ−1 
+
+> i=1
+
+S· 
+
+> πθ
+
+⊗ k(xi, ·) in terms of its Euclidean norm. Therefore, the SKMD acquisition scheme can be interpreted as an approach to select points which reduce a simpler proxy objective to the one in Stein points. We discuss this relation in Section C.3. 
+
+SVGD has spawned a plethora of variants of Stein repulsive dynamics, for applications in Bayesian inference [38, 43, 44, 45, 40, 46], data assimilation [47], and POMDPs [48]. To our knowledge, our work is the first to derive an explicit active learning framework from principles of SVGD. 
+
+# 5 Experiments 
+
+5.1 Neural network potential System. We evaluate the performance of SKMD for active learning (AL) of a neural network potential. As the reference, we use the Müller–Brown potential, a common 2D benchmark for 6studying problems in molecular dynamics. The neural network potential is a multi-layer perceptron defined by a single 20-dimensional hidden layer, tanh activation functions, and a confining quartic term to ensure that the system has a well-defined Boltzmann distribution. We use autodifferentiation to compute the negative gradient of the neural network potential. 
+
+Baselines. We compare against two active learning baselines: in the first, we simulate overdamped Langevin dynamics at a set temperature for a fixed number of time steps and select data along the simulation path at periodic time intervals. In the second, we implement the UDD sampler [15] with a committee of 5 models which are trained on k-fold splits of the training data and query data using the UDD uncertainty-based criterion. For all schemes, we utilize the same initial model and dataset, training loss of the form in (1) , and number of additional training data in each active learning iteration. For fair comparison, we fix the temperature and the realization of Brownian motion in each active learning trial performed with each scheme, such that the only variation in their performance is a result of the choice of sampler and data acquisition criteria. 
+
+Active learning protocol. We define an initial training set of 32 points concentrated in a metastable region of state space, to emulate conditions where the starting configurations are highly correlated. The neural network potential trained on the initial set, shown in Figure 1 at iteration 0, primarily characterizes the region of state space informed by the data. We implement two versions of our method: one in which new data are selected along the simulation path at period time intervals (“SKMD”) and one in which new data are selected with the acquisition criterion (8) (“a-SKMD”). Further details on the experimental setup and model parameters are provided in Section E.1. 
+
+Results. At the given temperature, the samples from Langevin dynamics remain confined to the energy basin and the model is not able to resolve the potential in regions which fall outside the coverage of the training data, as shown in Figure 1. In UDD, there are several occurrences of the queried data clustering in close proximity to each other. This behavior is due to the fact that the uncertainty metric defining the UDD stopping criterion may be large only in concentrated regions and the path has a tendency to revisit regions where the uncertainty metric is high, as shown in Section D.1. a-SKMD leads to faster mixing, such that the model quickly resolves the other two energy basins which are unidentified in the initial model. Moreover, the data points queried at each training iteration exhibit good spread in the state space, indicating that the SKMD stopping criterion is effective in promoting dissimilarity among the queried points. Figure 2 shows the statistics of the model error computed over 50 active learning trials. Model error is evaluated in terms of the root mean square error (RMSE) in the potential energy and forces from a test set of samples distributed according to the Boltzmann distribution of the Müller–Brown potential, 
+
+π. Between the two schemes with naïve data acquisition, SKMD leads to lower error compared to the Langevin scheme. Between the two schemes with adaptive acquisition criteria, a-SKMD more rapidly decreases error compared to UDD. a-SKMD shows significant performance gains over the other methods, converging to a lower value of error with smaller variance in the fewest iterations. 
+
+5.2 MACE fine-tuning System. We next apply SKMD to perform fine-tuning of a MACE potential on the alanine dipeptide molecule. Alanine dipeptide is commonly used as an example in studies of active learning and enhanced sampling [49, 50] since its Ramachandran ( ψ, ϕ ) conformational energy landscape contains multiple well-separated minima. These minimum energy conformations and their positions on the landscape are shown in panels (a) and (b) of Figure 3. 
+
+MACE models. We start from two MACE models: a larger oracle model (which we treated as the ground truth), and a smaller surrogate model which serves as a starting point for fine-tuning. For the oracle, we use the MACE-OFF-23-small foundation model [51], which is fit to the SPICE dataset [52]. For the surrogate starting point, we fit a MACE model with 32 invariant channels to a randomly selected 0.1% of the MACE-OFF-23-small training dataset. 
+
+Baselines. We run three independent samplers: underdamped MD at 300 K, underdamped MD at 700 K, and SKMD. Both unbiased underdamped simulations have a timestep of 1 fs and use Langevin thermostats with damping parameters of 0.1 ps. SKMD uses overdamped (Brownian) dynamics with a temperature of 50 K, a timestep of 0.1 fs and an isotropic translational viscous damping 7Figure 1: Contours of the neural network potential at iterations {1, 2, 4, 8} of active learning by overdamped Langevin dynamics (top row), UDD (middle row), and a-SKMD (bottom row). The accumulated training data are shown in red, the queried data at the current iteration in cyan, and the path from the previous stopping time to the current stopping time in dark blue. The reference Müller–Brown potential and the initial model are to the left. 
+
+Figure 2: Results from active learning with the Müller–Brown potential as the reference. Root mean square error (RMSE) in potential energy (left) and forces (right) of the neural network potential across training iterations for the Langevin (blue), UDD (orange), SKMD (green), and a-SKMD (purple) schemes. The solid lines show the median error and the shaded regions show the 25th to 75th percentile range of the error across 50 trials. 
+
+coefficient of 75.0 g mol −1 ps −1. For SKMD, the global descriptor is defined as the sum of local atomic descriptors. Each atomic descriptor is the concatenated invariant representations from the first and second layers of the MACE model, giving a descriptor dimension of d = 64 .
+
+Active learning protocol. The starting configuration is obtained by relaxing Structure 1 from Figure 3 with the surrogate potential, followed by a 4000-step burn-in simulation. Particle positions for the first active learning iteration were generated by running 6000 further simulation steps, with snapshots captured every 200 steps. For both the unbiased and SKMD runs, the core sampling algorithm was then the same: each particle was propagated 500 steps in a round robin fashion, and the trajectory endpoints were taken as sampling candidates. This process was repeated 300 times, yielding 300 candidates. A greedy furthest-point algorithm was used to select 100 diverse samples from this candidate set using distances in the full descriptor space, which were then labeled by the oracle. All previous samples were taken into account in the furthest-point sampling step. At each iteration, newly sampled data are added to the existing fine-tuning dataset. Further details on the experimental setup are in Section E.2. 8Figure 3: Results from alanine dipeptide enhanced sampling and fine-tuning. (a) A contour map of the  
+
+> E(ψ, ϕ )Ramachandran surface of alanine dipeptide using the MACE-OFF-23-small foundation model. (b) Three minimum energy configurations of alanine dipeptide numbered 1 to 3. The Ramachandran angles ( ψ, ϕ )are labeled on 1. (c)–(e) Heat maps of all 1000 samples taken during the 10 iterations of active learning with both unbiased MD at (c) 300 K & (d) 700 K, and (e) SKMD. The SKMD samples exhibit the broadest surface coverage. (f) - (g) Curves showing the change in (f) energy RMSE and (g) force RMSE on a diverse held-back test set over 10 iterations of the active learning process. Results for unbiased MD simulations at 300 K & 700 K are shown as blue & orange curves respectively. SKMD results are shown in green. The test set RMSE falls more rapidly and remains lower for SKMD than for the unbiased MD simulations.
+
+Results. Panels (c)–(e) of Figure 3 show the coverage of samples across the Ramachandran ψ, ϕ 
+
+surface for all 1000 samples taken over 10 active learning iterations from each run. The 700 K unbiased MD run provides broader coverage than the 300 K run, but SKMD covers a substantially larger region of the ψ, ϕ surface than either unbiased simulation. Panels (f) and (g) of Figure 3 show the energy and force RMSEs of the fine-tuned model after each active learning iteration on a held-back test set consisting of 300 diverse samples generated through running SKMD with the oracle model. Over the course of active learning, the RMSEs decrease in all cases, with the fastest and largest reductions obtained when SKMD is used to generate samples. 
+
+# 6 Conclusions 
+
+We introduce a novel framework to improve the efficiency of active learning and fine-tuning of MLIPs. Our method, SKMD, is defined by an adaptive biasing force that balances repulsive dynamics, which promote the exploration of new configurations, with attractive dynamics, which promote fidelity to the Boltzmann distribution. We evaluate SKMD in two numerical experiments: in a 2D benchmark, SKMD outperforms overdamped Langevin dynamics and UDD in generating training data that improve model quality in the fewest active learning iterations. For fine-tuning a MACE foundation model of organic molecules for alanine dipeptide, SKMD produces models with lower energy and force error compared to those trained on data from standard and tempered versions of underdamped Langevin dynamics. SKMD may be used as a general purpose algorithm for sampling configuration space as well as for online data acquisition. A limitation of the adaptive stopping criterion is that it requires that SKMD be defined by a kernel with a fixed bandwidth. When SKMD is defined by a variable kernel bandwidth (e.g., the median distance between particles), the norm of the SKMD biasing force defining the acquisition function does not decrease significantly over simulation time steps. One can implement active learning in a two-phase scheme: first, an exploration phase which utilizes SKMD with a variable kernel bandwidth and fixed stopping to promote faster mixing in high-dimensional configuration space, followed by an exploitation phase in which the interacting particles sample 9energy basins utilizing SKMD with a fixed kernel bandwidth and adaptive stopping. The efficacy of this two-phase scheme for more complex chemical systems will be studied in future work. 
+
+# Acknowledgments and Disclosure of Funding 
+
+The work of JZ and YM was supported by the United States Department of Energy, National Nuclear Security Administration under Award Number DE-NA0003965. The work of FB was supported by a studentship from the UK Engineering and Physical Sciences Research Council–funded Centre for Doctoral Training in Modelling of Heterogeneous Systems (Grant No. EP/S022848/1). JZ and FB gratefully acknowledge the support of a Research Workshop Follow-on Grant from the International Centre for Mathematical Sciences, Edinburgh. FB further acknowledges the University of Warwick Scientific Computing Research Technology Platform for computational support, as well as the use of resources provided by the Isambard-AI National AI Research Resource (AIRR). Isambard-AI is operated by the University of Bristol and is funded by the UK Government’s Department for Science, Innovation and Technology (DSIT) via UK Research and Innovation; and the Science and Technology Facilities Council [ST/AIRR/I-A-I/1023] [53]. 
+
+# References 
+
+[1] Evgeny V. Podryabinkin and Alexander V. Shapeev. “Active learning of linearly parametrized interatomic potentials”. In: Computational Materials Science 140 (Dec. 2017), pp. 171–180. 
+
+> ISSN
+
+: 09270256. DOI : 10.1016/j.commatsci.2017.08.031 .[2] Noam Bernstein, Gábor Csányi, and Volker L. Deringer. “De novo exploration and self-guided learning of potential-energy surfaces”. In: npj Computational Materials 5.1 (2019), p. 99. DOI :
+
+10.1038/s41524-019-0236-6 .[3] Yury Lysogorskiy et al. “Performant implementation of the atomic cluster expansion (PACE) and application to copper and silicon”. In: npj Computational Materials 7.1 (2021), pp. 1–12. [4] Yury Lysogorskiy et al. “Active learning strategies for atomic cluster expansion models”. In: 
+
+Phys. Rev. Mater. 7 (4 Apr. 2023), p. 043801. DOI : 10.1103/PhysRevMaterials.7.043801 .[5] Ryosuke Jinnouchi, Ferenc Karsai, and Georg Kresse. “On-the-fly machine learning force field generation: Application to melting points”. In: Phys. Rev. B 100 (1 July 2019), p. 014105. 
+
+> DOI
+
+: 10.1103/PhysRevB.100.014105 . URL : https://link.aps.org/doi/10.1103/ PhysRevB.100.014105 .[6] Jonathan Vandermause et al. “On-the-fly active learning of interpretable Bayesian force fields for atomistic rare events”. In: npj Computational Materials 6.1 (2020), pp. 1–11. [7] Jonathan Vandermause et al. “Active learning of reactive Bayesian force fields: Application to heterogeneous hydrogen-platinum catalysis dynamics”. In: arXiv preprint arXiv:2106.01949 
+
+(2021). [8] Yu Xie et al. “Bayesian force fields from active learning for simulation of inter-dimensional transformation of stanene”. In: npj Computational Materials 7.1 (2021), pp. 1–10. [9] Yu Xie et al. “Uncertainty-aware molecular dynamics from Bayesian active learning: Phase Transformations and Thermal Transport in SiC”. In: arXiv preprint arXiv:2203.03824 (2022). [10] Mariia Karabin and Danny Perez. “An entropy-maximization approach to automated training set generation for interatomic potentials”. In: The Journal of Chemical Physics 153.9 (2020), p. 094110. [11] Aparna P. A. Subramanyam and Danny Perez. “Information-entropy-driven generation of material-agnostic datasets for machine-learning interatomic potentials”. In: npj Computational Materials 11.1 (2025), p. 218. DOI : 10.1038/s41524-025-01602-9 .[12] Nongnuch Artrith and Jörg Behler. “High-dimensional neural network potentials for metal surfaces: A prototype study for copper”. In: Phys. Rev. B 85 (4 Jan. 2012), p. 045439. DOI :
+
+10 . 1103 / PhysRevB . 85 . 045439 . URL : https : / / link . aps . org / doi / 10 . 1103 / PhysRevB.85.045439 .[13] Joanna Zou and Youssef Marzouk. “Data Curation for Machine Learning Interatomic Potentials by Determinantal Point Processes”. In: ICLR AI4MAT Workshop (2025). [14] John E. Herr et al. “Metadynamics for training neural network model chemistries: A competi-tive assessment”. In: The Journal of Chemical Physics 148.24 (Mar. 2018), p. 241710. ISSN :0021-9606. DOI : 10.1063/1.5020067 . URL : https://doi.org/10.1063/1.5020067 .10 [15] Maksim Kulichenko et al. “Uncertainty-driven dynamics for active learning of interatomic potentials”. In: Nature Computational Science (Mar. 2023). ISSN : 26628457. DOI : 10.1038/ s43588-023-00406-5 .[16] Cas van der Oord et al. “Hyperactive Learning (HAL) for Data-Driven Interatomic Potentials”. In: (Oct. 2022). URL : http://arxiv.org/abs/2210.04225 .[17] Qiang Liu and Dilin Wang. “Stein Variational Gradient Descent: A General Purpose Bayesian Inference Algorithm”. In: NeurIPS 29 (2016). [18] Frank Noé et al. “Boltzmann generators: Sampling equilibrium states of many-body systems with deep learning”. In: Science 365.6457 (2019), eaaw1147. DOI : 10 . 1126 / science . aaw1147 .[19] Michael Plainer et al. “Consistent Sampling and Simulation: Molecular Dynamics with Energy-Based Diffusion Models”. In: Advances in Neural Information Processing Systems .arXiv:2506.17139. 2025. [20] Juno Nam et al. “Flow matching for accelerated simulation of atomic transport in crystalline materials”. In: Nature Machine Intelligence (2025). DOI : 10.1038/s42256-025-01125-4 .[21] J. Tersoff. “Empirical interatomic potential for silicon with improved elastic properties”. In: 
+
+Physical Review B 38.14 (1988), pp. 9902–9905. DOI : 10.1103/PhysRevB.38.9902 .[22] F. H. Stillinger and T. A. Weber. “Computer simulation of local order in condensed phases of silicon”. In: Physical Review B 31.8 (1985), pp. 5262–5271. DOI : 10.1103/PhysRevB.31. 5262 .[23] M. S. Daw and M. I. Baskes. “Embedded-atom method: Derivation and application to impuri-ties, surfaces, and other defects in metals”. In: Physical Review B 29.12 (1984), pp. 6443–6453. 
+
+> DOI
+
+: 10.1103/PhysRevB.29.6443 .[24] M. I. Baskes and R. A. Johnson. “Modified embedded atom potentials for HCP metals”. In: 
+
+Modelling and Simulation in Materials Science and Engineering 2 (1994), pp. 147–163. DOI :
+
+10.1088/0965-0393/2/1/011 .[25] Simon Batzner et al. “E(3)-equivariant graph neural networks for data-efficient and accurate interatomic potentials”. In: Nature Communications 13.1 (May 2022), p. 2453. DOI : 10.1038/ s41467-022-29939-5 .[26] A. Musaelian et al. “Learning local equivariant representations for large-scale atomistic dynamics”. In: Nature Communications 14.579 (2023). DOI : 10.1038/s41467-023-36329-y.[27] Ilyes Batatia et al. “MACE: Higher Order Equivariant Message Passing Neural Networks for Fast and Accurate Force Fields”. In: Advances in Neural Information Processing Sys-tems . Ed. by S. Koyejo et al. Vol. 35. Curran Associates, Inc., 2022, pp. 11423–11436. 
+
+> URL
+
+: https : / / proceedings . neurips . cc / paper _ files / paper / 2022 / file / 4a36c3c51af11ed9f34615b81edb5bbc-Paper-Conference.pdf .[28] Ilyes Batatia et al. “A foundation model for atomistic materials chemistry”. In: The Journal of Chemical Physics 163.18 (Nov. 2025), p. 184110. ISSN : 0021-9606. DOI : 10.1063/5. 0297006 .[29] Albert P Bartók et al. “Gaussian approximation potentials: The accuracy of quantum mechanics, without the electrons”. In: Physical review letters 104.13 (2010), p. 136403. [30] Aidan P Thompson et al. “Spectral neighbor analysis method for automated generation of quantum-accurate interatomic potentials”. In: Journal of Computational Physics 285 (2015), pp. 316–330. [31] Ralf Drautz. “Atomic cluster expansion for accurate and transferable interatomic potentials”. In: Physical Review B 99.1 (2019), p. 014104. [32] T. Lelievre, M. Rousset, and G. Stoltz. Free Energy Computations: A Mathematical Perspective .World Scientific Publishing Company, 2010. ISBN : 9781908978752. [33] Jérôme Hénin et al. “Enhanced Sampling Methods for Molecular Dynamics Simulations”. In: Living Journal of Computational Molecular Science 4.1 (Dec. 2022), p. 1583. DOI : 10. 33011/livecoms.4.1.1583 .[34] Charles Stein. “A bound for the error in the normal approximation to the distribution of a sum of dependent random variables”. In: Proceedings of the Sixth Berkeley Symposium on Mathematical Statistics and Probability 2 (1972), pp. 583–602. [35] Qiang Liu. “Stein variational gradient descent as gradient flow”. In: NeurIPS 30 (2017). 11 [36] Jianfeng Lu, Yulong Lu, and James Nolen. “On the Mean-Field Limit of Stein Variational Gradient Descent”. In: SIAM Journal on Mathematical Analysis 51.5 (2019), pp. 3611–3640. [37] Aidan P. Thompson et al. “LAMMPS - a flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales”. In: Computer Physics Communications 
+
+(2022). DOI : 10.1016/j.cpc.2021.108171 .[38] Victor Gallego and David Rios Insua. “Stochastic Gradient MCMC with Repulsive Forces”. In: (Nov. 2018). URL : http://arxiv.org/abs/1812.00071 .[39] Andrew Duncan, Lukasz Szpruch, and Nikolas Nusken. “On the geometry of Stein variational gradient descent”. In: Journal of Machine Learning Research 24.56 (2023), pp. 1–39. ISSN :1532-4435. [40] Mao Ye, Tongzheng Ren, and Qiang Liu. “Stein Self-Repulsive Dynamics: Benefits From Past Samples”. In: (Feb. 2020). URL : http://arxiv.org/abs/2002.09070 .[41] Michał Derezi´ nski, Feynman Liang, and Michael W. Mahoney. “Bayesian experimental design using regularized determinantal point processes”. In: AISTATS (2020). [42] Wilson Ye Chen et al. “Stein Points”. In: Proceedings of the 35th International Conference on Machine Learning . Vol. 80. Proceedings of Machine Learning Research. PMLR, 2018, pp. 844–853. [43] Gianluca Detommaso et al. “A Stein variational Newton method”. In: (June 2018). URL :
+
+http://arxiv.org/abs/1806.03085 .[44] Dilin Wang et al. “Stein variational gradient descent with matrix-valued kernels”. In: NeurIPS 
+
+32 (2019). [45] Lei Li et al. “A stochastic version of Stein variational gradient descent for efficient sampling”. In: Communications in Applied Mathematics and Computational Science 15.1 (2020), pp. 37– 63. [46] Terrence Alsup, Luca Venturi, and Benjamin Peherstorfer. “Multilevel Stein variational gra-dient descent with applications to Bayesian inverse problems”. In: (Apr. 2021). URL : http: //arxiv.org/abs/2104.01945 .[47] Andreas S. Stordal et al. “p-Kernel Stein Variational Gradient Descent for Data Assimilation and History Matching”. In: Mathematical Geosciences 53 (2021), pp. 375–393. DOI : 10. 1007/s11004-021-09937-x .[48] Yunuo Zhang et al. “ESCORT: Efficient Stein-variational and Sliced Consistency-Optimized Temporal Belief Representation for POMDPs”. In: Advances in Neural Information Processing Systems . arXiv:2510.21107. 2025. [49] Daniel Schwalbe-Koda, Aik Rui Tan, and Rafael Gómez-Bombarelli. “Differentiable sampling of molecular geometries with uncertainty-based adversarial attacks”. en. In: Nature Communi-cations 12.1 (Aug. 2021), p. 5104. ISSN : 2041-1723. DOI : 10.1038/s41467-021-25342-8 .[50] Viktor Zaverkin et al. “Uncertainty-biased molecular dynamics for learning uniformly accurate interatomic potentials”. en. In: npj Computational Materials 10.1 (Apr. 2024), p. 83. ISSN :2057-3960. DOI : 10.1038/s41524-024-01254-1 .[51] Dávid Péter Kovács et al. “MACE-OFF: Short-Range Transferable Machine Learning Force Fields for Organic Molecules”. In: Journal of the American Chemical Society 147.21 (May 2025), pp. 17598–17611. ISSN : 0002-7863. DOI : 10.1021/jacs.4c07099 .[52] Peter Eastman et al. “SPICE, A Dataset of Drug-like Molecules and Peptides for Training Machine Learning Potentials”. en. In: Scientific Data 10.1 (Jan. 2023), p. 11. ISSN : 2052-4463. 
+
+> DOI
+
+: 10.1038/s41597-022-01882-6 .[53] Simon McIntosh-Smith, Sadaf Alam, and Christopher Woods. “Isambard-AI: a leadership-class supercomputer optimised specifically for Artificial Intelligence”. In: Proceedings of the Cray User Group . CUG ’24. Association for Computing Machinery, 2025, pp. 44–54. ISBN :9798400713286. DOI : 10.1145/3725789.3725794 . URL : https://doi.org/10.1145/ 3725789.3725794 .[54] Eric Darve and Andrew Pohorille. “Calculating free energies using average force”. In: The Journal of Chemical Physics 115.20 (2001), pp. 9169–9183. [55] Mark Girolami and Ben Calderhead. “Riemann Manifold Langevin and Hamiltonian Monte Carlo Methods”. In: Journal of the Royal Statistical Society: Series B 73.2 (2011), pp. 123–214. 12 [56] A. B. Duncan, N. Nüsken, and G. A. Pavliotis. “Using Perturbed Underdamped Langevin Dynamics to Efficiently Sample from Probability Distributions”. In: Journal of Statistical Physics 169 (6 Dec. 2017), pp. 1098–1131. ISSN : 00224715. DOI : 10.1007/s10955-017-1906-8 .[57] Alessandro Barducci, Giovanni Bussi, and Michele Parrinello. “Well-Tempered Metadynamics: A Smoothly Converging and Tunable Free-Energy Method”. In: Phys. Rev. Lett. 100 (2 Jan. 2008), p. 020603. DOI : 10.1103/PhysRevLett.100.020603 .[58] Omar Valsson, Pratyush Tiwary, and Michele Parrinello. “Enhancing Important Fluctuations: Rare Events and Metadynamics from a Conceptual Viewpoint”. In: Annual Review of Physical Chemistry 67 (2016), pp. 159–184. DOI : https://doi.org/10.1146/annurev-physchem-040215-112229 .[59] Luigi Ambrosio, Nicola Gigli, and Giuseppe Savaré. Gradient Flows: In Metric Spaces and in the Space of Probability Measures . Lectures in Mathematics ETH Zürich. Birkhäuser Basel, 2008. ISBN : 978-3-7643-8722-8. [60] Yutian Chen, Max Welling, and Alexander J. Smola. “Super-Samples from Kernel Herding”. In: 
+
+Proceedings of the Twenty-Sixth Conference on Uncertainty in Artificial Intelligence . UAI’10. AUAI Press, 2010, pp. 109–116. [61] Simon Mak and V. Roshan Joseph. Projected Support Points: A New Method for High-Dimensional Data Reduction . arXiv:1708.06897. 2017. arXiv: 1708.06897 [stat.ME] .[62] Simon Mak and V. Roshan Joseph. “Support Points”. In: The Annals of Statistics 46.6A (2018), pp. 2562–2592. DOI : 10.1214/17-AOS1629 .[63] Raaz Dwivedi and Lester Mackey. “Kernel Thinning”. In: Journal of Machine Learning Research 25.152 (2024), pp. 1–77. [64] Carles Domingo-Enrich, Raaz Dwivedi, and Lester Mackey. “Compress Then Test: Powerful Kernel Testing in Near-linear Time”. In: Proceedings of the 26th International Conference on Artificial Intelligence and Statistics (AISTATS) . Vol. 206. Proceedings of Machine Learning Research. PMLR, 2023. [65] Brian B. Moser et al. “A Coreset Selection of Coreset Selection Literature: Introduction and Recent Advances”. In: arXiv preprint arXiv:2505.17799 (2025). [66] Edward J Hu et al. “LoRA: Low-Rank Adaptation of Large Language Models”. In: Interna-tional Conference on Learning Representations . 2022. URL : https://openreview.net/ forum?id=nZeVKeeFYf9 .13 A Assumptions, Analysis, and Proofs 
+
+A.1 Asymptotic analysis of SKMD 
+
+We show that the asymptotic behavior of (5) maintains fidelity to the Boltzmann distribution πθ ,such that it can be implemented for Boltzmann sampling. First, we state the necessary assumptions, following the analysis in [39]. 
+
+Condition 1. The kernel k : X × X → R is continuous and symmetric positive semi-definite, i.e., it satisfies PJi,j =1 αiαj k(xi, xj ) ≥ 0 for all J ∈ N, α1, ..., α J ∈ R, and x1, ..., xJ ∈ X .
+
+Condition 2. The probability measure associated with the Boltzmann distribution πθ belongs to 
+
+Pk(X ), a subset of P(X ) defined as 
+
+Pk(X ) := 
+
+n
+
+ρ ∈ P (X ) : ρ admits a smooth Lebesgue density , supp ρ = X ,
+
+Z
+
+> X
+
+k(x, x)dρ(x) < ∞
+
+o
+
+.
+
+(11) In the limit of ϵ → 0 and ℓ → 0, the SKMD update equation in (5) converges to the stochastic differential equation dxit = 1
+
+J
+
+> J
+
+X
+
+> j=1
+
+h
+
+− k(xjt , xit)β ∇xjt
+
+Vθ (xjt ) + ∇xjt
+
+k(xjt , xit)
+
+i
+
++
+
+q 2ηJ dW it , xit, xjt ∈ ¯Xt , (12) for A(x) = k(x, x), where W it , i = 1 , ..., J, are independent copies of n-dimensional standard Brownian motion. In Proposition 1, we establish that in the limit of J → ∞ , (12) has a mean-field equation that is identical in form to that of SVGD. The proof is provided in Section A.2. 
+
+Proposition 1 (Mean field limit of SKMD) . Assume Conditions 1 and 2 hold and that A(x) = k(x, x)
+
+for all x ∈ X . As J → ∞ , the empirical measure ˆqJt (x) := 1
+
+> J
+
+PJj=1 δ(x − xjt ) of particles evolving according to (12) converges weakly to qt, the solution to 
+
+∂∂t qt(x) = ∇ · qt(x)
+
+Z
+
+> X
+
+k(x, x′) ∇x′ qt(x′) + qt(x′)β ∇x′ Vθ (x′)dx′
+
+!
+
+. (13) Therefore, the mean field limit of (12) has a stationary solution at πθ ∝ exp( −βV θ ). Note that (13) does not depend on the scaling η, meaning that the diffusion coefficient can be of arbitrary magnitude as long as it vanishes as J → ∞ . By way of the mean-field limit, SKMD inherits the convergence properties of SVGD; in particular, one can establish conditions which guarantee that qt converges weakly to πθ as t → ∞ [36, Thm. 2.8]. 
+
+A.2 Proof of Proposition 1 
+
+Proof. The proof closely follows that of Proposition 2 in [39], with a modification to the diffusion coefficient of the SDE. In the following, let 
+
+b(x, q ) := 
+
+Z
+
+> X
+
+h
+
+− k(x, x′)β∇x′ V (x′) + ∇x′ k(x, x′)
+
+i
+
+dq(x′)
+
+and 
+
+σ(x) := 
+
+r 2ηJ , Σ( x) := σ(x)σ(x)⊤ = 2ηJ .
+
+We use the duality principle with test functions to prove convergence of ˆqJt to qt, where it suf-fices to show that for a smooth test function with compact support ϕ ∈ C∞ 
+
+> c
+
+([0 , ∞) × X ),R 
+
+> X
+
+ϕ(t, x)dˆqJt (x) → R 
+
+> X
+
+ϕ(t, x)dqt(x) as J → ∞ .Let ¯xt = {xjt }Jj=1 denote the set of all particles whose empirical distribution corresponds to ˆqJt and 
+
+Φ( t, ¯xt) := 1
+
+> J
+
+PJj=1 ϕ(t, xit) = ⟨ϕ(t, ·), ˆqJt ⟩ denote the aggregate test function, which averages the 14 test function evaluated at all the particles. Here, the brackets denote the duality pairing between test functions and measures. By Itô’s formula, we have that ddt Φ( t, ¯xt) = 1
+
+J
+
+> J
+
+X
+
+> j=1
+
+h
+
+∂tϕ(t, xjt ) + ∇ϕ(t, xjt ) · b(xjt , ˆqJt )
+
+i
+
+dt
+
++ ηJ Tr (Hess Φ( t, ¯xt)) dt + dMt, (14) where dMt := √2ηJ√J
+
+PJj=1 ∇ϕ(xjt )dW jt is a local martingale. The Hessian Hess Φ ∈ RJn ×Jn is block diagonal with blocks 
+
+[Hess Φ(¯ x)] ij =
+
+
+
+1
+
+J Hess ϕ(xi) i = j, 
+
+0 i̸ = j. 
+
+Therefore, the Itô correction evaluates to 
+
+ηJ Tr (Hess Φ( t, ¯xt)) = ηJ2
+
+> J
+
+X
+
+> j=1
+
+∆ϕ(xjt ) = ηJ
+
+Z
+
+> X
+
+∆ϕ(x) dˆqJt (x).
+
+Integrating (14) from 0 to t, we obtain 
+
+⟨ϕ(t, ·), ˆqJt ⟩ − ⟨ ϕ(0 , ·), ˆqJ 
+
+> 0
+
+⟩ =
+
+Z t
+
+> 0
+
+⟨∂sϕ(s, ·), ˆqJs ⟩ ds
+
++
+
+Z t
+
+> 0
+
+⟨∇ ϕ(s, ·) · b(·, ˆqJs ), ˆqJs ⟩ ds
+
++ ηJ
+
+Z t
+
+> 0
+
+⟨∆ϕ(·), ˆqJs ⟩ds + Mt. (15) The quadratic variation of the local martingale is 
+
+[M·, M·]t = 2ηJ3
+
+> J
+
+X
+
+> i,j =1
+
+Z t
+
+> 0
+
+∇ϕ(xis) · ∇ ϕ(xjs) ds
+
+= 2ηJ
+
+Z t
+
+> 0
+
+Z
+
+> X
+
+∇ϕ(x) · ∇ ϕ(x′) dˆqJs (x)dˆqJs (x′) ds, 
+
+which is O(J−1). Therefore, Mt → 0 in probability as J → ∞ .Assume that the family {ˆqJ 
+
+> ·
+
+: J ∈ N} has a limit point q· ∈ P (C[0 , T ]) . Formally, as J → ∞ , the Itô correction and quadratic variation of the local martingale both vanish, yielding 
+
+⟨ϕ(t, ·), q t⟩ − ⟨ ϕ(0 , ·), q 0⟩ =
+
+Z t
+
+> 0
+
+⟨∂sϕ(s, ·), q s⟩ ds +
+
+Z t
+
+> 0
+
+⟨∇ ϕ(s, ·) · b(·, q s), q s⟩ ds, (16) which is the weak formulation of the nonlinear transport equation 
+
+∂tqt(t, x) = −∇ · (b(·, q t) qt). (17) Since ∇x′ k(x, x′) = −∇ xk(x, x′) by symmetry of the kernel and ∇qt = −β∇Vθ · qt + ∇qt from integration by parts, we recover (13) after substituting the definition of b.One can easily verify that the stationary condition ∂tqt = 0 is satisfied by qt = πθ ∝ exp( −βV θ ),since 
+
+β∇Vθ (x′)πθ (x′) + ∇πθ (x′) = πθ (x′) [ β∇Vθ (x′) + ∇ log πθ (x′)] = πθ (x′) [ β∇Vθ (x′) − β∇Vθ (x′)] = 0 .
+
+15 B Algorithm Details and Variants 
+
+B.1 SKMD for Boltzmann sampling 
+
+SKMD can be used as a general purpose algorithm for sampling the invariant distribution of an energy-based system. Algorithm 2 corresponds to a asynchronous implementation of stochastic SVGD, where each particle is evolved one at a time for a fixed number of steps ℓ, such that the interacting particle dynamics may be approximated by a single chain. As shown in Section A, the distribution of the dynamics defined by a potential V in the continuous time limit ( ϵ → 0), synchronized limit ( ℓ → 0), and mean-field limit ( J → ∞ ) approaches the invariant distribution 
+
+π ∝ exp( −V ), assuming β = 1 without loss of generality. 
+
+Algorithm 2 SKMD for Boltzmann sampling 
+
+Require: Initial ensemble ¯X0 = {x10, . . . , xJ 
+
+> 0
+
+}, trajectory X = ∅, potential V , kernel k, stopping ℓ
+
+Initialize ensemble index s ← 0, active particle index i ← 1
+
+for t = 0 , 1, 2, . . . do 
+
+Simulate one step of (5): xit+1 ← SKMD (xit, ¯Xs, V, k )
+
+if t + 1 = s + ℓ then 
+
+Update ensemble: ¯Xs+ℓ ←   ¯Xs \ { xis} ∪ { xis+ℓ}
+
+Advance ensemble index: s ← s + ℓ
+
+Switch active particle: i ← (i mod J) + 1 
+
+Append to trajectory: X ← X ∪ { xis, ..., xis+ℓ}
+
+return Trajectory X with approximate distribution π ∝ exp( −V )
+
+We numerically evaluate the efficacy of SKMD as a sampling algorithm using the Müller-Brown potential as an illustrative example. We compare the distribution of overdamped Langevin dynamics and SKMD in terms of their Wasserstein-2 distance from the Boltzmann distribution of the Müller-Brown potential after 1 × 10 5 simulation time steps. To study the effect of the asynchronous particle updates introduced by the stopping time on the quality of samples generated, we implement SKMD with four different stopping times, ℓ = {1, 10 1, 10 2, 10 3}. The metric is computed over 100 random trials, where in each trial the Brownian motion realization is identical across sampling methods. Figure 4 shows that samples drawn with SKMD have lower mean error with respect to the invariant distribution and lower variance in error compared to those drawn with overdamped Langevin dynamics. With SKMD, increasing the stopping time increases the discrepancy with respect to the invariant distribution, but still demonstrates better accuracy than Langevin dynamics with 
+
+ℓ = 10 3. The higher error associated with Langevin dynamics is a consequence of slow mixing and metastability, as the invariant distribution of the Müller-Brown potential is non-log concave with well-separated modes. 
+
+B.2 SKMD for active learning with offline data acquisition 
+
+SKMD may be paired with subset selection methods for offline data acquisition. In this setting, SKMD is used purely as a sampling algorithm for generating a pool of candidate configurations. We then rely on any subset selection method, such as the ones reviewed in Section 1, to draw sets of informative data to label with reference calculations and add to the training set. This approach is summarized in Algorithm 3. 
+
+Algorithm 3 SKMD for active learning with offline data acquisition 
+
+Require: Initial ensemble ¯X0 = {x10, . . . , xJ 
+
+> 0
+
+}, training set D0, model Vθ0 , kernel k, stopping ℓ
+
+for training iteration τ = 0 , 1, . . . do 
+
+Generate SKMD trajectory X from Algorithm 2 using ¯X0, Vθ0 , k, ℓ
+
+Select training data Dτ +1 ⊂ X using any subset selection method Train new model Vθτ +1 on the augmented training set Sτ +1  
+
+> k=0
+
+Dk
+
+return Final model Vθfinal and training set Dfinal 
+
+A common heuristic with SVGD is to utilize a kernel with a variable kernel bandwidth, such as one which is proportional to the median distance between particles, as a strategy to accelerate mixing in 16 Figure 4: Comparison of the quality of samples from overdamped Langevin dynamics and SKMD with varying stopping time ℓ. Quality is measured in terms of a sample-based estimator of the Wasserstein-2 distance with respect to the Boltzmann distribution. 
+
+high-dimensional state space. When implementing SKMD with a variable kernel bandwidth, offline data acquisition tends to perform better than online data acquisition. The acquisition criterion in (8) remains relatively constant for the median bandwidth heuristic, since the kernel bandwidth adapts such that the kernel terms in the SKMD biasing force are nonzero and the particles remain interactive at further distances. For this reason, in Section 5.2, we utilize the median bandwidth heuristic and furthest point sampling to select training configurations for active learning of the MACE interatomic potential. 
+
+# C Additional Background and Related Work 
+
+C.1 Enhanced sampling methods 
+
+Biasing force methods are a class of enhanced samplers which modify the force field of the dynamics by the addition of a biasing force; see [33] for a review. In these methods, the force field in overdamped or underdamped Langevin dynamics is replaced by 
+
+˜Fθ,t (xt) = −∇ xVθ (xt) + F bias  
+
+> t
+
+(xt) . (18) In the standard formulation of adaptive biasing forces (ABF) [54], the objective is to reduce energy barriers characterized in a reduced coordinate space of collective variables (CVs) ξ(x) ∈ Rr , where 
+
+r ≪ 3N . At a given point x ∈ R3N , ABF adaptively learns and cancels gradient of the free energy in CV space by setting the biasing force to be 
+
+F ABF  
+
+> t
+
+(xt) = −∇ xξ(x)⊤∇ξ F(ξ(x)) , (19) where ∇xξ is the Jacobian of the CV map. The resulting dynamics correspond to uniform sampling of the CV space and enhanced exploration of state space regions separated by high-energy barriers. The performance of ABF depends heavily on the identification of a reliable CV map; otherwise, the method is not guaranteed to improve sampling. Various other methods in the same vein as adaptive biasing force methods have been proposed in the statistics literature which preserve the target invariant measure while altering transient behavior to accelerate convergence; see [55, 56] for discussion on reversible and irreversible perturbations for MCMC. Adaptive biasing potential methods are a subclass of adaptive biasing force methods which are obtained when the biasing force is conservative, meaning that it can be written as the gradient of a potential, F bias  
+
+> t
+
+= −∇ xV bias  
+
+> t
+
+. In this case, the biased dynamics are described by a modified potential 17 energy, 
+
+˜Vθ,t (xt) = Vθ (xt) + V bias  
+
+> t
+
+(xt) . (20) The form of the biasing potential V bias  
+
+> t
+
+: R3N → R depends on the sampling objective. In metady-namics [57, 58], sampling is promoted along selected directions of the state space defined by CVs in order to characterize the free energy landscape or rare-event kinetics. The biasing potential in metadynamics is a sum of repulsive Gaussian kernels which are deposited at times Sτ = ( s1, ..., s τ )
+
+along the simulation path in CV space, 
+
+V meta  
+
+> t
+
+(xt) = X
+
+> s∈S τ
+
+as exp 
+
+
+
+− || ξ(xs) − ξ(xt)|| 2
+
+2b2
+
+> s
+
+
+
+,
+
+where as, b s > 0 are the magnitude and length scale parameters of the Gaussian kernel at time s.Metadynamics acts to “fill” visited regions with repulsive kernels until the modified free energy landscape is leveled and sampling becomes approximately uniform in the CV space. As with ABF, metadynamics relies on the availability of an informative collective variable. In uncertainty-driven dynamics (UDD) [15], a biasing potential is introduced to enhance the sampling of uncertain regions of the free energy landscape for the purpose of active learning. Given a committee of model potentials ( ˆV (m) 
+
+> t
+
+)m∈[1 ,M ] and their mean prediction ¯Vt = 1
+
+> M
+
+PMm=1 ˆV (m) 
+
+> t
+
+, a biasing potential is constructed as 
+
+V UDD  
+
+> t
+
+(xt) = a
+
+h
+
+exp 
+
+
+
+− σ2 
+
+> V
+
+(xt)
+
+N M b 2
+
+
+
+− 1
+
+i
+
+,
+
+where a, b > 0 are scale parameters and σ2 
+
+> V
+
+is the empirical variance of energy predictions by models in the committee, 
+
+σ2 
+
+> V
+
+(xt) = 1
+
+M
+
+> M
+
+X
+
+> m=1
+
+( ˆV (m) 
+
+> t
+
+(xt) − ¯Vt(xt)) 2 . (21) The model committee in [15] is constructed via k-fold cross validation, with each model trained on a distinct partition of the dataset. In most cases, the biasing potential alters the invariant measure of the dynamics. Assuming the biasing potential remains time-invariant or approaches a stationary limit, lim t→∞ V bias  
+
+> t
+
+= V bias , the state dynamics converge to a biased Boltzmann distribution, 
+
+˜πθ (x) = 1ˆZ exp( − ˜Vθ (x)) = 1ˆZ exp   − Vθ (x) − V bias (x)) . (22) Samples from ˜πθ may still be used to calculate summary statistics of the system under the origi-nal Boltzmann distribution πθ through an appropriate importance reweighting scheme. For some measurable function of positions f (x), its expectation with respect to πθ can be computed as 
+
+Ex∼πθ [f (x)] = Ex∼˜πθ
+
+f (x)w(x) , (23) where w(x) is the self-normalized importance sampling reweighting function given by 
+
+w(x) = ω(x)
+
+R ω(x)dx , ω(x) = exp( −Vθ )exp( −Vθ − V bias ) = exp( V bias ) . (24) Note that ω is the ratio of the unnormalized forms of πθ and ˜πθ . Since the reweighting function depends exponentially on the biasing potential, even moderate distortions of the biasing potential can induce highly variable weights, as well as high variance or numerical instability of the importance sampling estimator. 
+
+C.2 Variational inference and gradient flows 
+
+In various sampling and generative modeling problems, the goal is to approximate a target density π
+
+on X with a set of samples. Variational inference is a class of techniques which find an optimal density 18 q∗, typically from a parametric family Q, which minimizes the Kullback-Liebler (KL) divergence from the target density, 
+
+q∗ ∈ argmin 
+
+> q∈Q
+
+DKL (q|| π) . (25) Recently, a class of particle-based variational inference techniques have emerged which approximate a target density with the empirical distribution of a dynamic set of particles. The core principle behind these methods is to view variational inference as a gradient flow of KL divergence on the space of probability distributions. The evolution of a distribution q over time is given by the continuity equation, 
+
+∂q t
+
+∂t = −∇ · (qtϕt) , (26) where ϕt is a velocity field moving probability mass. One can discretize the flow in (26) with particles whose dynamics are governed by dxt
+
+dt = ϕt(xt), x0 ∼ q0, (27) such that qt = Law (xt). The velocity field ϕt is not uniquely determined a priori, but depends on the choice of geometric structure on the space of probability measures [59]. For instance, the law of overdamped Langevin dynamics evolves according to the Fokker-Planck equation, which can be written in the form of a continuity equation and interpreted as the Wasserstein gradient flow of KL divergence [35]. 
+
+Stein variational gradient descent (SVGD) , introduced in [17], is a particle-based variational inference algorithm which corresponds to a gradient flow restricted to velocity fields that lie in a reproducing kernel Hilbert space (RKHS). This constraint yields a closed-form expression for the steepest descent direction of KL divergence within the RKHS and a tractable particle-based algorithm. In SVGD, one solves (25) by constructing a sequence of empirical measures (ˆ q0, ˆq1, ..., ˆqt) which converges weakly on the target distribution π. Beginning with the empirical measure ˆq0(x) = 
+
+> 1
+> J
+
+PJj=1 δ(x − xj ) of an initial set of particles ¯X0 = {xj
+
+> 0
+
+}Jj=1 , we take the empirical measure at iteration t to be ˆqt = Tt♯ ˆq0, or the pushforward of ˆq0 under some transport map Tt. Equation (25) then becomes the minimization of discrepancy between Tt♯ q0 and the target distribution, 
+
+T ∗ 
+
+> t
+
+∈ argmin 
+
+> Tt
+
+DKL (Tt♯ q0|| π) , (28) where q0 is the mean-field measure corresponding to ˆq0. The transport map at iteration t is composed of intermediate maps Tt = ¯T1 ◦ ¯T2 ◦ ... ◦ ¯Tt which take the form ¯Tt(x) = x + ϵϕ t(x). The transformation consists of perturbing the positions of particles at time t by a step size ϵ in the direction ϕt, which belongs to a class of bounded functions F := {f : || f || F ≤ 1}. We can then reframe the optimization problem to be one of choosing ϕt to be the direction of steepest gradient descent, maximally decreasing KL divergence with respect to the target distribution, i.e. 
+
+ϕ∗ 
+
+> t
+
+∈ argmax 
+
+> ϕt∈F
+
+ − ∇ ϵDKL (Tt♯ q0|| π)|ϵ=0 
+
+ . (29) It is shown in [17, 35] that a practical approach to solving the above optimization problem is to project ϕt onto an reproducing kernel Hilbert space (RKHS). We choose F to be the RKHS Hn for 
+
+X ⊆ Rn, defined by a symmetric positive semi-definite kernel k : X × X → R. Then we have a closed-form expression for the gradient of KL divergence, given by 
+
+∇ϵDKL (qt|| π)|ϵ=0 = −⟨ ϕt, ψ t⟩Hn (30a) 
+
+ψt(·) = Ex∼qt [k(x, ·)∇x log π(x) + ∇xk(x, ·)] . (30b) It follows that the solution to (29), giving the steepest descent direction at step t, is ϕ∗ 
+
+> t
+
+= ψt.The flow of empirical measures corresponds to the state evolution of the interacting particle set, represented by the ordinary differential equation dxit = ϕ∗ 
+
+> t
+
+(xi)dt, (31a) 
+
+ϕ∗ 
+
+> t
+
+(·) = 1
+
+J
+
+> J
+
+X
+
+> j=1
+
+h
+
+k(xjt , ·)∇xjt
+
+log π(xjt ) + ∇xjt
+
+k(xjt , ·)
+
+i
+
+, (31b) 19 for all xit, xjt ∈ ¯Xt. As J → ∞ , the mean field limit of (31) is the following, as shown in [35, 39]: 
+
+∂∂t qt(x) = ∇ · qt(x)
+
+Z
+
+> X
+
+k(x, x′) ∇x′ qt(x′) − qt(x′)∇x′ log π(x′)dx′
+
+!
+
+. (32) Under appropriate assumptions on the kernel, target measure, and initial condition, the solution to (32) exists and is unique [36, Thm. 3.2]. It is straightforward to verify that π is a stationary point of (32) , where ∂q t 
+
+> ∂t
+
+= 0 when qt = π. A proof of qualitative convergence was provided in [36, Thm. 2.8], which showed the conditions under which qt converges weakly to π as t → ∞ . To prove convergence with quantitative rates, the authors of [39] first recognize that that SVGD defines a gradient flow of KL divergence not in the Wasserstein geometry, but in the Stein geometry induced by the kernel. In this geometry, the KL functional is not geodesically convex, meaning that in general one cannot establish functional inequalities that would prove global exponential convergence to the target measure. However, one can prove exponential convergence provided that one has local strong convexity and starts close to the target measure at equilibrium [39, Lemma 28]. 
+
+C.3 Kernel herding 
+
+Kernel herding [60] is an approach to constructing a discrete approximation of a probability distribu-tion using a finite set of points, referred to as support points [61, 62] or coresets [63, 64, 65] in the literature. For a kernel k(·, ·) which defines a reproducing kernel Hilbert space H, the kernel mean embedding of a probability distribution π in H is defined as 
+
+μπ := Ex∼π [k(x, ·)] .
+
+The goal is then to approximate μπ with an empirical embedding 
+
+ˆμN = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+k(xi, ·) ,
+
+defined by N points which minimize the maximum mean discrepancy MMD 2(ˆ qN , π ) := || ˆμN −
+
+μπ || 2
+
+> H
+
+, where ˆqN = 1
+
+> N
+
+PNj=1 δ(x − xj ) is the empirical distribution of the point set. Since global minimization of the objective over point sets is generally intractable, kernel herding finds a greedy solution to the minimization problem: for n = 1 , ..., N , given a set of previously chosen points 
+
+{xi}ni=1 , kernel herding selects the next point as the one which decreases MMD 2(ˆ qn, π ) according to 
+
+xn+1 ∈ argmin 
+
+> x∈X
+
+"
+
+1
+
+n
+
+> n
+
+X
+
+> i=1
+
+k(xi, x) − Ex′∼π [k(x′, x)] 
+
+#
+
+. (33) 
+
+Stein herding [42] is an analogous approach to kernel herding which targets the minimization of kernel Stein discrepancy. Let Sπ be the Stein operator where 
+
+Sπ ⊗ k(x, ·) := ∇x log π(x)k(x, ·) + ∇xk(x, ·) .
+
+Kernel Stein discrepancy is defined as KSD 2(ˆ qn, π ) := Ex,x′∼ˆqn [κπ (x, x′)] , where κπ : X ×X → R
+
+is the Stein kernel 
+
+κπ (x, x′) := Sx 
+
+> π
+
+Sx′ 
+
+> π
+
+⊗ k(x, x′)= ∇x · ∇ x′ k(x, x′)+ ∇xk(x, x′) · ∇ x′ log π(x′)+ ∇x′ k(x, x′) · ∇ x log π(x)+ k(x, x′)∇x log π(x) · ∇ x′ log π(x′) .
+
+In Stein herding, the next point which minimizes KSD 2(ˆ qn, π ) is given by 
+
+xn+1 ∈ argmin 
+
+> x∈X
+
+h 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+κπ (xi, x)
+
+i
+
+, (34) which is identical to the expression in (10) . As noted in [42], each nth iteration of Stein herding or kernel herding requires the solution to a global optimization problem over X , which the authors perform using numerical optimization methods such as the Nelder-Mead algorithm and brute search. 20 Remark 1. The acquisition function in (8) can be compared to the greedy update equation (34) for Stein points as follows. The SKMD biasing force (5b) is derived from the velocity field of SVGD (4b), which corresponds to 
+
+ϕ∗ 
+
+> ˆqn,π
+
+(·) = Ex∼ˆqn [Sπ ⊗ k(x, ·)] = Ex∼ˆqn [−β∇xV (x)k(x, ·) + ∇xk(x, ·)] 
+
+for π ∝ exp( −βV ). Kernel Stein discrepancy can be expressed as as the RKHS norm of the velocity field, KSD 2(ˆ qn, π ) = Ex,x′∼ˆqn [Sx 
+
+> π
+
+Sx′ 
+
+> π
+
+⊗ k(x, x′)] = || ϕ∗ 
+
+> ˆqn,π
+
+|| 2
+
+> H
+
+.
+
+The acquisition function αs in (8) corresponds to a L2(X ) norm of the velocity field, i.e., αs(x) = 
+
+|| ϕ∗ 
+
+> ˆqn,π
+
+(x)|| 22. Therefore, the acquisition criterion does not relate to the minimization of KSD, as the objective differs in terms of the Hilbert space norm. In practice, the L2(X ) norm of ϕ∗ 
+
+> ˆqn,π
+
+is simpler to compute in an online fashion compared to the RKHS norm, as it does not require the calculation of additional gradients or second-order terms at each simulation step. For future work, we plan to expand upon our initial studies in evaluating the efficacy of kernel Stein discrepancy in defining an acquisition criterion. 
+
+# D Additional Discussion 
+
+D.1 Online data acquisition 
+
+In the numerical studies of Section 5.1, we compare the online data acquisition schemes of UDD and a-SKMD. UDD utilizes an acquisition function defined as the scaled standard deviation of committee predictions, 
+
+ρ(x) := 
+
+q 2 
+
+> M
+
+σV (x) , (35) where σV is defined in (21) . At the point where the uncertainty metric ρ exceeds a threshold, i.e., 
+
+ρ(xt) > ζ 1, the point is collected as new training datum. Figure 5 compares the acquisition functions of a-SKMD and UDD after one iteration of active learning. The realization of Brownian motion for the path simulation is fixed between the two schemes shown. The SKMD acquisition function, defined as the norm of the SKMD biasing force, is informed by both the underlying potential and the kernel. Panel (c) of Figure 5 shows that the SKMD aquisition function is low near other particles in the ensemble which lie in energy basins, as a result of the attractive component of the biasing force, while the function is high near other particles located in high energy regions, as a result of the repulsive component of the biasing force. Therefore, the criterion serves to select points which are diverse with respect to the other particles but also representative of the underlying energy landscape. Moreover, the threshold of the SKMD criterion spans a large area of state space, such that with each active learning iteration, the criterion leads to a well-defined radial expansion in state space of selected points. Panel (d) shows that the UDD acquisition function increases with distance from the existing training data, with regions of high uncertainty concentrated in certain domains of the state space. The location of these regions does not correlate with the underlying energy landscape. Moreover, the UDD criterion does not have a means to enforce diversity among points selected at a given active learning iteration, which can lead to clustering in the high-uncertainty regions. As a result, the data selected by the SKMD criterion often exhibit greater spread in the state space compared to those by the UDD criterion, as shown in panels (a) and (b). 
+
+# E Experimental Details 
+
+E.1 Neural network potential 
+
+For all active learning schemes in the comparison, we fix the temperature parameter to be β = 1 .0
+
+and perform numerical simulation with a time step ϵ = 0 .002 . In each trial, a maximum of 16 active learning iterations are performed and 32 new data points are queried in each active learning iteration. 
+
+Data acquisition schemes. In the naïve data acquisition scheme utilized in overdamped Langevin dynamics and SKMD without adaptive stopping, we collect data every 100 simulation steps and stop 21 Figure 5: The neural network potential (contours), previous training data (red), and selected data (cyan) corresponding to 1 iteration of active learning by a-SKMD (a) and UDD (b). The corresponding contours of the acquisition function, selected data (cyan), and threshold for the acquisition criterion (red line) for a-SKMD (c) and UDD (d). 
+
+the simulation after 32 points have been collected. SKMD is implemented according to Algorithm 3 using ℓ = 100 .We implement UDD using the uncertainty-based acquisition criterion (35) specified in [15]. From a pilot simulation, we determined ζ1 = 0 .02 to be an appropriate uncertainty threshold. In order to reduce redundancy in the collected points, we further impose that UDD performs a minimum of 50 simulation steps before the next datum is collected. a-SKMD utilizes the acquisition function defined by the norm of the SKMD biasing force in (8) ,requiring a minimum number of simulation steps ℓ0 = 50 before stopping. We determine an appropriate value for the threshold is ζ0 = 1 .0 by tracking the acquisition function αs over a pilot simulation. 
+
+SKMD parameters. Both SKMD and a-SKMD utilize A = 1 and a Gaussian kernel defined by the Euclidean distance in state space with amplitude a = 2 and fixed length scale b = 0 .41 , which is the median distance between elements in the initial ensemble. For both schemes, the interacting set of 32 points is initialized at the initial training set. In each active learning iteration, all particles are simulated one at a time and the data are selected to be the stopping points of each particle. 
+
+E.2 MACE fine-tuning Training protocol. The same training protocol was used for every active learning iteration and for all sampling methods. We use the Low-Rank Adaptation (LoRA) method [66] for the fine-tuning of model parameters, in which pretrained model weights are adapted to new data. In each case, the initial model was fine-tuned for 100 epochs using LoRA with rank 4 and scaling factor α = 1 .0.The isolated atom energies were consistent between the pre-trained model and the oracle-labeled 22 dataset, so multi-head fine-tuning was disabled. Training used a two-stage schedule: during the first 50 epochs, the force and energy loss weights were 1000 and 40, respectively, with a learning rate of 0.01. From epoch 50 onward, the force and energy weights were changed to 10 and 1000, respectively, and the learning rate was reduced to 0.001. 
+
+SKMD outer-loop schedule. The 300 outer iterations are split into an exploration phase (iterations 1–250) and a relaxation phase (iterations 251–300). During exploration, the kernel amplitude is held fixed at a = 3 .0 and the bandwidth b is set adaptively at each iteration to the median pairwise Euclidean distance between the descriptor vectors of all particles. During the relaxation phase, both 
+
+a and b decay linearly from their values at the end of exploration to half those values by iteration 300. This relaxation allows the sampler to settle into low-energy regions of the landscape. 
+
+Structure selection. Candidate descriptor vectors are L2-normalised prior to computing pairwise distances in the furthest-point sampling step. When selecting structures at iteration t > 1, the descriptors of all previously selected structures are used to initialise the minimum-distance field, so that newly selected structures are maximally diverse relative to the entire accumulated dataset and not only relative to the current batch of candidates. 
+
+Evaluation metrics. Energy error is reported as the root mean square error (RMSE) in the total potential energy over all 300 test structures. Force error is the RMSE of all 3N force components across the test set. Both are computed relative to oracle (MACE-OFF-23-small) predictions. 
+
+E.3 Compute Infrastructure 
+
+We performed experiments with the neural network potential on x86 server CPUs (AMD EPYC and Intel Xeon processors) using batch SLURM jobs, each with 2 CPU cores, 80GB memory for the Langevin, SKMD, and a-SKMD runs, and 200GB memory for the UDD runs. The typical run times per job were 5 minutes for the Langevin scheme, 10 minutes for the SKMD and a-SKMD schemes, and 1 hour for the UDD scheme. For the MACE examples, the active learning loops were conducted on the Isambard-AI Phase 2 system at the Bristol Centre for Supercomputing, which is built from HPE Cray EX nodes containing four NVIDIA GH200 Grace Hopper Superchips per node. Molecular dynamics simulations were run as single-core jobs on the NVIDIA Grace CPU (72 Arm Neoverse V2 cores, Armv9.0-A, 3.1 GHz, with 4×128-bit SVE2 vector units and 120 GB of co-packaged LPDDR5X memory), while MACE training was performed on the NVIDIA H100 Hopper GPU (96 GB HBM3) of the same superchip, accessed via the 900 GB/s coherent NVLink-C2C interface. Total resource usage for results generation was minimal, at approximately 6 CPU-hours and 4 GPU-hours across all MD and MACE training. 
+
+# F Societal Impacts 
+
+We develop a method for improving the efficiency of atomistic simulations, with the potential to accelerate scientific discovery in chemistry, materials science, and drug design. By reducing the number of expensive quantum-mechanical calculations required for training MLIPs, our method can lower the computational cost and energy consumption of atomistic simulation workflows. While we do not foresee any direct negative societal impacts, atomistic simulation tools could be misused—for example, for the development of biochemical weapons. Such risks are not specific to our method. 23

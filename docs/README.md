@@ -6,80 +6,119 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-06-08 ~ 2026-06-17
-- 运行时间：2026-06-17 12:06:14 UTC
+- 最新运行日期：2026-05-19 ~ 2026-06-17
+- 运行时间：2026-06-17 14:21:41 UTC
 - 运行状态：成功
-- 本次总论文数：20
-- 精读区：13
-- 速读区：7
+- 本次总论文数：32
+- 精读区：0
+- 速读区：32
 
 ### 今日简报（AI）
-今日精读10分论文聚焦参数高效微调：SAM适配4DCT生成ITV，以及渐进低秩自适应的可变速率图像压缩。最推荐的两个方向：基于低秩适配的医学影像生成与图像压缩的效能突破。建议关注参数高效微调在跨领域迁移中的低成本适配能力。
-- 详情：[/20260608-20260617/README](/20260608-20260617/README)
+速读32篇论文，重点聚焦原子间势能领域的两个10分高分工作。  
+DPA4利用EMFA SO(2)卷积推动精度-成本前沿，标量路径保真度方法则提升了短程等变势的物理准确性。  
+建议优先精读这两篇论文，深入理解模型设计思路与实验对比细节。
+- 详情：[/20260519-20260617/README](/20260519-20260617/README)
 
 ### 精读区论文标签
-1. [Parameter-Efficient Adaptation of SAM 3 for Automated ITV Generation from 4DCT Images](/20260608-20260617/2606.15604v1-parameter-efficient-adaptation-of-sam-3-for-automated-itv-generation-from-4dct-images)  
-   标签：评分：10.0/10、query:board-search
-   evidence：应用参数高效微调（LoRA）微调SAM 3实现医学分割
-2. [Variable-Rate Deep Image Compression based on Low-Rank Adaptation by Progressive Learning](/20260608-20260617/2606.16107v1-variable-rate-deep-image-compression-based-on-low-rank-adaptation-by-progressive-learning)  
-   标签：评分：10.0/10、query:board-search
-   evidence：使用低秩自适应进行变速率图像压缩
-3. [Fisher-Guided Progressive Parameter Selection for Adaptive Fine-Tuning](/20260608-20260617/2606.10196v1-fisher-guided-progressive-parameter-selection-for-adaptive-fine-tuning)  
-   标签：评分：9.0/10、query:board-search
-   evidence：提出了一种利用Fisher信息的参数高效微调新方法
-4. [GC-LoRA: Gated Convolutional LoRA for Parameter-Efficient Acoustic Adaptation](/20260608-20260617/2606.10464v1-gc-lora-gated-convolutional-lora-for-parameter-efficient-acoustic-adaptation)  
-   标签：评分：9.0/10、query:board-search
-   evidence：提出GC-LoRA，将门控卷积与LoRA结合用于语音识别的参数高效微调
-5. [5% > 100%: Flatness Preference is All You Need for Multimodal Parameter-Efficient Fine-Tuning](/20260608-20260617/2606.10488v1-5--100-flatness-preference-is-all-you-need-for-multimodal-parameter-efficient-fine-tuning)  
-   标签：评分：9.0/10、query:board-search
-   evidence：聚焦于参数高效微调方法的泛化机制
-6. [Null-Space Constrained Low-Rank Adaptation for Response-Specified Large Language Model Unlearning](/20260608-20260617/2606.10989v1-null-space-constrained-low-rank-adaptation-for-response-specified-large-language-model-unlearning)  
-   标签：评分：9.0/10、query:board-search
-   evidence：提出了用于大语言模型遗忘的低秩自适应方法
-7. [EquiDexFlow: Contact-Grounded SE(3)-Equivariant Dexterous Grasp Generative Flows](/20260608-20260617/2606.12728v1-equidexflow-contact-grounded-se3-equivariant-dexterous-grasp-generative-flows)  
-   标签：评分：9.0/10、query:board-search
-   evidence：证明了灵巧抓取生成中的端到端SE(3)等变性
-8. [The Hidden Power of Scaling Factor in LoRA Optimization](/20260608-20260617/2606.12883v1-the-hidden-power-of-scaling-factor-in-lora-optimization)  
-   标签：评分：9.0/10、query:board-search
-   evidence：直接研究LoRA的缩放因子及优化机制
-9. [LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold](/20260608-20260617/2606.12921v1-lora-muon-spectral-steepest-descent-on-the-low-rank-manifold)  
-   标签：评分：9.0/10、query:board-search
-   evidence：直接改进LoRA优化方法
-10. [Beyond LoRA: Is Sparsity-Induced Adaptation Better?](/20260608-20260617/2606.13767v1-beyond-lora-is-sparsity-induced-adaptation-better)  
-   标签：评分：9.0/10、query:board-search
-   evidence：系统研究LoRA及其稀疏变体
-11. [Bayesian 3D Steerable CNNs: Enabling Equivariance and Uncertainty Quantification Simultaneously](/20260608-20260617/2606.15479v1-bayesian-3d-steerable-cnns-enabling-equivariance-and-uncertainty-quantification-simultaneously)  
-   标签：评分：9.0/10、query:board-search
-   evidence：提出贝叶斯可转向CNN，具有SE(3)等变性和不确定性量化
-12. [PreLort: Prefix-Nested LoRA for Federated Fine-Tuning under Rank Heterogeneity](/20260608-20260617/2606.15963v1-prelort-prefix-nested-lora-for-federated-fine-tuning-under-rank-heterogeneity)  
-   标签：评分：9.0/10、query:board-search
-   evidence：面向联邦学习的嵌套低秩LoRA方法
-13. [SDS-LoRA: Overcoming Anisotropic Gradient Scaling in Low-Rank Adaptation](/20260608-20260617/2606.16454v1-sds-lora-overcoming-anisotropic-gradient-scaling-in-low-rank-adaptation)  
-   标签：评分：9.0/10、query:board-search
-   evidence：直接改进LoRA，解决各向异性梯度缩放问题
+- 本次无精读推荐。
 
 ### 速读区论文标签
-1. [Parameter-Efficient Continual Learning for Automatic Speech Recognition](/20260608-20260617/2606.09342v1-parameter-efficient-continual-learning-for-automatic-speech-recognition)  
+1. [DPA4: Pushing the Accuracy-Cost Frontier of Interatomic Potentials with EMFA SO(2) Convolution](/20260519-20260617/2606.02419v1-dpa4-pushing-the-accuracy-cost-frontier-of-interatomic-potentials-with-emfa-so2-convolution)  
+   标签：评分：10.0/10、query:ml-potential
+   evidence：SE(3)-等变原子间势，使用低秩SO(2)卷积
+2. [DPA4: Pushing the Accuracy-Cost Frontier of Interatomic Potentials with EMFA SO(2) Convolution](/20260519-20260617/2606.02419v2-dpa4-pushing-the-accuracy-cost-frontier-of-interatomic-potentials-with-emfa-so2-convolution)  
+   标签：评分：10.0/10、query:ml-potential
+   evidence：SE(3)-等变原子间势架构，采用EMFA SO(2)卷积
+3. [Scalar-pathway fidelity improves physical accuracy in short-range equivariant interatomic potentials](/20260519-20260617/2606.15892v1-scalar-pathway-fidelity-improves-physical-accuracy-in-short-range-equivariant-interatomic-potentials)  
+   标签：评分：10.0/10、query:ml-potential
+   evidence：通过标量路径修改改进短程等变原子间势
+4. [Uncertainty-aware Machine Learning Interatomic Potentials via Learned Functional Perturbations](/20260519-20260617/2605.19939v2-uncertainty-aware-machine-learning-interatomic-potentials-via-learned-functional-perturbations)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：机器学习原子间势的不确定性量化
+5. [Dataset-aware entropy-maximized active learning for machine-learned interatomic potentials](/20260519-20260617/2605.20384v1-dataset-aware-entropy-maximized-active-learning-for-machine-learned-interatomic-potentials)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：机器学习原子间势的主动学习框架
+6. [Benchmarking machine-learned interatomic potentials for molecular infrared spectroscopy](/20260519-20260617/2605.22367v1-benchmarking-machine-learned-interatomic-potentials-for-molecular-infrared-spectroscopy)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：MPNN架构预测红外光谱的基准测试
+7. [Upscaling DFT-trained machine-learning interatomic potential toward Quantum Monte Carlo accuracy: Sulfur-vacancy migration in monolayer MoS$_2$ as a testbed](/20260519-20260617/2605.22601v1-upscaling-dft-trained-machine-learning-interatomic-potential-toward-quantum-monte-carlo-accuracy-sulfur-vacancy-migration-in-monolayer-mos2-as-a-testbed)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：利用QMC能量微调DFT训练的MACE等变MLIP
+8. [Machine Learning Interatomic Potentials: Advancing Open-Source Software for Efficient and Scalable Molecular Simulation](/20260519-20260617/2605.22698v1-machine-learning-interatomic-potentials-advancing-open-source-software-for-efficient-and-scalable-molecular-simulation)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：开源机器学习原子间势软件，包含等变计算后端e3j
+9. [Multitask learning with semiempirical orbital charges enables sample-efficient MLIPs](/20260519-20260617/2605.24073v1-multitask-learning-with-semiempirical-orbital-charges-enables-sample-efficient-mlips)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：使用半经验轨道电荷的多任务学习实现样本高效MLIPs
+10. [Active learning of collinear magnetic Moment Tensor Potentials using the spin-MLIP package from soft-constrained spin-polarized DFT calculations: a case study of Fe-Pd](/20260519-20260617/2605.26897v1-active-learning-of-collinear-magnetic-moment-tensor-potentials-using-the-spin-mlip-package-from-soft-constrained-spin-polarized-dft-calculations-a-case-study-of-fe-pd)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：主动学习磁矩张量势
+11. [Charting the thermodynamic stability of hybrid perovskite alloys with machine learning](/20260519-20260617/2605.30012v1-charting-the-thermodynamic-stability-of-hybrid-perovskite-alloys-with-machine-learning)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：使用图神经网络原子间势研究钙钛矿合金
+12. [Using graph neural networks to predict many-body interactions in amorphous materials](/20260519-20260617/2605.30822v1-using-graph-neural-networks-to-predict-many-body-interactions-in-amorphous-materials)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：等变图神经网络NequIP预测非晶材料中的多体相互作用
+13. [Differentiable Particle-Mesh Ewald with Cartesian Tensor Message Passing for Learning Long-Range Electrostatics and Dipole Response](/20260519-20260617/2606.01598v1-differentiable-particle-mesh-ewald-with-cartesian-tensor-message-passing-for-learning-long-range-electrostatics-and-dipole-response)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：可微粒子网格Ewald用于学习MLIPs中的长程静电
+14. [GFFMERGE: Efficient Merging of Graph Neural Force Fields and Beyond](/20260519-20260617/2606.03232v1-gffmerge-efficient-merging-of-graph-neural-force-fields-and-beyond)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：图神经网络力场合并，直接相关于原子间势预测
+15. [Non-covalent Interactions at cm$^{-1}$ Accuracy: Data Efficient Physics-Informed Distillation for Machine Learning Interatomic Potentials](/20260519-20260617/2606.05127v1-non-covalent-interactions-at-cm-1-accuracy-data-efficient-physics-informed-distillation-for-machine-learning-interatomic-potentials)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：MLIP的知识蒸馏达到量子化学精度
+16. [Distilling first-principles accuracy into compact machine learning potentials for condensed-phase chemistry](/20260519-20260617/2606.06848v1-distilling-first-principles-accuracy-into-compact-machine-learning-potentials-for-condensed-phase-chemistry)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：通过知识蒸馏构建紧凑的机器学习原子间势用于凝聚相化学
+17. [Six Open Questions in Machine-Learned Interatomic Potential Foundation Models](/20260519-20260617/2606.07327v1-six-open-questions-in-machine-learned-interatomic-potential-foundation-models)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：讨论了机器学习原子间势基础模型中的开放问题
+18. [Inverse design of bespoke interatomic potentials via active learning by information-matching](/20260519-20260617/2606.08148v1-inverse-design-of-bespoke-interatomic-potentials-via-active-learning-by-information-matching)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：原子间势主动学习设计
+19. [Fine-tuning MLIP foundation models: strategies for accuracy and transferability](/20260519-20260617/2606.12704v1-fine-tuning-mlip-foundation-models-strategies-for-accuracy-and-transferability)  
+   标签：评分：9.0/10、query:board-search
+   evidence：评估了LoRA等微调策略在MACE（等变GNN）基础MLIP模型上的表现
+20. [Distilling latent electrostatics from foundation machine learning interatomic potentials](/20260519-20260617/2606.15001v1-distilling-latent-electrostatics-from-foundation-machine-learning-interatomic-potentials)  
+   标签：评分：9.0/10、query:ml-potential
+   evidence：从基础机器学习原子间势中蒸馏静电
+21. [TriForces: Augmenting Atomistic GNNs for Transferable Representations](/20260519-20260617/2605.20581v1-triforces-augmenting-atomistic-gnns-for-transferable-representations)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：增强原子图神经网络以实现可迁移的MLIP表示
+22. [Target-Distribution-Guided Cross-Functional Fine-Tuning of Machine-Learning Interatomic Potentials](/20260519-20260617/2605.25032v1-target-distribution-guided-cross-functional-fine-tuning-of-machine-learning-interatomic-potentials)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：基于目标分布指导的MLIP跨泛函微调
+23. [DFT Accuracy on Crystal Structure Prediction with Machine Learning Interatomic Potentials](/20260519-20260617/2605.28905v1-dft-accuracy-on-crystal-structure-prediction-with-machine-learning-interatomic-potentials)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：评估使用MACE-POLAR（等变）MLIP进行晶体结构预测
+24. [Prototype-Guided Latent Alignment for Data-Efficient Fine-Tuning of Molecular Foundation Models](/20260519-20260617/2605.29969v1-prototype-guided-latent-alignment-for-data-efficient-fine-tuning-of-molecular-foundation-models)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：提出利用原型对齐对分子基础模型进行数据高效微调
+25. [Stein Kernelized Molecular Dynamics for Active Learning of Interatomic Potentials](/20260519-20260617/2606.04100v1-stein-kernelized-molecular-dynamics-for-active-learning-of-interatomic-potentials)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：利用Stein核化分子动力学进行MLIP主动学习
+26. [Equivariant Neural Belief Propagation](/20260519-20260617/2606.06344v1-equivariant-neural-belief-propagation)  
    标签：评分：8.0/10、query:board-search
-   evidence：提出基于参数高效微调的参数高效持续学习方法
-2. [Recoverable but Not Stationary:Local Linear Structures in Weights and Activations](/20260608-20260617/2606.10929v1-recoverable-but-not-stationarylocal-linear-structures-in-weights-and-activations)  
-   标签：评分：8.0/10、query:board-search
-   evidence：对LoRA适配器行为的实证研究，揭示局部低秩任务梯度结构
-3. [Parameter-Efficient Adapter Tuning for Tabular-Image Multimodal Learning](/20260608-20260617/2606.11682v1-parameter-efficient-adapter-tuning-for-tabular-image-multimodal-learning)  
-   标签：评分：8.0/10、query:board-search
-   evidence：参数高效适配器微调框架
-4. [Fine-tuning Multi-modal LLMs with ART: Art-based Reinforcement Training](/20260608-20260617/2606.11854v1-fine-tuning-multi-modal-llms-with-art-art-based-reinforcement-training)  
-   标签：评分：8.0/10、query:board-search
-   evidence：提出一种针对多模态大语言模型的参数高效微调方法
-5. [Test-Time Adaptation of Spiking Neural Networks for Intracortical Neural Decoding using Membrane Potential Alignment](/20260608-20260617/2606.14866v1-test-time-adaptation-of-spiking-neural-networks-for-intracortical-neural-decoding-using-membrane-potential-alignment)  
-   标签：评分：8.0/10、query:board-search
-   evidence：在脉冲神经网络测试时适应中使用低秩(LoRA)权重更新
-6. [MambAdapter: Lightweight Mamba-Based Adapters for Parameter-Efficient Transfer Learning in Speech and Audio](/20260608-20260617/2606.15638v1-mambadapter-lightweight-mamba-based-adapters-for-parameter-efficient-transfer-learning-in-speech-and-audio)  
-   标签：评分：8.0/10、query:board-search
-   evidence：提出MambAdapter，一种使用低秩Mamba适配器的参数高效迁移学习方法
-7. [Learning turbulent transport via Mori--Zwanzig graph neural networks](/20260608-20260617/2606.14918v1-learning-turbulent-transport-via-mori--zwanzig-graph-neural-networks)  
-   标签：评分：7.0/10、query:board-search
-   evidence：使用等变消息传递图神经网络模拟湍流传输
+   evidence：用于概率推理的SE(3)等变消息传递
+27. [Prolate spheroidal wave functions enable fast and exponent-aware long-range machine learning interatomic potentials](/20260519-20260617/2606.06617v1-prolate-spheroidal-wave-functions-enable-fast-and-exponent-aware-long-range-machine-learning-interatomic-potentials)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：利用扁椭球波函数实现MLIP的长程相互作用
+28. [Six Open Questions in Machine-Learned Interatomic Potential Foundation Models](/20260519-20260617/2606.07327v2-six-open-questions-in-machine-learned-interatomic-potential-foundation-models)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：机器学习原子间势基础模型综述
+29. [Robust AI-Driven Discovery of Electronic Metal Phosphide Semiconductors](/20260519-20260617/2606.10251v1-robust-ai-driven-discovery-of-electronic-metal-phosphide-semiconductors)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：使用机器学习原子间势进行材料发现
+30. [A wrong ground-state structure of HfO$_2$ predicted by machine-learning interatomic potentials based on the PBE functional](/20260519-20260617/2606.12811v1-a-wrong-ground-state-structure-of-hfo2-predicted-by-machine-learning-interatomic-potentials-based-on-the-pbe-functional)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：机器学习原子间势用于HfO2
+31. [Machine Learning Accelerated SSNEB for Efficient Minimum Energy Pathway Calculations](/20260519-20260617/2606.13917v1-machine-learning-accelerated-ssneb-for-efficient-minimum-energy-pathway-calculations)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：使用等变模型的机器学习加速SSNEB
+32. [Melt-Quench Failures and Practical Solutions for Universal Machine-Learning Interatomic Potentials in Amorphous Structure Generation](/20260519-20260617/2606.16385v1-melt-quench-failures-and-practical-solutions-for-universal-machine-learning-interatomic-potentials-in-amorphous-structure-generation)  
+   标签：评分：8.0/10、query:ml-potential
+   evidence：评估通用机器学习原子间势在非晶材料中的表现
 
 
 <div class="dpr-home-promo-card">

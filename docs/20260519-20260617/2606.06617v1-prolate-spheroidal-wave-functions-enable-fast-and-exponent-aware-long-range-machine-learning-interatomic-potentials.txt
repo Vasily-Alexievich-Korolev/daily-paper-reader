@@ -1,0 +1,2947 @@
+Title: Prolate spheroidal wave functions enable fast and exponent-aware long-range machine learning interatomic potentials
+
+URL Source: https://arxiv.org/pdf/2606.06617v1
+
+Published Time: Mon, 08 Jun 2026 00:07:00 GMT
+
+Number of Pages: 56
+
+Markdown Content:
+# Prolate spheroidal wave functions enable fast and exponent-aware long-range machine learning interatomic potentials 
+
+Jiuyang Liang 1,3 , Libin Lu 1, Yajie Ji 2,3 , and Shidong Jiang 1,* 1Center for Computational Mathematics, Flatiron Institute, Simons Foundation, New York, New York 10010, USA 
+
+> 2
+
+Department of Statistics and Data Science, Yale University, New Haven, CT 06511, USA 
+
+> 3
+
+School of Mathematical Sciences, Shanghai Jiao Tong University, Shanghai, 200240, China June 8, 2026 
+
+Abstract 
+
+Long-range interactions such as electrostatics and dispersion remain a central bottleneck for machine learning interatomic potentials (MLIPs), especially in ionic, polar and interfacial systems. Ewald-based reciprocal-space mechanisms provide a physically grounded route for capturing these nonlocal effects, but often require dense Fourier grids and can become memory-limited at scale. This problem is partic-ularly pronounced in molecular dynamics, where high efficiency requirements make accurate long-range modelling particularly costly. Here we introduce PSWF-LR, an exponent-aware long-range framework based on prolate spheroidal wave functions (PSWFs) that can be easily incorporated into existing model architectures. Its core components are PSWF-based mollification and atom-grid spreading, which enable compact and efficient representation of arbitrary inverse-power channels 1 /r p while treating the decay exponent as a physical prior. Across diverse long-range benchmarks, PSWF-LR reduces Fourier-mode requirements, improves energy and force accuracy, accelerates production-level simulations by about threefold, and extends long-range MLIP simulations beyond the memory limits of conventional MLIPs. 
+
+Machine learning interatomic potentials (MLIPs) have transformed atomistic simulation by providing first-principles-level energy and force predictions at substantially lower cost than ab initio methods, enabling molecular dynamics (MD) across chemistry, physics and materials science 1–4 . Most existing MLIPs, how-ever, are built on a local-neighborhood approximation 5,6 : each atomic energy is inferred from its environment within a finite cutoff. This assumption is effective for short-range (SR) bonding and local structural relax-ation, but it becomes limiting in ionic, polar and interfacial systems 7, where electrostatics, induction and dispersion decay slowly and can shape the potential energy surface (PES) over long distances. Capturing these nonlocal effects therefore requires not only accurate local descriptors, but also a physically grounded and computationally efficient mechanism for representing long-range (LR) interactions. Existing strategies address this issue in several ways. Early approaches add empirical force-field cor-rections with fixed point charges 8,9 , but fixed charges cannot generally describe environment-dependent charge transfer, and such corrections are not readily available for many systems. Message-passing neu-ral networks (MPNNs) 10–13 extend the receptive field through repeated communication across interaction shells, but slowly decaying interactions can require large cutoffs or many rounds of message passing. Another important class of methods predicts charges, dipoles or related latent variables, often under global charge constraints or charge equilibration 14–18 . Examples include 4G-HDNNP 15 , BAMBOO 17 and CHGNet 19 ,which learn charge-informed representations, and DPLR 20 and SCFNN 21 , which introduce virtual sites or self-consistent electronic variables. After such LR variables are obtained, their LR interactions are usually evaluated by Ewald summation 22 , fast Fourier transform (FFT)-accelerated particle-mesh variants 23–26 ,or self-consistent procedures 22,23 . Other approaches avoid explicit charge prediction: Ewald message pass-ing 27 uses learnable reciprocal-space filters, LODE 28,29 and density-based methods 30 encode LR information 
+
+> ∗Correspondence: sjiang@flatironinstitute.org
+
+1
+
+> arXiv:2606.06617v1 [physics.chem-ph] 4 Jun 2026
+
+through inverse-power descriptors, latent Ewald summation (LES) 31,32 learns effective LR variables from en-ergies and forces, and more flexible LR tails can be represented through explicit polarization models 33 or learned with sum-of-Gaussians neural networks 34,35 .Despite these advances, accurately and efficiently modeling LR interactions in MLIPs remains far from settled. In many LR MLIPs, once charges, virtual sites or latent LR variables are predicted, the nonlocal electrostatic contribution is often included through an Ewald-type mechanism, in which Gaussian screening softens the singular 1 /r interaction and leaves a smooth reciprocal-space term to be computed on Fourier grids. Ewald-type treatments are physically interpretable because they retain the Coulomb LR decay, and particle-mesh variants reduce the asymptotic cost to near O(N log N ). In practical MLIP workflows, how-ever, local-environment cutoffs are often short, typically about 4–6 ˚A, while the MD systems can be much larger than the training configurations. This mismatch can force dense reciprocal grids, costly particle–mesh operations and high memory demand, thereby slowing training and inference and limiting scalability 36 . In addition, many LR MLIPs focus mainly on charge–charge interactions, whereas realistic atomistic systems can also include charge–dipole (1 /r 2), dipole–dipole (1 /r 3), induction-like and dispersion (1 /r 6) contribu-tions. These limitations point to the need for a compact, differentiable LR mechanism that can represent multiple physically motivated asymptotic decays within a common framework. Here we introduce PSWF-LR, an exponent-aware framework for LR MLIPs based on prolate spheroidal wave functions (PSWFs). In PSWF-LR, an upstream SR model encodes local atomic environments and supplies suitable LR variables, such as latent variables, explicit partial charges, or ML-parameterized force field terms. Then, these variables are fed into inverse-power channels 1 /r p, whose LR contributions are then evaluated by PSWF-based mollification and atom-grid spreading. PSWFs are eigenfunctions of the truncated Fourier transform and provide optimally band-concentrated representations on finite intervals 37 .We use this property to replace the Gaussian screening used in Ewald-type treatments with compact PSWF-based mechanisms. This construction exploits the spectral concentration of the smooth LR component, allowing it to be represented with substantially fewer Fourier modes while retaining the prescribed inverse-power decay. In this formulation, the decay exponent p becomes a tunable physical prior rather than a fixed consequence of the Gaussian Ewald ansatz. We validate PSWF-LR across systematic accuracy benchmarks and production MD simulations. In synthetic LR systems, molecular dimers and polar dipeptides, PSWF-LR reduces Fourier-mode requirements and shows that the optimal decay exponent depends on the target observable. In charge-transfer benchmarks, it captures nonlocal charge redistribution and improves energy and force accuracy. We further compare the PSWF-based LR evaluation layer with differentiable Torch-PME and JAX-PME backends 24 , and evaluate it in production MD workflows based on CACE with an Ewald LR treatment 32 and ByteFF-Pol 38 with particle-mesh Ewald (PME) 23 in OpenMM 39 . These tests show that PSWF-LR substantially accelerates LR evaluation and MLIP-based production MD while preserving the tested interfacial structure, charge response and electrolyte transport observables. 
+
+# Results 
+
+Overview of the PSWF Framework 
+
+The PSWF framework is illustrated in Fig. 1. We consider periodic systems with Cartesian coordinates {ri}
+
+and chemical species {Zi}, and seek a model for the total potential energy Epot and forces Fi = −∂E pot /∂ ri.As in many LR MLIPs, we decompose the total energy into a local SR contribution and a nonlocal LR correction, 
+
+Epot =
+
+> N
+
+X
+
+> i=1
+
+Ei 
+
+> θsr
+
+(Di) + Eθlr . (1) The SR term is a sum of atomic energies predicted from local descriptors Di within a cutoff rc; these descriptors may be explicit, as in ACE 40 and CACE 41 , or learned end to end, as in deep potential 6, Allegro 42 ,and NequIP 12 .2For the LR contribution, we write the energy as a sum over inverse-power channels, 
+
+Eθlr = X
+
+> p∈S
+
+E(p) 
+
+> θlr
+
+= 12
+
+X
+
+> p∈S
+
+X
+
+> n∈Z3
+> N
+
+X
+
+> i,j =1
+
+q(p) 
+
+> i
+
+q(p)
+
+> j
+
+Gp(|rij + n · L|)
+
+|rij + n · L|p . (2) Here S is a prescribed set of exponents, rij = ri − rj , and n ∈ Z3 enumerates periodic images. Each channel p has its own latent variables q(p) 
+
+> i
+
+, predicted by a dedicated module (e.g., a multilayer perceptron that maps Di to qi), and its own mollifier Gp(r), which regularizes the 1 /r p singularity. In a conventional Ewald treatment, Gp(r) is an incomplete-gamma screening function (Eq. (12) in Methods). In PSWF-LR, we instead derive Gp(r) from the order-zero PSWF ψc
+
+> 0
+
+(r) and its derivatives. For example, for charge-charge and dispersion channels ( S = {1, 6}), we use 
+
+G1(r) = 1
+
+C0
+
+Z r/r c
+
+> 0
+
+ψc
+
+> 0
+
+(x) dx, C0 := 
+
+Z 10
+
+ψc
+
+> 0
+
+(x) dx, (3) and 
+
+G6(r) = 1 − ψc
+
+> 0
+
+(r/r c) + 5r
+
+8rc
+
+ψc
+
+> 0′
+
+(r/r c) − r2
+
+8r2
+
+> c
+
+ψc
+
+> 0′′
+
+(r/r c) (4) where c > 0 is the mollifier parameter. The full construction, including the cases p̸ = 1 , 6, is given in Methods. To avoid the explicit lattice sum in Eq. (2), we evaluate the LR term Eθlr in Fourier space: 
+
+Eθlr = 12V
+
+X
+
+> p∈S
+
+X 
+
+> k̸=0
+
+bΦp(k) ρ(p)(k) 2 + X
+
+> p∈S
+
+E0,(p) 
+
+> θlr
+
+, (5) where V = LxLy Lz is the cell volume, k = (2 πm x/L x, 2πm y /L y , 2πm z /L z ) are reciprocal lattice vectors, 
+
+m = ( mx, m y , m z ) ∈ Z3, and bΦp(k) is the Fourier transform of Gp(r)/r p. The latent structure factor is 
+
+ρ(p)(k) := 
+
+> N
+
+X
+
+> i=1
+
+q(p) 
+
+> i
+
+eik·ri , (6) and E0,(p) 
+
+> θlr
+
+is the zero-frequency correction. Explicit forms of bΦp(k) and E0,(p) 
+
+> θlr
+
+for general p are given in Methods. In practice, the reciprocal-space sum is truncated at ∥k∥ ≤ Kmax . Only the latent variables are learned. The remaining LR hyperparameters, including S, c, rc, and Kmax , are selected automatically from the target tolerance described in Methods. We further combine these kernels with PSWF-based atom-grid spreading and a single batched FFT, yielding an O(N log N ) framework (see Methods and Fig. 1). PSWF-LR provides an exponent-aware mechanism for representing LR interactions in MLIPs. PSWF-LR can be used either as a complete SR-plus-LR potential or as a replacement for Ewald-style LR components in existing LR MLIPs and ML-parameterized molecular-mechanics (MM) workflows. In the benchmarks below, we keep the upstream SR representation, latent-variable predictor or force-field parameters fixed whenever possible. This design allows us to test whether the PSWF-based LR mechanism itself provides a more compact and accurate representation of nonlocal interactions. 
+
+Random particle systems 
+
+We first isolated the spectral efficiency of the LR mechanism using two synthetic particle benchmarks with known LR physics: a Coulombic (1 /r ) system and a dispersion-like (1 /r 6) system (Fig. 2a,b). These systems remove most chemical complexity while retaining the central question: how many reciprocal-space modes are needed for an LR-augmented MLIP to recover both the nonlocal interaction and the latent variables that generate it? Using the same SR descriptor and matched training settings, PSWF-LR reaches the plateau energy, force and charge-prediction errors with about 4–7 × fewer Fourier modes than the Ewald baseline in the Coulombic benchmark. The advantage is even more pronounced in the dispersion benchmark, where, once the reciprocal-space sum is sufficiently resolved, PSWF-LR is consistently more accurate at matched reciprocal resolution 33. Latent -variable channels 4. PSWF -based LR layer 1. Input                                              
+
+> 5. Outputs
+> Plug -in LR backend
+> 𝒑 =𝟏
+> 𝒑 =𝟐
+> 𝒑 =𝟑
+> 𝒑 =𝟔
+> …
+> charge -charge
+> charge -polar
+> polar -polar
+> apolar -apolar
+> 2. Local MLIP
+> positions 𝒓 𝒊
+> species 𝒁 𝒊
+> Local
+> environment
+> Feature
+> embedding
+> Per -atom
+> SR energy
+> PSWF -LR
+> backend
+> Latent -variable
+> MLIPs
+> Charge
+> equilibration
+> Polarizable
+> MLIPs
+> Density -based
+> MLIPs
+> Comparison of LR mechanisms
+> Physic s-constrained
+> latent variables
+> Hybrid ML/FF Any MLIP
+> with 𝟏 /𝒓 𝒑
+> cell tensor 𝛀
+> Inverse power law 𝟏 /𝒓 𝒑
+> ……
+> q𝒊
+> (𝒑 )
+> 𝒑 =𝟏 𝒑 =𝟐 𝒑 =𝟑 𝒑 =𝟒 𝒑 =𝟓 𝒑 =𝟔
+> …
+> …
+> Mollifier
+> Atom -grid spreading
+> ~2 3fewer modes
+> PSWF PME
+> ~4 3smaller grids
+> Forces /virial MD simulations Energy
+> 𝒑 =𝟏 𝒑 =𝟔
+
+Figure 1: Schematic overview of the PSWF-LR framework for exponent-aware long-range machine-learning inter-atomic potentials. Starting from atomic positions ri, species Zi, and the cell tensor Ω, a local short-range MLIP encodes each atomic environment and predicts short-range atomic energies together with features used to infer physics-constrained latent variables. These latent variables define inverse-power long-range channels q(p) 
+
+> i
+
+associ-ated with kernels 1/r p, covering charge–charge, charge–polar, polar–polar, and higher-order apolar interactions. The PSWF-LR backend spreads all latent variables onto a mesh with PSWF atom-grid windows, evaluates the reciprocal-space contributions through a single batched FFT over all channels, applies the corresponding PSWF mollifiers, and gathers the results to obtain the long-range energy. The total energy combines short-range and long-range terms, while forces and virials are obtained by automatic differentiation for molecular dynamics sim-ulations. The upper-right panel compares PSWF-LR with Ewald/PME-style backends: PSWF mollifiers show faster reciprocal-space decay and PSWF spreading kernels are more localized, enabling fewer Fourier modes and substantially smaller grids when atom-grid spreading and FFT acceleration are used together. The lower-right panel highlights the modularity of PSWF-LR, which can be coupled to diverse LR-augmented MLIP workflows without changing their upstream representations. 
+
+and the matched-error reduction ranges from about 8 × to 64 ×, depending on the observable and cutoff. The same trend persists across training-set sizes (Extended Data Fig. 1), indicating that the gain is not simply due to data efficiency but reflects a more compact reciprocal-space representation of the LR interaction itself. These results support the basic design principle of PSWF-LR. By replacing Gaussian screening with PSWF mollification, the smooth LR component can be represented with fewer reciprocal modes, especially for larger inverse-power exponents. This spectral compression reflects a lower-dimensional reciprocal-space representation of the LR interaction, rather than a loss of physical content. The optimal cutoff is not strictly monotonic, because the total MLIP error also contains SR representation error and statistical fitting error. In practice, cutoffs of about 4–5 ˚A provide an effective balance for these LR-augmented models. 
+
+Matching the asymptotic exponent improves extrapolation 
+
+We next ask whether the inverse-power exponent assigned to PSWF-LR affects extrapolation accuracy in molecular systems. Molecular dimers from the BioFragment Database (BFDb) 43 provide such an interesting 4PSWF, 4.0 Å PSWF, 5.0 Å Ewald, 4.0 Å Ewald, 5.0 Å        
+
+> aCharge, r1bDispersion, r6
+> c
+> d
+
+Figure 2: Benchmarking the PSWF-LR framework on model particle systems with long-range charge-charge (r−1) and dispersion ( r−6) interactions. a,b , Representative configurations of the charge-charge and dispersion systems, respectively; different colours denote different particle species. c, Charge-charge benchmark: from left to right, the energy ( ERMSE ), force ( FRMSE ) and predicted-charge RMSEs as a function of the number of Fourier modes, M , for models built on the same short-range descriptor and augmented with either a PSWF or an Ewald long-range module. d, Dispersion benchmark: from left to right, ERMSE , FRMSE and the RMSE of the predicted dispersion coefficients, plotted against M for the same model variants. Results are shown for short-range cutoffs 
+
+rc = 4 .0 ˚A and 5.0 ˚A. Annotated arrows indicate the matched-error mode-count reduction ( c) or matched-mode error reduction ( d) of PSWF over Ewald. 
+
+test because charged, polar and apolar monomers generate six classes of dimers with idealized asymptotic decays from 1 /r to 1 /r 6: charge-charge (CC, p = 1), charge-polar (CP, p = 2), polar-polar (PP, p = 3), charge-apolar (CA, p = 4), polar-apolar (PA, p = 5) and apolar-apolar (AA, p = 6). The center-of-mass separations of the dimers span 5–15 ˚A. We use dimers with separations between 5 and 12 ˚A for training and those with separations between 12 and 15 ˚A for testing, so that the test set probes true LR extrapolation. Across all six classes, adding an LR term improves binding-energy curves and force predictions relative to the SR-only model (Fig. 3). PSWF-LR gives the lowest errors throughout the benchmark, with the largest gains in the extrapolative separation regime. These results show that explicitly matching the asymptotic decay improves LR generalization rather than only fitting the training separations. Extended Data Fig. 2 further shows that validation scans over p and mesh spacing provide a practical route for selecting the LR 5PP CC CP          
+
+> SR: 3.93
+> Ewald: 3.44
+> PSWF: 0.62
+> SR: 46.85
+> Ewal d: 2.79
+> PSWF: 1.35
+> SR: 201.58
+> Ewal d:1.70
+> PSWF: 0.93
+> SR: 27.63
+> Ewal d:3.65
+> PSWF: 2.13
+> SR: 26.34
+> Ewal d:6.66
+> PSWF: 3.24
+> SR: 6.03
+> Ewal d:2.76
+> PSWF: 1.95
+
+AA CA PA     
+
+> SR: 8.78
+> Ewald: 2.21
+> PSWF: 0.98
+> SR: 0.82
+> Ewald: 0.51
+> PSWF: 0.30
+> SR: 1.10
+> Ewald: 1.02
+> PSWF: 0. 38
+> SR: 1.66
+> Ewald: 0.94
+> PSWF: 0.53
+> SR: 0.50
+> Ewald: 0.48
+> PSWF: 0.39
+> SR: 3.98
+> Ewald: 2.07
+> PSWF: 1.32
+
+Figure 3: PSWF-LR improves binding-energy and force predictions across six molecular-dimer classes. The dimer classes are charge-charge (CC), charge-polar (CP), polar-polar (PP), charge-apolar (CA), polar-apolar (PA) and apolar-apolar (AA), with ideal long-range decay rates ranging from 1/r to 1/r 6. For each class, the top panel shows a representative configuration, the middle panel shows parity plots of Cartesian force components predicted by the short-range-only (SR), Ewald-augmented and PSWF-augmented models against the DFT reference, and the bottom panel shows the binding-energy curve as a function of intermolecular separation. The binding energy is defined as the energy difference between the dimer and the two isolated monomers. RMSEs for energies and force components are reported in the corresponding panels. 
+
+6prior in new systems. The polar-dipeptide benchmark further shows that the best exponent depends on the target observable. Among p = 1 , 2, 3, p = 2 best matches common atomic-charge partitions, whereas p = 1 better reproduces dipoles, quadrupoles and Born effective charges (Extended Data Figs. 3 and 4). This separation is important because atomic charges are model-dependent quantities, whereas multipoles and Born effective charges are tied more directly to molecular response. This result highlights the flexibility of PSWF-LR: it allows the LR exponent to be chosen according to the physical observable of interest, rather than being fixed by a default Coulombic ansatz or by a chosen charge partition. 
+
+Nonlocal charge transfer 
+
+We next evaluate PSWF-LR on five benchmarks with pronounced nonlocal charge redistribution 15,44 : NaCl cluster ions, protonated carbon chains, Au 2–MgO(001), dry Cu–BTA and solvated Cu–BTA interfaces. These systems span finite and periodic settings, charged and neutral environments, and cases where the key physics is a LR reshaping of charge rather than only local bonding. Table 1 compares PSWF-LR with representative LR MLIPs, including charge-constrained ACE 45 , 3G-HDNNP 46 , 4G-HDNNP 15 , CACE-LR 32 and NequIP-LR 44 . PSWF-LR attains the lowest test errors for both energies and forces on all five benchmarks. Table 1 provides a broad benchmark comparison, whereas the same-backbone replacements provide the cleanest attribution: for solvated Cu–BTA interfaces, replacing the Ewald-based LR module in NequIP-LR or CACE-LR by PSWF-LR improves predictive accuracy without changing the SR model (Extended Data Fig. 5), where the largest per-atom error reductions occur in the adsorbate and solvent regions where charge rearrangement is strongest. This indicates that the gain arises from the PSWF-based LR formulation itself rather than from a different local representation. Additional benchmark-specific tests show the same trend: along Na displacement pathways, PSWF-LR gives the smallest energy and force errors (Extended Data Fig. 6); for Au 2–MgO(001), it better captures both the wetting– non-wetting energy splitting and the doping-induced shift in equilibrium Au–O distance (Extended Data Figs. 7 and 8). Additional scans reveal why the LR mechanism matters. In NaCl cluster ions, increasing the PSWF exponent from p = 1 to p = 3 progressively distorts both the charge-transfer landscape and the associ-ated energy surface (Extended Data Fig. 9). Representative high-energy structures show the same trend: 
+
+p = 1 remains closest to the DFT charge distribution, whereas larger exponents over-localize the charge redistribution (Extended Data Fig. 10). Broader component-selection tests show that adding higher-order LR channels can improve force accuracy, but the dominant channels are system-dependent (Extended Data Fig. 11). These results show that LR accuracy depends not only on including a nonlocal term, but also on representing its asymptotic decay at the correct rate. 
+
+PSWF-LR accelerates differentiable long-range evaluations 
+
+We next compare PSWF-LR with differentiable PME-based treatments in periodic systems. The benchmarks include a NaCl crystal, a SWM4-NDP polarizable water model, and a LiPF 6/DMC electrolyte (Fig. 4). To-gether, these systems span ionic, polarizable and dense electrolyte settings, and therefore test LR evaluation in increasingly crowded atomistic environments. The NaCl crystal is representative of systems used in phonon-dispersion calculations 20 ; SWM4-NDP is a classical analogue of the DPLR water model used for phase-diagram prediction 47 ; and LiPF 6/DMC is a representative liquid-electrolyte system for MLIP studies of solvation, transport, and electrolyte degradation chemistry 17,38 . We evaluate PSWF-LR in both PyTorch and JAX against Torch-PME and JAX-PME 24 at matched LR tolerance. For each system, we measure the end-to-end forward-and-backward runtime for exponents p = 1 , . . . , 6 as a function of the number of particles, N , while keeping the number density fixed. Details of the benchmark construction are provided in Methods, and the parameter settings and accuracy checks for each subfigure are also provided in the SM. PSWF-LR is faster than PME across all three systems, both software stacks and all tested exponents. For 
+
+rcut = 4 ˚A, the maximum speed-ups reach 10 .67 ×, 18 .50 × and 36 .06 × in PyTorch for NaCl, SWM4-NDP water and LiPF 6/DMC, respectively, and 23 .01 ×, 60 .21 × and 114 .20 × in JAX. The rcut = 5 ˚A results show the same trend (Extended Data Fig. 12). At the largest tested sizes, several PME runs become GPU-memory limited, whereas the corresponding PSWF-LR calculations remain tractable and reach the 10 7-particle regime 7Table 1: Test errors on five charge-transfer benchmarks. Cutoff radii rc are reported in ˚A. Energy and force errors are reported as ERMSE in meV/atom and FRMSE in meV/ ˚A, respectively. 
+
+χ + η (ACE) 3G-HDNNP 4G-HDNNP CACE-LR NequIP-LR PSWF-LR 
+
+Na 8/9Cl +8
+
+rc 6.00 5.29 5.29 5.29 – 5.29 
+
+ERMSE 0.71 2.04 0.48 0.21 – 0.15 
+
+FRMSE 12.35 76.67 32.78 9.78 – 4.43 C10 H2/C 10 H+3
+
+rc 6.00 4.23 4.23 4.23 5.00 4.23 
+
+ERMSE 0.75 2.05 1.19 0.73 1.01 0.67 
+
+FRMSE 35.16 231.00 78.00 36.90 48.90 31.62 Au 2–MgO 
+
+rc 6.00 – 4.23 5.50 5.50 5.50 
+
+ERMSE 1.63 – 0.22 0.073 0.17 0.068 
+
+FRMSE 50.27 – 66.00 7.91 21.99 4.93 Cu–BTA 
+
+rc – – – 5.00 5.00 5.00 
+
+ERMSE – – – 0.074 0.11 0.028 
+
+FRMSE – – – 3.23 3.48 2.25 Cu–BTA(H 2O) 
+
+rc – – – 5.00 5.00 5.00 
+
+ERMSE – – – 0.038 0.18 0.030 
+
+FRMSE – – – 4.05 7.58 2.11         
+
+> Except for NequIP-LR, no message passing was used in the models in Table 1 where applicable. PSWF-LR results are obtained using the training protocol described in Methods. Results for χ+η(ACE) and CACE-LR are taken from Ref. 32 ; 3G-HDNNP and 4G-HDNNP from Ref. 15 ; and NequIP-LR from Ref. 44 .Bold numbers mark the lowest error for each benchmark and metric.
+
+in the largest differentiable benchmarks. This improved scalability arises because PSWF mollification, when paired with PSWF atom-grid spreading and FFT evaluation, translates the reduced reciprocal bandwidth into nearly 64 × fewer three-dimensional grid points at matched tolerance. These runtime benchmarks show that the spectral compression observed in the accuracy tests directly reduces memory use and accelerates differentiable LR evaluation and backpropagation. 
+
+MD simulations 
+
+Finally, we test whether PSWF-LR can replace Ewald-style mechanism in production MD without degrad-ing the simulated observables. We consider two chemically distinct settings (Fig. 5a,g): an 8 , 154-atom Pt(111)–water interface described by a CACE MLIP with an Ewald LR treatment, and a 100 , 656-atom LiPF 6/DMC/EC electrolyte described by a ByteFF-Pol/OpenMM 38,39 workflow with PME. In both cases, the upstream model, learned parameters, bonded terms, initial configurations and simulation protocol are kept fixed; only the LR framework is changed. In the Pt(111)–water benchmark, PSWF-LR accelerates CACE-based MD by 2 .4–3 .5× across the tested GPU architectures (Fig. 5b). The corresponding trajectories reproduce the Ewald surface-normal water density, planar electrostatic potential, orientational ordering and layer-resolved charge fluctuations (Fig. 5c– f). Additional size-scaling tests show that the PSWF-LR speed-up increases with system size and extends the accessible single-GPU system size by about 4–8 × to the 5 .8 × 10 4-atom scale (Extended Data Fig. 13a). The two-channel setting used in this benchmark, S = {1, 6}, adds only a small overhead relative to the single-channel p = 1 PSWF-LR model, decreasing from about 10% at smaller sizes to about 2% at larger sizes. Even the more demanding six-channel S = {1, . . . , 6} model remains affordable, with the overhead 8NaCl Crystal SWM 4-NDP Water LiPF 6/DMC Electrolyte  
+
+> M-site
+> Drude
+> Li +DMC
+> PF 6-
+
+Figure 4: Performance comparison between PSWF- and PME-based long-range treatments across ionic, polariz-able and electrolyte systems. The short-range cutoff is set to 4 ˚A for all methods. Top row, model systems used in the benchmark: an NaCl crystal, the SWM4-NDP polarizable water model and a LiPF 6/DMC electrolyte. Lower runtime panels show the full forward-and-backward runtime as a function of particle number, N , for exponents 
+
+p = 1 to 6 (top to bottom). Blue curves denote PSWF and yellow curves denote PME; solid and dashed lines denote Torch and JAX implementations, respectively. Bottom panels summarize the PSWF speed-up over PME at the largest PME-reachable particle number, Nmax , for each exponent, with filled squares and open diamonds denoting Torch and JAX implementations, respectively. Missing PME data points indicate calculations that be-came GPU-memory limited. 
+
+9PT(111) -Water Interface   
+
+> 8,154 atoms
+> LiPF 6/DMC/EC electrolyte
+> 100 ,656 atoms
+
+a
+
+g
+
+c
+
+d fe 
+
+> Chemisorbed Physiosorbed
+
+h i
+
+j k l
+
+b 
+
+> DMC EC
+
+Figure 5: PSWF-LR accelerates machine learning molecular dynamics (MD) while preserving interfacial and elec-trolyte observables. a, Representative Pt(111)-water interface used for the CACE benchmark, with chemisorbed and physisorbed water regions highlighted. b, CACE (PyTorch) MD throughput for the Pt(111)-water system across A100, H100, H200 and Blackwell GPUs. Bars compare the PSWF-LR ( p ∈ { 1, 6}) with the native Ewald-based framework; bracketed values denote the speed-up. c, Surface-normal water mass-density profile relative to the nearest Pt surface, resolving the chemisorbed and physisorbed interfacial regions. d, Planar-averaged electro-static potential profile, plotted as the deviation from the cell average. e, Water orientational order, quantified by the layer-resolved average molecular orientation, with representative chemisorbed and physisorbed motifs shown in the inset. f, Layer-resolved charge response for chemisorbed, physisorbed and bulk-like water environments. g, 
+
+Representative LiPF6/DMC/EC electrolyte cell used for the ByteFF-Pol benchmark, with a local Li-centred solva-tion motif shown as an inset. h, ByteFF-Pol (OpenMM) MD throughput for the 100,656-atom electrolyte system across the same GPU classes. Bars compare PSWF-LR ( p ∈ { 1, 2, 3, 4, 6}) with the PME reference; bracketed values denote the speed-up. i, NPT density trajectories for PSWF and PME over the first 2 ns, compared with the experimental 298 K density and the original ByteFF-Pol 10,062-atom density anchor. j, Extended electrolyte observables computed from PSWF and PME trajectories, including Li + diffusion, Nernst-Einstein ionic conduc-tivity, heat capacity and charge response; error bars denote block standard errors. k, Solvent-resolved Li-O radial distribution functions for DMC and EC, with representative local Li-O coordination motifs. l, Charge structure factor, S(k), along the simulation-cell z direction; the inset shows the low-frequency scaling of S(k)/k2.
+
+10 decreasing from about 75% to about 10% as the system size grows (Extended Data Fig. 13b). In the electrolyte benchmark, PSWF-LR accelerates ByteFF-Pol MD by 2 .5–3 .1× relative to PME (Fig. 5h). The paired NPT trajectories remain stable and close to one another (Fig. 5i), while the Li +
+
+diffusion, Nernst–Einstein ionic conductivity, heat capacity and charge-response diagnostics agree within block uncertainties (Fig. 5j). Solvent-resolved Li–O radial distribution functions and charge structure fac-tors further show that PSWF-LR preserves local solvation structure and collective charge-density fluctuations (Fig. 5k,l). Additional viscosity, precision and scaling tests show that this advantage persists across simula-tion modes and larger system sizes, reaching the 10 7-atom regime (Extended Data Fig. 14). Backend-paired enthalpies of vaporization across 36 QUBEKit liquids further support the preservation of molecule-wise thermodynamic trends (Extended Data Fig. 15). Together, these MD tests show that PSWF-LR provides production-level acceleration while preserving the tested structural, transport and charge-response observ-ables. 
+
+# Discussion 
+
+A central conclusion of this work is that the LR mechanism is itself an important modeling choice in MLIPs. Much recent progress has focused on improving the upstream representation, such as learning better charges, dipoles, virtual sites or descriptors. Our results show that, even when the upstream model is held fixed, replacing Gaussian Ewald screening and B-spline particle–mesh spreading with PSWF mollification and spreading can substantially change the accuracy–efficiency trade-off. The reason is that PSWFs are compactly supported functions whose Fourier transforms are maximally concentrated within a finite band, allowing the mollified LR component to be represented with fewer Fourier grids. This spectral compression explains the lower Fourier-mode requirements in accuracy benchmarks, the speed-ups over differentiable Torch-PME and JAX-PME, and the production-MD acceleration observed in CACE and OpenMM workflows while preserving the tested observables. PSWF-LR also reframes how LR physics can be built into MLIPs. Instead of fixing the LR term to a Coulombic Ewald form, the framework supports inverse-power channels 1 /r p, so the decay exponent becomes a physical prior that can be selected according to the target system and observable. The molecular-dimer benchmark shows that matching the asymptotic exponent improves LR extrapolation, while the dipeptide benchmark shows that the best exponent for atomic charge partitions need not be the best exponent for dipoles, quadrupoles or Born effective charges. The charge-transfer benchmarks further show that using multiple exponent channels can improve accuracy, but the gain is not simply monotonic with the number of channels. Different channels can overlap or redistribute the learned LR contribution. Thus, the exponent set should be viewed as a structured modeling choice, selected using physical knowledge and validation performance, rather than as a default fixed by the Ewald ansatz or as a rule that more channels are always better. A practical advantage of PSWF-LR is that it separates the representation of local chemistry from the evaluation of nonlocal interactions. As a complete framework, it couples an SR representation to suitable LR variables and evaluates the resulting inverse-power channels. As an LR evaluation layer, it can replace Ewald-style components in latent-variable MLIPs, charge-equilibration models, descriptor-based LR representations and ML-parameterized molecular-mechanics workflows, provided that the upstream model supplies suitable charges, features, latent coefficients or force-field parameters. This separation allows PSWF-LR to be inserted without redesigning the local model or changing learned parameters, while preserving the downstream MD workflow. The same modularity should also make PSWF-LR compatible with foundation-model pipelines 48 ,active learning 49 , ensemble distillation 17 and learning-from-models 50 workflows, although these directions remain to be tested systematically. The PyTorch, JAX and OpenMM/CUDA implementations further support its use in both differentiable training and production simulation settings. Several limitations remain. The present framework focuses on pairwise inverse-power channels with suitable LR variables. It does not yet include explicit three-body LR terms or fully self-consistent charge-equilibration loops. Its accuracy is also limited by the upstream SR representation: an efficient LR layer cannot correct errors caused by local descriptors, local chemistry or insufficient training data. The benefit of PSWF-LR is therefore system-dependent. It is expected to be strongest when LR physics is a leading source of error or cost, as in ionic clusters, charge-transfer interfaces, polar liquids and dense electrolytes, and 11 more modest when errors are dominated by local bonding, steric packing or hydrogen bonding. Future work should couple PSWF-LR with global charge-equilibration, density-based LR descriptors and higher-order polarization models, so that the LR variables themselves can be determined more globally while retaining the compact PSWF representation. 
+
+# Methods 
+
+Prolate spheroidal wave functions 
+
+The PSWF is an eigenfunction of the compact integral operator Fc : L2[−1, 1] → L2[−1, 1] defined by 
+
+Fc[φ]( x) = 
+
+Z 1
+
+> −1
+
+φ(t) eicxt dt, (7) where c > 0 is a real parameter. We denote the eigenvalues by λ0, λ 1, . . . and order them so that |λn| ≥ | λn+1 |
+
+for all n ≥ 0. Let ψcn be an eigenfunction associated with λn, i.e., 
+
+λnψcn(x) = 
+
+Z 1
+
+> −1
+
+ψcn(t) eicxt dt, x ∈ [−1, 1] , n ≥ 0. (8) The eigenfunctions may be chosen real-valued and form an orthogonal complete family in L2[−1, 1] 51 .Throughout this work we use only the order-zero function and fix its scale by the convention ψc
+
+> 0
+
+(0) = 1; with this convention ψc 
+
+> 0
+
+is not L2-normalized unless explicitly rescaled. A key feature of PSWFs is their joint time-frequency concentration. In particular, among all L2 func-tions supported on [ −1, 1] with unit L2 norm, the unit-norm rescaling of the order-zero PSWF ψc 
+
+> 0
+
+uniquely maximizes the fraction of Fourier energy contained in the band [ −c, c ] (equivalently, it minimizes the L2
+
+energy outside [ −c, c ]); higher-order PSWFs provide subsequent maximizers subject to orthogonality con-straints 51,52 . This optimal concentration property motivates using ψc 
+
+> 0
+
+as a near-optimal compactly supported window. PSWFs also satisfy a simple Fourier relation on [ −c, c ]. If ψcn is extended by zero outside [ −1, 1], then its Fourier transform restricted to |k| ≤ c obeys 
+
+bψcn(k) = λn ψcn(k/c ), |k| ≤ c. (9) In particular, for n = 0 this shows that the band-limited Fourier transform of the compactly supported window ψc 
+
+> 0
+
+reproduces the same function (up to the scalar factor λ0) under the scaling k 7 → k/c , analogous to the self-reproducing property of Gaussians under the Fourier transform. For the conventional Gaussian screening of Eq. (12), as used in standard mesh-Ewald methods, achieving an error level ε typically requires 
+
+Kmax = 2 log(1 /ε ). (10) Here Kmax denotes the maximum Fourier frequency retained in the FFT-based evaluation in each dimension. For a PSWF mollifier, the analogous bandwidth parameter is c, and to reach the same small ε one typically chooses c such that 
+
+Kmax = c ≈ log(1 /ε ). (11) The approximation becomes more accurate in the high-precision regime (small ε). Consequently, at high accuracy, PSWF splitting requires roughly 8 × fewer Fourier modes in three dimensions than Gaussian-based splitting. Equivalently, for fixed Kmax , PSWF achieves higher accuracy. Due to these nice properties, PSWFs have been used in compressed sensing 53 , radar communications 54 , fast convolution 55 and classical Coulomb solvers 56 . Their use in LR MLIPs, however, has remained unexplored. Here we use the same concentration principle to construct an exponent-aware LR mechanism for MLIPs, extending the bandwidth advantage of PSWFs to learnable inverse-power channels 1 /r p.12 PSWF-based mollifier for general inverse power laws 
+
+For a general inverse-power kernel 1 /r p with p > 0, the classical Ewald splitting employs incomplete-gamma screening functions, 
+
+GEwald  
+
+> p
+
+(r) = Γ p/ 2, α 2r2
+
+Γ( p/ 2) , (12) where Γ( ·, ·) is the upper incomplete gamma function; the complementary part is given by the lower incom-plete gamma function. The Coulomb ( p = 1) and dispersion ( p = 6) cases reduce to GEwald 1 (r) = erfc( αr )and GEwald 6 (r) = e−α2r2  1 + α2r2 + α4r4/2, respectively. In our PSWF-based framework, we construct mollifiers for p ∈ { 2, . . . , 5} (with p = 1 and p = 6 given in Eqs. (3) and (4)) as 
+
+G2(r) = 1 − ψc
+
+> 0
+
+(r/r c), G3(r) = 1
+
+C0
+
+Z r/r c
+
+> 0
+
+ψc
+
+> 0
+
+(x) dx − rrc
+
+ψc
+
+> 0
+
+(r/r c)
+
+!
+
+,
+
+G4(r) = 1 − ψc
+
+> 0
+
+(r/r c) + r
+
+2rc
+
+ψc
+
+> 0′
+
+(r/r c), G5(r) = 1
+
+C0
+
+Z r/r c
+
+> 0
+
+ψc
+
+> 0
+
+(x) dx − rrc
+
+ψc
+
+> 0
+
+(r/r c) + r2
+
+3r2
+
+> c
+
+ψc
+
+> 0′
+
+(r/r c)
+
+!
+
+,
+
+(13) where lim  
+
+> r→∞
+
+Gp(r)/r p = 1 /r p for all p. Let bC0 := R ∞ 
+
+> 0
+
+λ0ψc
+
+> 0
+
+(x/c )dx . The corresponding Fourier transforms of 
+
+Gp(r)/r p, used in Eq. (5), are 
+
+bΦ1(k) = 4πψ c
+
+> 0
+
+(kr c/c )
+
+k2ψc
+
+> 0
+
+(0) , bΦ2(k) = 2π2
+
+k 1 − 1
+
+bC0
+
+Z kr c
+
+> 0
+
+λ0ψc
+
+> 0
+
+(x/c ) dx 
+
+!
+
+,
+
+bΦ3(k) = 2πC0
+
+Z ∞
+
+> kr c
+
+λ0ψc
+
+> 0
+
+(x/c )
+
+x dx, bΦ4(k) = − π2
+
+bC0
+
+bC0k − k
+
+Z kr c
+
+> 0
+
+λ0ψc
+
+> 0
+
+(x/c ) dx − 1
+
+rc
+
+Z ∞
+
+> kr c
+
+xλ 0ψc
+
+> 0
+
+(x/c ) dx 
+
+!
+
+,
+
+bΦ5(k) = − π
+
+3C0
+
+
+
+k2
+
+Z ∞
+
+> kr c
+
+λ0ψc
+
+> 0
+
+(x/c )
+
+x dx − 1
+
+r2
+
+> c
+
+Z ∞
+
+> kr c
+
+xλ 0ψc
+
+> 0
+
+(x/c ) dx 
+
+
+
+,
+
+bΦ6(k) = π2
+
+12 bC0
+
+bC0k3 − k3
+
+Z kr c
+
+> 0
+
+λ0ψc
+
+> 0
+
+(x/c ) dx − 3k2
+
+2rc
+
+Z ∞
+
+> kr c
+
+xλ 0ψc
+
+> 0
+
+(x/c ) dx + 12r3
+
+> c
+
+Z ∞
+
+> kr c
+
+x3λ0ψc
+
+> 0
+
+(x/c ) dx 
+
+!
+
+,
+
+(14) where k = ∥k∥ denotes the wavenumber. For p > 6, we propose a recursive formula to derive Gp(r) and 
+
+bΦp(k); the construction is described in the Supplementary Materials (SM). 
+
+Implementation details 
+
+In practice, we do not evaluate the explicit PSWF functions or the integral forms in Eqs. (13)–(14) during training or MD simulations. Instead, we accelerate the evaluations using a fast kernel auto-differentiation (FKAD) procedure based on online monomial approximation, Horner’s rule and operator fusion. This procedure is an implementation acceleration and does not change the mathematical definition of the PSWF-LR kernel. We approximate the smooth parts of Gp(r) and bΦp(k) by low-degree polynomials in real and reciprocal space, respectively. These polynomials are evaluated with Horner’s rule and fused into downstream operators to avoid unnecessary memory traffic. The resulting approximation substantially reduces runtime while maintaining controllable accuracy. Full algorithmic details are provided in the SM. When integrating the PSWF framework into models that use neural networks for MM parametrization, the LR Fourier sum in Eq. (5) should be paired with a real-space term and a self-correction term for a 13 complete decomposition. The real-space term, (1 − G p(r)) /r p, is the complementary part of 1 /r p. The self-correction term, E(p)self , removes the unwanted self-energy contribution and is given by 
+
+E(1) self = ψc
+
+> 0
+
+(0) 2C0rc
+
+Q(1) self , E(2) self = − ψc
+
+> 0′′
+
+(0) 4r2
+
+> c
+
+Q(2) self , E(3) self = − ψc
+
+> 0′′
+
+(0) 6C0r3
+
+> c
+
+Q(3) self ,E(4) self = ψc
+
+> 0(4)
+
+(0) 48 r4
+
+> c
+
+Q(4) self , E(5) self = ψc
+
+> 0(4)
+
+(0) 90 C0r5
+
+> c
+
+Q(5) self , E(6) self = − ψc
+
+> 0(6)
+
+(0) 1440 r6
+
+> c
+
+Q(6) self .
+
+(15) where Q(p)self := P
+
+> i
+
+|q(p) 
+
+> i
+
+|2 for p = 1 , · · · , 6 and ψc
+
+> 0(n)
+
+(x) denotes the nth derivative of ψc
+
+> 0
+
+(x) for n = 4 , 6. The zero-frequency correction in Eq. (5) depends on the exponent p. Define the net channel weight 
+
+Q(p)net := 
+
+> N
+
+X
+
+> i=1
+
+q(p) 
+
+> i
+
+. (16) For p > 3, bΦp(k) is nonsingular at k = 0, and thus 
+
+E0,(p) 
+
+> θlr
+
+= 12V bΦp(0) Q(p)net 
+
+> 2
+
+, p > 3. (17) For p ≤ 3, the zero-frequency term requires separate treatment because it diverges when Q(p)net ̸ = 0. For p ≤ 2, a standard way is to introduce a uniform compensating background, −Q(p)net /V . Under this “latent-variable neutrality” condition, the p = 1 case remains conditionally convergent, and the chosen summation order introduces an additional infinite-boundary (IB) term. The resulting zero-frequency corrections for p ≤ 2 are 
+
+E0,(1)  
+
+> θlr
+
+= − 2π|Q(1) net |2
+
+V
+
+ r2
+
+> c
+
+2 −
+
+Z rc
+
+> 0
+
+r ψ c
+
+> 0
+
+(r/r c) dr 
+
+
+
++ EIB ,E0,(2)  
+
+> θlr
+
+= − 2π|Q(2) net |2
+
+V
+
+Z rc
+
+> 0
+
+ψc
+
+> 0
+
+(r/r c) dr. 
+
+(18) For p = 1, EIB depends on the summation order and macroscopic boundary condition, consistent with the Coulomb case since lim r→∞ G1(r)/r = 1 /r 57 . The case p = 3 is more subtle: introducing the compensating background −Q(3) net /V produces a divergent correction that depends on both the splitting factor c and the cutoff rc. To avoid this ambiguity, we define 
+
+E0,(3)  
+
+> θlr
+
+=2π Q(3) net 
+
+> 2
+
+V
+
+
+
+log( c/r c) + 
+
+Z 10
+
+ψc
+
+> 0
+
+(r) − 1
+
+r dr 
+
+
+
+, (19) which is equivalent to setting the additive constant in the zero mode of the Fourier transform of the 1 /r 3
+
+kernel to zero. With this normalization, the resulting energy is independent of the specific algorithm. The derivation of Eqs. (18)-(19) is provided in the SM. 
+
+Accelerating atom-grid spreading with PSWFs 
+
+Evaluating Eq. (5) can require a large number of Fourier modes for two reasons: (i) MLIPs often use a short SR cutoff (4–6 ˚A), which increases high-frequency Fourier contributions; and (ii) MD simulation boxes are often much larger than the training configurations. Direct summation scales as O(N M ), and for fixed rc
+
+one typically has M ∼ N . We therefore adopt FFT-based acceleration. We define a uniform Cartesian grid on Ω with spacing h and Md = Ld/h points per direction. The spreading kernel is separable: 
+
+W (r) = Y
+
+> α∈{ x,y,z }
+
+Wpswf (α), (20) 14 with 
+
+Wpswf (α) = 
+
+(
+
+ψc
+
+> 0
+
+(α/ω ), |α| ≤ ω, 
+
+0, |α| > ω, (21) where ω = P h/ 2 and P ∈ Z+ is the number of points in the grid coupled to each atom per dimension. Its Fourier transform is 
+
+cWpswf (kx) = ωλ 0ψc
+
+> 0
+
+(ωk x/c ), cW (k) = Y
+
+> α∈{ x,y,z }
+
+cWpswf (kα). (22) Because ψc 
+
+> 0
+
+is evaluated by piecewise polynomials, the cost is comparable to B-spline windows 23,58 . Inserting 1 ≡ cW (k)−2 cW (k)2 into Eq. (5) gives 
+
+Eθlr = 12V
+
+X
+
+> p∈S
+
+X 
+
+> k̸=0
+
+cW (k)−2 bΦp(k)
+
+> N
+
+X
+
+> i=1
+
+q(p) 
+
+> i
+
+cW (k)eik·ri
+
+> 2
+
++ X
+
+> p∈S
+
+E0,(p) 
+
+> θlr
+
+. (23) The first term is evaluated with four steps: (i) atom-grid spreading, we evaluate 
+
+ρ(p)grid (r) = 
+
+> N
+
+X
+
+> j=1
+
+q(p) 
+
+> j
+
+[W (r − rj )] ∗ (24) on a uniform grid with mesh size h, where [ ·]∗ denotes periodization of W ; (ii) apply a forward 3D FFT (batched over p) to obtain bρ(p)grid (k); (iii) diagonal scaling, i.e. for each Fourier mode and p ∈ S we compute 
+
+bχ(p)(k) = 12V cW (k)−2 bΦp(k) bρ(p)grid (k) 2
+
+; (25) (iv) Fourier-space reduction, i.e. we sum over Fourier modes and exponents 
+
+Eθlr = X
+
+> p∈S
+
+X 
+
+> k̸=0
+
+bχ(p)(k) + X
+
+> p∈S
+
+E0,(p) 
+
+> θlr
+
+. (26) No inverse FFT is required in the above procedure, because the energy is obtained directly by Fourier-space reduction. Since the PSWF kernel is smooth and compactly supported, the method exhibits spectral convergence with the increase of grid size. The total cost is near-optimal, O(P 3N + M log M ), with O(P 3N )from spreading and O(M log M ) from FFT and Fourier-space reduction. Using PSWF (or its approximation) as the spreading kernel achieves the target accuracy with a near-minimal number of spreading points P ,compared with the B-spline windows used in PME and PPPM. This further improves the efficiency of our PSWF-based framework for large-scale simulations. As shown in the upper-right panel of Fig. 1, the required number of Fourier modes can be reduced further. 
+
+Parameter selection 
+
+We select PSWF/FFT hyperparameters from a target LR tolerance εtot and decompose the total error into three components: 
+
+εtot ≲ εband + εgrid + εspread , (27) corresponding to the bandwidth truncation of PSWF, grid discretization, and atom–grid spreading. Unless otherwise stated, we use a simple uniform allocation, εband = εgrid = εspread = εtot /3. Given an SR cutoff rc, we set the PSWF bandwidth as 
+
+c ≈ log(1 /ε band ), (28) following Eq. (11). For the same target accuracy, this is approximately half of the Gaussian/Ewald require-ment in Eq. (10), implying about 8 × fewer 3D Fourier modes at the same precision. The effective Fourier cutoff is kc = c/r c. For this kc, the mesh spacing h is chosen from the Nyquist–Shannon sampling criterion 
+
+h ≤ η πkc
+
+= η πr c
+
+c , η ∈ (0 , 1] , (29) 15 with grid size Md = ⌈Ld/h ⌉ for d ∈ { x, y, z }, so that the target εgrid is achieved. The spreading width 
+
+P controls the O(P 3N ) prefactor; we choose the smallest P such that spreading error is less than εspread 
+
+(typically P = 4–6 for MLIP settings). Finally, for the polynomial approximations of Gp and bΦp, we select the lowest degree such that the maximum approximation error on the real- and Fourier-space working intervals is below εpoly . This de-gree selection is performed automatically via Chebyshev-coefficient filtering: each target kernel is first expanded on a fixed high-order Chebyshev basis (up to degree 40), then truncated by discarding terms 
+
+|an| ≤ 0.01 ε max  
+
+> m
+
+|am|, and finally converted to monomial coefficients. In practice, the 0 .01 ε threshold ensures that the polynomial approximation error is negligible. 
+
+Plug-in compatibility with existing LR MLIPs 
+
+PSWF-LR defines a flexible LR formulation for MLIPs: it reformulates screening, reciprocal-space eval-uation and atom-grid spreading within a unified PSWF framework, while remaining modular enough to interface with several established classes of LR MLIPs. Its practical point of insertion depends on how a given model represents nonlocal physics. In latent-variable models such as LES 31 and DPLR 20 , the local network that predicts charges, dipoles or virtual sites can be left unchanged, while the reciprocal-space Ewald module is replaced by Eq. (5) with PSWF-LR. In descriptor-based schemes such as LODE, the same idea applies one level earlier: the Gaussian smoothing used to generate nonlocal density descriptors 28,29 can be replaced by PSWF mollifiers while retaining the subsequent projection onto radial and angular bases. In charge-equilibration pipelines such as 4G-HDNNP 15 and BAMBOO 17 , PSWFs can replace Gaussian charge clouds in the electrostatic stage without altering the upstream electronegativity model or the global charge-conservation step. The same logic extends to ML-parameterized MM frameworks, which are increasingly used in biomolecu-lar and organic-liquid applications. sGNN 59 learns transferable intramolecular energy terms for large flexible molecules while retaining a physics-based nonbonded model. ByteFF 60 extends this parameter-assignment paradigm to an Amber-compatible fixed-charge force field for drug-like molecules, whereas ByteFF-Pol 38 
+
+introduces a polarizable variant aimed at condensed-phase liquids and electrolytes. In such models, PSWF-LR would not replace the learned bonded or valence terms. Instead, it replaces the LR terms, including the Gaussian Ewald splitting kernel and, in PME-based implementations, the B-spline spreading window. The corresponding real-space complement and self-correction terms are given in Methods, preserving both the downstream MD workflow and the interpretability of the learned force-field parameters. This modularity also provides a useful methodological control for the benchmarks included in this work. In the random particle, molecular-dimer and charge-transfer tests, the SR descriptor and latent-variable predictor are fixed, so any accuracy or efficiency gain reflects the change of LR formulation alone. In the runtime and production MD tests, only the splitting kernel, atom-grid spreading and particle–mesh backend are replaced, while the upstream model or force-field parameters are kept fixed. These comparisons show that PSWF-LR reduces reciprocal-space resolution requirements, improves energy, force and charge-derived observables, and accelerates simulations without changing the downstream MLIP workflow. 
+
+Experimental design 
+
+Random particle systems. The charge-charge and dispersion benchmarks each comprise 1 ,000 config-urations. 900 configurations were used for training and 100 for testing. The charge-charge dataset was introduced in Ref. 32 ; each configuration contains 128 particles, including 64 with charge +1 e and 64 with charge −1e, and the reference energies and forces were generated with LAMMPS 61 . The dispersion dataset follows the structural setup of Ref. 29 , but the reference energies and forces were recomputed here using di-rect summation in LAMMPS to machine precision. Each dispersion configuration contains 64 particles with heterogeneous dispersion coefficients: 16 particles have coefficient 2, 16 have coefficient 3, 16 have coefficient 5, and 16 have coefficient 7. For both benchmarks, we use the same CACE SR frontend in the PSWF-LR and Ewald-based models. The CACE descriptor uses six Bessel radial functions, a radial embedding dimension of 12, angular basis order ℓmax = 3, many-body order νmax = 3, atomic embedding dimension Nembedding = 12, and no message-passing layer. We test SR cutoffs rc = 4 ˚A and 5 ˚A. The charge benchmark uses one latent scalar per atom 16 for the p = 1 channel, while the dispersion benchmark uses one latent scalar per atom for the p = 6 channel. For the Ewald baseline, we use the screening parameter α = 1 /√2, following Ref. 31 . For PSWF-LR, we use c = 12 .024, corresponding to the tolerance used in the parameter-selection rule above. Because the public LES implementation evaluates the reciprocal-space contribution by direct summation and supports only p = 1 and p = 6, this benchmark is used to compare spectral efficiency rather than FFT implementation details. 
+
+Molecular dimers. Reference DFT energies and forces were computed using the HSE06 hybrid density functional 62 together with a nonlocal many-body dispersion correction. For all dimer classes, we use the same CACE SR frontend with a 5 ˚A cutoff, six Bessel radial functions, radial embedding dimension 8, ℓmax = 2, 
+
+νmax = 2, Nembedding = 3, and one message-passing layer. We compare three variants: the SR-only CACE model, the same SR model augmented with the Ewald-based CACE-LR backend of Ref. 32 , and the same SR model augmented with PSWF-LR. In both CACE-LR and PSWF-LR, the LR component uses a one-dimensional latent variable. The Ewald baseline uses α = 1 /√2, while PSWF-LR uses c = 12 .024. Unless otherwise stated, the mesh spacing for PSWF-LR is fixed at h = 1 .5 ˚A. Because the available CACE-LR implementation supports only Coulombic and dispersion channels, we train the two supported Ewald-based variants, corresponding to p = 1 and p = 6, and report the better-performing variant as a favorable Ewald-based baseline for each dimer class. In the matched-exponent experiments, PSWF-LR assigns p = 1 , . . . , 6to the CC, CP, PP, CA, PA and AA dimer classes, respectively. 
+
+Polar dipeptides. We use polar dipeptides from the SPICE dataset, selecting 12 oppositely charged dipeptides formed from one positively charged residue (Arg, Lys or HIP) and one negatively charged residue (Glu or Asp), including both sequence orders, with 50 conformers per dipeptide. We retain the conformers of one of the 12 dipeptides as a test set and 10% of the remaining structures as a validation set. For these calculations, we use CACE as the SR descriptor, with a 4 ˚A cutoff, six trainable Bessel radial functions, 12 radial embedding dimensions, ℓmax = 3, νmax = 3, one message-passing layer, and Nembedding = 4. Because the systems are aperiodic, PSWF-LR contributions are evaluated in real space. We use two channels 
+
+S = {p, 6}, with p ∈ { 1, 2, 3}. The p channel captures the electrostatic-like LR contribution, whereas the 
+
+p = 6 channel accounts for dispersion. Model-predicted effective charges are compared with MBIS-, Hirshfeld-and Mulliken-like charge partitions. Dipoles, traceless quadrupoles and Born effective charges are computed from the predicted charge distributions and compared with the corresponding DFT-derived references. This setup is used to test whether the exponent that best reproduces an atomic charge partition is also the exponent that best reproduces molecular response observables. 
+
+Nonlocal charge transfer. We evaluate nonlocal charge transfer on five benchmarks: Na 9Cl +8 /Na 8Cl +8
+
+ionic clusters, terminally protonated carbon chains (C 10 H2/C 10 H+3 ), Au 2 adsorbed on MgO(001) with and without Al doping, dry Cu(111)–benzotriazole, and solvated Cu(111)–benzotriazole. Unless otherwise stated, a 90% /10% train/test split is used. For Na 8/9Cl +8 , we use PSWF-LR with a CACE SR descriptor, rc = 5 .29 ˚A, six Bessel radial func-tions, radial embedding dimension 8, ℓmax = 3, νmax = 3, no message passing, and Nembedding = 2. For C10 H2/C 10 H+3 , we use a MACE SR descriptor with rc = 4 .23 ˚A, eight radial basis functions, polynomial order 5, highest angular momentum ℓmax = 1, 32 channels, no message passing, and many-body order 4. For Au 2-MgO(001), we use a CACE SR descriptor with rc = 5 .5 ˚A, six Bessel radial functions, radial embedding dimension 12, ℓmax = 3, νmax = 3, no message passing, and Nembedding = 4. For Cu-BTA and solvated Cu-BTA, we use two SR descriptors within PSWF-LR: CACE, with six Bessel radial functions, radial em-bedding dimension 12, ℓmax = 3, νmax = 3, no message passing, and Nembedding = 4; and NequIP, with four interaction layers, ℓmax = 1, parity-enabled hidden features of multiplicity 32, eight trainable Bessel radial basis functions, and polynomial cutoff order 6. The PSWF-LR entries in Table 1 for the Cu–BTA benchmarks use the CACE SR backbone. Same-backbone NequIP+PSWF-LR and CACE+PSWF-LR comparisons are reported in Extended Data Fig. 5. For the same-backbone comparisons, the SR architecture, train/test split, local descriptor settings and training protocol are kept fixed; only the LR evaluation layer is changed. This protocol is used to separate the effect of the PSWF-based LR mechanism from changes in the local representation. In Table 1, the results for χ + η (ACE) and CACE-LR are taken from Ref. 32 , results for 3G-HDNNP and 4G-HDNNP from Ref. 15 , and results for NequIP-LR from Ref. 44 . In Extended Data Figure 6, the CHGNet 19 
+
+17 and MACE-MP-0 48 results were obtained by fine-tuning the corresponding pretrained foundation-model checkpoints on the Na 8/9Cl +8 dataset using the same train/test split and evaluation protocol as for the models trained in this work. The 4G-HDNNP results are taken from Ref. 15 , and the CACE-LR results are computed using the model of Ref. 32 . In Extended Data Figs. 7 and 8, the DFT, 2G-HDNNP, and 4G-HDNNP results are taken from Ref. 15 , whereas the CACE results are generated using models trained in this work. In Extended Data Fig. 5, the NequIP-LR model is trained from scratch using the input file provided in Ref. 44 , whereas the CACE-LR model is trained using a one-dimensional latent variable with Ewald parameter 
+
+α = 1 /√2 and h = 0 .5 ˚A. For PSWF-LR, we use c = 12 .024, h = 1 .5 ˚A, and S = {1, 2, 3, 4, 5, 6}, except in the NaCl exponent-scan experiments (Extended Data Figs. 9 and 10), where we use S = {p, 6} with 
+
+p ∈ { 1, 2, 3}. In these exponent-scan tests, the p-channel latent variable is used to predict the effective charge. The Na 8/9Cl +8 and C 10 H2/C 10 H+3 systems are aperiodic, so PSWF-LR contributions are evaluated in real space. The Au 2-MgO(001), dry Cu-BTA, and solvated Cu-BTA systems are periodic, so PSWF-LR contributions are evaluated in reciprocal space. 
+
+Performance comparison in differentiable long-range evaluations. The differentiable runtime bench-marks use three periodic systems: a NaCl crystal, a SWM4-NDP polarizable water model and a LiPF 6/DMC electrolyte. For NaCl, we use an analytically generated cubic rocksalt reference cell implemented directly in Torch-PME and JAX-PME, containing four NaCl formula units in a normalized 2 × 2 × 2 cubic cell. This system serves as a controlled charge-only reference rather than a density-matched atomistic model. For water, we use a SWM4-NDP benchmark derived from an OpenMM-generated periodic PDB, with an orthorhombic 15 .0 × 15 .0 × 15 .0 ˚A3 box containing 112 five-site water molecules. Electrostatics are assigned from the SWM4-NDP site-charge map. For LiPF 6/DMC, we use a local EC/DMC+LiPF 6 base cell gen-erated through the ByteFF parameterization workflow 38 . The resulting cubic 53 .4 × 53 .4 × 53 .4 ˚A3 cell contains 10 , 062 atoms and is evaluated with the generated fixed-charge force field and standard 1–4 scaling parameters. Larger systems are generated by deterministic supercell replication. The tested ranges span 512 to 7, 077 , 888 sites for NaCl, 560 to 18 , 350 , 080 sites for SWM4-NDP, and 10 , 062 to 10 , 303 , 488 sites for LiPF 6/DMC. We report full forward-plus-backward wall-clock times, including both the LR calculation and the shared automatic-differentiation overhead. Each timing value is collected after five untimed warm-up evaluations and averaged over 20 timed evaluations. For PSWF-LR and PME, six predefined exponent settings, p = 1 , . . . , 6, are evaluated at each system size. Reciprocal meshes are generated by the native setup routines of each framework and logged for every successful run. For matched-setting comparisons, PSWF-LR and PME are run at the same target LR tolerance whenever applicable, while the same particle configurations, charges, system sizes and automatic-differentiation pipelines are used. In all timing plots, the standard deviation across repeated measurements is smaller than the plotting marker size. 
+
+MD simulations. MD validation is performed on two practical systems. For the Pt(111)-water bench-mark, we use an 8 , 154-atom periodic Pt slab/water configuration and the same trained CACE SR model for both PSWF-LR and Ewald-based LR treatments. The PSWF-LR and Ewald trajectories use identical model weights, starting structures, neighbor-list settings, cutoffs and thermostat/barostat settings; only the LR component is changed. For the PSWF version, we use S = {1, 6}, where the p = 1 channel represents the electrostatic-like LR contribution and the p = 6 channel accounts for the dispersion-like tail. Water density profiles are computed by binning water oxygen positions according to their distance from the nearest Pt surface and converting the resulting number density to mass density. Chemisorbed and physisorbed regions are assigned using the same surface-distance windows in both backends. The orientational order is computed from the cosine of the angle between the water molecular axis and the surface normal, and the layer-resolved charge response is computed as the standard deviation of the total learned charge in each interfacial region over sampled frames. MD throughput is reported in ns ·day −1 from repeated timed propagation runs on A100, H100, H200 and RTX-Blackwell GPU nodes. For the electrolyte benchmark, we use a periodic LiPF 6/DMC/EC system with DMC:EC:LiPF 6 =5, 053 : 3 , 450 : 690, corresponding to 100 , 656 atoms. This system is generated by deterministic replication of the 10 , 062-atom ByteFF-Pol electrolyte cell. PSWF and PME simulations use the same ByteFF-Pol checkpoint, force-field parameters, bonded terms, SR nonbonded functional forms, initial coordinates and temperature/pressure protocol; only the LR component is changed. In the PSWF version, permanent-charge interactions are evaluated with the p = 1 channel; induced-dipole LR contributions are represented through 18 p = 2 and p = 3 channels; and the asymptotic charge-transfer and dispersion tails are represented by p = 4 and p = 6 channels, respectively. The OpenMM MD benchmark uses a multiple-time-step integration scheme based on the BAOAB-RESPA Langevin algorithm 63 , with an outer timestep of 2 fs and an inner timestep of 1 fs. Simulations are conducted at 300 K with a friction coefficient of (0 .1 ps −1). NPT density traces are computed from the instantaneous box volume and total system mass. The plotted density comparison uses the first 2 ns of NPT production, with Gaussian smoothing applied only for visualization; the raw density trace is retained as a translucent background. Transport and thermodynamic observables are computed from paired NVT trajectories. Molecular centers of mass are unwrapped under periodic boundary conditions, and diffusion coefficients are obtained from the long-time Einstein slopes of the center-of-mass mean-squared displacements, fitted over 1 .0–2 .5 ns lag times. The ionic conductivity is estimated with the Nernst–Einstein relation using the Li + and PF − 
+
+> 6
+
+diffusion coefficients and therefore does not include ion-correlation corrections. The heat capacity is estimated from total-energy fluctuations after discarding the first 1 ns of NVT sampling. Error bars denote standard errors from five contiguous trajectory blocks. Solvent-resolved Li–O radial distribution functions are computed from NPT frames using separate carbonyl-oxygen selections for DMC and EC. For the charge-structure analysis, we use NVT configurations and wavevectors k = (0 , 0, k z ), with 
+
+S(kz ) = ⟨| ρq (kz )|2⟩
+
+P 
+
+> i
+
+q2
+
+> i
+
+, ρq (kz ) = 
+
+> N
+
+X
+
+> i=1
+
+qieik z zi , (30) where qi is the partial charge of site i. The low-frequency inset reports the corresponding quantity ⟨| ρq (kz )|2⟩/(V k 2 
+
+> z
+
+), where V is the mean simulation-cell volume. 
+
+Hardware and software 
+
+The computations in this work are performed on the Flatiron Institute Rusty cluster, supported by the Scientific Computing Core at the Flatiron Institute. The GPU nodes used in this study were equipped with one of the following configurations: NVIDIA A100 GPUs with 80 GB of memory per device, 64 Ice Lake CPU cores, and 1 TB of system memory; NVIDIA H100 GPUs with 80 GB of memory per device, 64 Ice Lake CPU cores, and 1 TB of system memory; NVIDIA H200 GPUs with 141 GB of memory per device, 96 Emerald Rapids CPU cores, and 2 TB of system memory; or NVIDIA RTX 6000 Pro Blackwell GPUs with 96 GB of memory per device, 144 Granite Rapids CPU cores, and 1 TB of system memory. The nodes are connected by an HDR-200 InfiniBand network with a bandwidth of 200 Gb/s. The PSWF-LR were implemented in PyTorch, JAX, and CUDA to enable direct comparisons with Torch-PME, JAX-PME, and native OpenMM. 
+
+# Data Availability 
+
+The benchmark datasets used in this study are available from the original sources cited in Methods and Results. Processed train/validation/test splits, derived labels, trained-model predictions, timing logs, MD observables and figure source data will be deposited in a public repository upon publication. During peer review, the processed data and figure source files are available to editors and reviewers through a private repository. 
+
+# Code Availability 
+
+The CACE, NequIP, PyTorch, JAX and OpenMM/CUDA implementations of PSWF-LR, together with scripts used to reproduce the main benchmarks and figures, will be made publicly available upon publication. During peer review, the code is available to editors and reviewers through a private repository. 19 References 
+
+[1] Kalita, B., Gokcan, H. & Isayev, O. Machine learning interatomic potentials at the centennial crossroads of quantum mechanics. Nature Computational Science 5, 1120–1132 (2025). [2] Friederich, P., H¨ ase, F., Proppe, J. & Aspuru-Guzik, A. Machine-learned potentials for next-generation matter simulations. Nature Materials 20 , 750–761 (2021). [3] Unke, O. T. et al. Machine learning force fields. Chemical Reviews 121 , 10142–10186 (2021). [4] Deng, J. et al. The potential for bridgmanite megacrysts to drive magma ocean segregation. Nature 
+
+1–6 (2026). [5] Kohn, W. Density functional and density matrix method scaling linearly with the number of atoms. 
+
+Physical Review Letters 76 , 3168 (1996). [6] Zhang, L., Han, J., Wang, H., Car, R. & E, W. Deep potential molecular dynamics: a scalable model with the accuracy of quantum mechanics. Physical Review Letters 120 , 143001 (2018). [7] Ko, T. W. & Ong, S. P. Recent advances and outstanding challenges for machine learning interatomic potentials. Nature Computational Science 3, 998–1000 (2023). [8] Bart´ ok, A. P., Payne, M. C., Kondor, R. & Cs´ anyi, G. Gaussian approximation potentials: The accuracy of quantum mechanics, without the electrons. Physical Review Letters 104 , 136403 (2010). [9] Niblett, S. P., Galib, M. & Limmer, D. T. Learning intermolecular forces at liquid–vapor interfaces. 
+
+The Journal of Chemical Physics 155 (2021). [10] Sch¨ utt, K. et al. Schnet: A continuous-filter convolutional neural network for modeling quantum inter-actions. Advances in Neural Information Processing Systems 30 (2017). [11] Batatia, I., Kovacs, D. P., Simm, G., Ortner, C. & Cs´ anyi, G. MACE: Higher order equivariant message passing neural networks for fast and accurate force fields. Advances in Neural Information Processing Systems 35 , 11423–11436 (2022). [12] Batzner, S. et al. E (3)-equivariant graph neural networks for data-efficient and accurate interatomic potentials. Nature Communications 13 , 2453 (2022). [13] Batatia, I. et al. The design space of E (3)-equivariant atom-centred interatomic potentials. Nature Machine Intelligence 7, 56–67 (2025). [14] Unke, O. T. & Meuwly, M. Physnet: A neural network for predicting energies, forces, dipole moments, and partial charges. Journal of Chemical Theory and Computation 15 , 3678–3693 (2019). [15] Ko, T. W., Finkler, J. A., Goedecker, S. & Behler, J. A fourth-generation high-dimensional neural net-work potential with accurate electrostatics including non-local charge transfer. Nature Communications 
+
+12 , 398 (2021). [16] Shaidu, Y., Pellegrini, F., K¨ u¸ c¨ ukbenli, E., Lot, R. & de Gironcoli, S. Incorporating long-range electro-statics in neural network potentials via variational charge equilibration from shortsighted ingredients. 
+
+npj Computational Materials 10 , 47 (2024). [17] Gong, S. et al. A predictive machine learning force-field framework for liquid electrolyte development. 
+
+Nature Machine Intelligence 1–10 (2025). [18] Rappe, A. K. & Goddard III, W. A. Charge equilibration for molecular dynamics simulations. The Journal of Physical Chemistry 95 , 3358–3363 (1991). [19] Deng, B. et al. CHGNet as a pretrained universal neural network potential for charge-informed atomistic modelling. Nature Machine Intelligence 5, 1031–1041 (2023). 20 [20] Zhang, L. et al. A deep potential model with long-range electrostatic interactions. The Journal of Chemical Physics 156 (2022). [21] Gao, A. & Remsing, R. C. Self-consistent determination of long-range electrostatics in neural network potentials. Nature Communications 13 , 1572 (2022). [22] Ewald, P. P. Die Berechnung optischer und elektrostatischer Gitterpotentiale. Ann. Phys. 369 , 253–287 (1921). [23] Darden, T., York, D. & Pedersen, L. Particle mesh Ewald: An N · log( N ) method for Ewald sums in large systems. The Journal of Chemical Physics 98 , 10089–10092 (1993). [24] Loche, P. et al. Fast and flexible long-range models for atomistic machine learning. The Journal of Chemical Physics 162 (2025). [25] Greengard, L. & Lee, J. Accelerating the nonuniform fast Fourier transform. SIAM Review 46 , 443–454 (2004). [26] Barnett, A. H., Magland, J. & Af Klinteberg, L. A parallel nonuniform fast Fourier transform library based on an “exponential of semicircle” kernel. SIAM Journal on Scientific Computing 41 , C479–C504 (2019). [27] Kosmala, A., Gasteiger, J., Gao, N. & G¨ unnemann, S. Ewald-based long-range message passing for molecular graphs. In International Conference on Machine Learning , 17544–17563 (PMLR, 2023). [28] Grisafi, A. & Ceriotti, M. Incorporating long-range physics in atomic-scale machine learning. The Journal of Chemical Physics 151 (2019). [29] Huguenin-Dumittan, K. K., Loche, P., Haoran, N. & Ceriotti, M. Physics-inspired equivariant descrip-tors of nonbonded interactions. The Journal of Physical Chemistry Letters 14 , 9612–9618 (2023). [30] Faller, C., Kaltak, M. & Kresse, G. Density-based long-range electrostatic descriptors for machine learning force fields. The Journal of Chemical Physics 161 (2024). [31] Cheng, B. Latent Ewald summation for machine learning of long-range interactions. npj Computational Materials 11 , 80 (2025). [32] King, D. S., Kim, D., Zhong, P. & Cheng, B. Machine learning of charges and long-range interactions from energies and forces. Nature Communications 16 , 8763 (2025). [33] Gao, R. et al. A foundation machine learning potential with polarizable long-range interactions for materials modelling. Nature Communications 16 , 10484 (2025). [34] Ji, Y., Liang, J. & Xu, Z. Machine-learning interatomic potentials for long-range systems. Physical Review Letters 135 , 178001 (2025). [35] Ji, Y., Liang, J. & Xu, Z. Accurate learning of long-range interatomic potentials by coupling Cartesian atomic cluster expansion and sum-of-Gaussians neural networks. The Journal of Chemical Physics 164 
+
+(2026). [36] Li, J. et al. Scaling neural-network-based molecular dynamics with long-range electrostatic interactions to 51 nanoseconds per day. arXiv preprint arXiv:2504.15508 (2025). [37] Slepian, D. & Pollak, H. O. Prolate spheroidal wave functions, Fourier analysis and uncertainty—I. 
+
+Bell System Technical Journal 40 , 43–63 (1961). [38] Zheng, T. et al. Bridging quantum mechanics to liquid properties via a universal organic force field. 
+
+Nature Communications (2026). URL https://doi.org/10.1038/s41467-026-73566-3 .[39] Eastman, P. et al. OpenMM 8: molecular dynamics simulation with machine learning potentials. The Journal of Physical Chemistry B 128 , 109–116 (2023). 21 [40] Drautz, R. Atomic cluster expansion for accurate and transferable interatomic potentials. Physical Review B 99 , 014104 (2019). [41] Cheng, B. Cartesian atomic cluster expansion for machine learning interatomic potentials. npj Compu-tational Materials 10 , 157 (2024). [42] Musaelian, A. et al. Learning local equivariant representations for large-scale atomistic dynamics. Nature Communications 14 , 579 (2023). [43] Burns, L. A. et al. The BioFragment Database (BFDb): An open-data platform for computational chemistry analysis of noncovalent interactions. The Journal of Chemical Physics 147 (2017). [44] Maruf, M. U., Kim, S. & Ahmad, Z. Learning long-range interactions in equivariant machine learning interatomic potentials via electronic degrees of freedom. The Journal of Physical Chemistry Letters 16 ,9078–9087 (2025). [45] Rinaldi, M., Bochkarev, A., Lysogorskiy, Y. & Drautz, R. Charge-constrained atomic cluster expansion. 
+
+Physical Review Materials 9, 033802 (2025). [46] Morawietz, T., Sharma, V. & Behler, J. A neural network potential-energy surface for the water dimer based on environment-dependent atomic energies and charges. The Journal of Chemical Physics 136 
+
+(2012). [47] Zhang, L., Wang, H., Car, R. & E, W. Phase diagram of a deep potential water model. Physical Review Letters 126 , 236001 (2021). [48] Batatia, I. et al. A foundation model for atomistic materials chemistry. The Journal of Chemical Physics 
+
+163 (2025). [49] Kulichenko, M. et al. Uncertainty-driven dynamics for active learning of interatomic potentials. Nature Computational Science 3, 230–239 (2023). [50] Zheng, H. et al. Learning from models beyond fine-tuning. Nature Machine Intelligence 7, 6–17 (2025). [51] Osipov, A., Rokhlin, V., Xiao, H. et al. Prolate spheroidal wave functions of order zero. Springer Series: Applied Mathematical Sciences 187 (2013). [52] Slepian, D. Some comments on Fourier analysis, uncertainty and modeling. SIAM Review 25 , 379–393 (1983). [53] Davenport, M. A. & Wakin, M. B. Compressive sensing of analog signals using discrete prolate spheroidal sequences. Applied and Computational Harmonic Analysis 33 , 438–472 (2012). [54] Chen, C.-Y. & Vaidyanathan, P. P. MIMO radar space–time adaptive processing using prolate spheroidal wave functions. IEEE Transactions on Signal Processing 56 , 623–635 (2008). [55] Jiang, S. & Greengard, L. A dual-space multilevel kernel-splitting framework for discrete and continuous convolution. Commun. Pure Appl. Math. 78 , 1086–1143 (2025). [56] Liang, J., Lu, L., Barnett, A., Greengard, L. & Jiang, S. Accelerating molecular dynamics simulations using fast Ewald summation with prolates. Nature Communications (2026). URL https://doi.org/ 10.1038/s41467-026-73232-8 .[57] Hu, Z. Infinite boundary terms of Ewald sums and pairwise interactions for electrostatics in bulk and at interfaces. Journal of Chemical Theory and Computation 10 , 5254–5264 (2014). [58] Essmann, U. et al. A smooth particle mesh Ewald method. The Journal of Chemical Physics 103 ,8577–8593 (1995). 22 [59] Wang, X., Xu, Y., Zheng, H. & Yu, K. A scalable graph neural network method for developing an accurate force field of large flexible organic molecules. The Journal of Physical Chemistry Letters 12 ,7982–7987 (2021). [60] Zheng, T. et al. Data-driven parametrization of molecular mechanics force fields for expansive chemical space coverage. Chemical Science 16 , 2730–2740 (2025). [61] Thompson, A. P. et al. LAMMPS-A flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales. Computer Physics Communications 271 , 108171 (2021). [62] Heyd, J., Scuseria, G. E. & Ernzerhof, M. Hybrid functionals based on a screened Coulomb potential. 
+
+The Journal of Chemical Physics 118 , 8207–8215 (2003). [63] Lagardere, L., Aviat, F. & Piquemal, J.-P. Pushing the limits of multiple-time-step strategies for polarizable point dipole molecular dynamics. The Journal of Physical Chemistry Letters 10 , 2593–2599 (2019). 
+
+# Acknowledgments 
+
+We thank the Scientific Computing Core at the Flatiron Institute for access to the Rusty cluster and technical support. We also thank Yutong Zhao for helpful discussions. J.L. acknowledges support from the National Natural Science Foundation of China (Grant No. 12401570) and the China Postdoctoral Science Foundation (Grant No. 2024M751948). Y. Ji acknowledges support from the National Natural Science Foundation of China (No. 124B2023). The Flatiron Institute is a division of the Simons Foundation. 
+
+# Author contributions 
+
+S.J. and J.L. conceived the project. S.J. and J.L. designed the experiments and supervised the research. J.L., L.L. and Y.J. contributed to implementing the PSWF-LR framework in CACE and NequIP. J.L. performed model training, benchmark evaluations and data analysis. J.L. and L.L. implemented PSWF-LR in Torch-PME, JAX-PME and ByteFF-Pol/OpenMM, and carried out the differentiable-runtime and MD simulations. J.L. and Y.J. designed the figures and prepared the visualizations. S.J. and J.L. wrote the initial manuscript draft. All authors discussed the results, revised the manuscript and approved the final version. 
+
+Correspondence 
+
+Correspondence and requests for materials should be addressed to S.J.. 
+
+# Competing interests 
+
+The authors declare no competing interests. 23 a
+
+> Charge
+> 𝑟 !"
+> Dispersion
+> 𝑟 !#
+
+b c
+
+d e fExtended Data Figure 1: PSWF-LR retains its advantage over Ewald-based screening across training-set sizes in the synthetic particle benchmarks. a-c , Charge-charge ( 1/r ) benchmark. d-f , Dispersion ( 1/r 6) benchmark. In each case, the model uses the same short-range baseline and differs only in whether the long-range module is PSWF-based or Ewald-based. Root-mean-square errors (RMSEs) of the energy ( ERMSE ; a,d ) and forces ( FRMSE ;
+
+b,e ) are shown as a function of the number of training samples. The rightmost panels report the RMSE of the predicted charges for 1/r benchmark ( c) and that of the predicted dispersion coefficients for the 1/r 6 benchmark (f). Results are reported for short-range cutoffs rc = 4 .0 ˚A and 5.0 ˚A.
+
+Extended Data Figure 2: Supplementary analysis of the molecular-dimer benchmark. Left, dependence of the energy RMSE on the PSWF exponent p and mesh size h for the charge-charge (CC), charge-polar (CP) and polar-polar (PP) dimers. In the upper-left panel, the label next to each point gives the value of h that minimizes the RMSE among the tested mesh sizes h = 0 .5, 1.5, 3 and 5 ˚A; in the lower-left panel, the label gives the value of p that minimizes the RMSE among the tested exponents p = 1 , 2, 3, 4, 5, 6. Right, per-configuration force RMSEs for the CC (top) and CP (bottom) datasets, comparing the short-range-only model (SR) with the same baseline augmented by PSWF- or Ewald-based long-range modules. Blue and red shaded regions denote training and test configurations, respectively. 
+
+24 d e   
+
+> p=1 p=2 p=3
+> p=1 p=2
+
+# g p=3 
+
+# hf
+
+# c
+
+# i j
+
+# a bExtended Data Figure 3: The PSWF exponent that best reproduces reference atomic charges in the dipeptide benchmark differs across charge partitions. a,b , Representative dipeptide conformers. c-e , Scatter plots compar-ing PSWF-predicted effective charges with MBIS charges for p = 1 , 2, and 3. f-h , Corresponding comparisons with Hirshfeld charges. Points in c-h are colored by atomic species. i,j , Pairwise comparison of charge-partitioning schemes and model-predicted charges, including MBIS, Hirshfeld, Mulliken, LES, and PSWF charges with p = 1 ,
+
+2, and 3, shown as the coefficient of determination ( R2; i) and mean absolute error (MAE; j). Among the PSWF exponents tested here, p = 2 gives the best overall agreement with the reference charge schemes. 
+
+25 a b
+
+# c dExtended Data Figure 4: Lower PSWF exponents better reproduce charge-derived multipoles and Born effec-tive charges in the dipeptide benchmark. a, Dipole moments computed from the PSWF-predicted charges and compared with the reference DFT dipoles from the SPICE dataset. b, Traceless quadrupole tensor components computed from the PSWF-predicted charges and compared with the corresponding DFT quadrupole components. 
+
+c, Diagonal Born effective charge (BEC) components predicted by PSWF-LR and compared with reference BECs calculated using the ωB97M-D3BJ functional with the def2-SVP basis set on the validation set reported in 32 . d,Corresponding comparison for the off-diagonal BEC components. Data are shown for p = 1 , 2, and 3. Among the exponents tested here, p = 1 gives the best overall agreement with the DFT dipole, quadrupole, and BEC data, although p = 2 better matches the reference atomic charges (Extended Data Fig. 3). 
+
+26 0 10 20 30 40             
+
+> Atom index
+> 10 0
+> 10 1
+> 10 2
+> Per-atom force error (meV/ Å) Cu BTA H3O
+> NequIP NequIP-LR NequIP+PSWF-LR
+> 010 20 30 40
+> Atom index
+> 10 0
+> 10 1
+> 10 2
+> Per-atom force error (meV/ Å) Cu BTA H3O
+> CACE CACE-LR CACE+PSWF-LR
+
+Extended Data Figure 5: PSWF-LR lowers force errors in the adsorbate and solvent region of the solvated Cu-BTA interface. Upper left, comparison of NequIP, NequIP-LR and NequIP+PSWF-LR. Lower left, analogous comparison of CACE, CACE-LR and CACE+PSWF-LR. Force errors are plotted as a function of atom index, with Cu substrate atoms, BTA adsorbate atoms and solvent atoms distinguished by the shaded regions. Right, representative solvated interfacial configuration with the molecular region highlighted. 
+
+27 Extended Data Figure 6: Comparison of DFT reference data with three short-range models (CACE, CHGNet and MACE-MP-0 finetuned on this dataset) and three long-range models (4G-HDNNP, CACE-LR and PSWF-LR), for the Na 8Cl +8 cluster. a,b , Relative energies, referenced to the minimum DFT energy of the corresponding cluster, as a function of the Na-Na distance for two representative separation scans; the corresponding configurations are shown in the insets. The arrow indicates the direction along which the outermost sodium atom is displaced, and the dashed line indicates the measured Na-Na distance. c,d , Force acting on the highlighted Na ion along the same scans. Root-mean-square errors (RMSEs) with respect to the DFT are reported in each panel. 
+
+28 a b
+
+# c
+
+# undoped doped Extended Data Figure 7: PSWF-LR reproduces the wetting-non-wetting energy splitting of Au 2 on MgO more accurately than the comparison models. a,b , Representative undoped and Al-doped structures, respectively. Au, Mg, O, and Al atoms are shown in gold, green, orange, and grey, respectively. c, Energy difference between the wetting and non-wetting configurations, ∆Ew−nw , for the Al-doped system ( x axis) and the undoped system ( y
+
+axis), as predicted by DFT and four MLIPs (2G-HDNNP, CACE, 4G-HDNNP, and PSWF-LR). The inset enlarges the region near the DFT reference, and the table reports the corresponding values in meV. 
+
+29 0
+
+> 200
+> 400
+> 600
+> Relative energy (meV)
+
+a Undoped non-wetting 
+
+> RMSE
+> 2G-HDNNP
+> CACE
+> 4G-HDNNP
+> PSWF-LR
+> 289.6
+> 56.6
+> 25.7
+> 2.6
+> −200
+> −100
+> 0
+> 100
+> 200
+> 300
+
+b Al-doped non-wetting         
+
+> RMSE
+> 2G-HDNNP
+> CACE
+> 4G-HDNNP
+> PSWF-LR
+> 248.4
+> 57.9
+> 40.3
+> 2.2
+> 2.05 2.10 2.15 2.20 2.25 2.30 2.35 2.40 2.45
+
+Au-O distance (Å) 
+
+> −2000
+> −1000
+> 0
+> 1000
+> Force on Au 2 cluster (meV Å −1 )
+
+c        
+
+> RMSE
+> 2G-HDNNP
+> CACE
+> 4G-HDNNP
+> PSWF-LR
+> 482.5
+> 366.2
+> 83.5
+> 28.7
+> 2.05 2.10 2.15 2.20 2.25 2.30 2.35 2.40 2.45
+
+Au-O distance (Å) 
+
+> −2000
+> −1000
+> 0
+> 1000
+
+d
+
+> RMSE
+> 2G-HDNNP
+> CACE
+> 4G-HDNNP
+> PSWF-LR
+> 332.0
+> 416.7
+> 60.7
+> 20.6
+
+DFT 2G-HDNNP CACE 4G-HDNNP PSWF-LR Extended Data Figure 8: Comparison of MLIPs on capturing the Au-O equilibrium position and force profile for Au 2 on MgO(001). The horizontal axis is the Au-O bond length, defined as the distance between the Au atom closest to the surface and its neighboring oxygen atom. a,b , Relative energy for the non-wetting geometry on undoped and Al-doped substrates. c,d , Corresponding total force acting on the Au 2 cluster. Results are shown for two short-range models (2G-HDNNP and CACE) and two long-range models (4G-HDNNP and PSWF-LR). 
+
+30 a
+
+## b
+
+## c
+
+## dExtended Data Figure 9: Charge-transfer landscapes and relative-energy error surfaces as a function of the long-range decay exponent in Na 9Cl +8 and Na 8Cl +8 . ( a,c ) DFT and PSWF-LR charge-transfer patterns projected onto a shared PC1-PC2 structural embedding for Na 9Cl +8 and Na 8Cl +8 , respectively, for p = 1 , 2 and 3 with all other settings fixed. PC1 and PC2 denote the first two principal components of a pairwise-distance descriptor constructed from all Na-Na, Na-Cl and Cl-Cl distances for each composition. Colors represent the charge-transfer descriptor, defined as the difference between the mean Na and Cl atomic charges, and the hollow star marks the representative highest-energy configuration identified from each model. ( b,d ) Corresponding relative-energy error surfaces, ∆E = EMLIP − EDFT , over the same configurational space. Increasing the PSWF exponent progressively distorts the charge-transfer and energy landscapes of the NaCl cluster ions. 
+
+31 a
+
+# bExtended Data Figure 10: DFT and PSWF-LR-predicted effective charges are compared for the representative highest-energy configurations of Na 9Cl +8 and Na 8Cl +8 marked in panels a and c of Extended Data Figure 9, using 
+
+p = 1 , 2, and 3 with all other settings fixed. In line with the charge-transfer landscapes and relative-energy error surfaces, p = 1 shows the closest agreement with DFT, whereas larger exponents lead to progressively larger deviations in the atomic charge distribution. All PSWF-LR models nevertheless preserve the expected charge polarity, with electron density transferred from Na to Cl. 
+
+32 Extended Data Figure 11: Effect of long-range PSWF component selection on model accuracy and learned long-range contributions. a, b, Minimum validation energy RMSE (a) and best validation force RMSE (b) obtained for each system as the active long-range component set S is expanded from {1} to ({1, 2, 3, 4, 5, 6}). Stars mark the best-performing component set for each system. c, Normalized contribution of each long-range component p,computed as Cp = ⟨| Ep|⟩ / P 
+
+> q∈S
+
+⟨| Eq |⟩ , where Ep is the long-range energy contribution from component p and 
+
+⟨· · · ⟩ denotes averaging over the validation set. Each stacked bar sums to one, with colors denoting the fractional contribution from p = 1 to p = 6 .
+
+33 Extended Data Figure 12: Performance comparison between PSWF- and PME-based long-range treatments across ionic, polarizable and electrolyte systems. The short-range cutoff is set to 5 ˚A for all methods. The benchmark includes an NaCl crystal, the SWM4-NDP polarizable water model and a LiPF 6/DMC electrolyte. Main panels show the full forward-and-backward runtime as a function of particle number, N , for exponents 
+
+p = 1 to 6 (top to bottom). Blue curves denote PSWF and yellow curves denote PME; solid and dashed lines denote Torch and JAX implementations, respectively. Bottom panels summarize the corresponding PSWF speed-up over PME at the largest PME-reachable particle number, Nmax , for each exponent, with filled squares and open diamonds denoting Torch and JAX implementations, respectively. Missing PME data points indicate calculations that became GPU-memory limited. 
+
+34 Extended Data Figure 13: GPU scaling and multi-resolution overhead of PSWF-based long-range molecular dynamics. a, Strong-scaling benchmark of Pt(111)-water molecular dynamics on A100 , H100 , H200 and RTX-Blackwell GPUs. All simulations use the same short-range CACE model, neighbor list settings, cutoff and MD protocol; only the long-range electrostatic treatment is changed. For PSWF, the plotted timings correspond to the short-range model coupled to a single p = 1 PSWF long-range channel, whereas Ewald denotes the same short-range model coupled to the Fourier space Ewald electrostatic baseline. The plotted quantity is the wall-clock simulation time per MD step as a function of system size. Annotations indicate the PSWF speed-up at the largest system size accessible to Ewald and the increase in the maximum simulated system size before GPU-memory exhaustion. b, Relative overhead of adding multiple PSWF long-range channels on top of the same short-range model. Timings are normalized by the runtime of the corresponding single-channel p = 1 PSWF simulation on the same GPU and system size. Curves compare p = 1 , p = 1 , 6, p = 1 , 3, 6 and p = 1 , 2, 3, 4, 5, 6, where each listed value denotes an additional PSWF long-range channel evaluated from the same short-range representation. Error bars denote the standard error over repeated timing runs. 
+
+35 a b
+
+# cExtended Data Figure 14: Additional accuracy and performance tests of PSWF-LR in ByteFF-Pol simulations. 
+
+a, Nonequilibrium viscosity estimates for the 100,656-atom ByteFF-Pol benchmark as a function of cosine ac-celeration. PSWF and PME give closely matched viscosity responses across the tested field strengths, indicating that replacing PME electrostatics with PSWF does not measurably alter the transport trend. b, Wall-clock simulation performance for the 100,656-atom benchmark on A100 , H100 , H200 and Blackwell GPUs using double precision. PSWF consistently outperforms PME, with speed-ups marked in the figure. c, Strong-size scaling of simulation throughput as the system size is increased from 10,062 atoms to 20,606,976 atoms. PSWF and PME are compared in both mixed and double precision. PSWF maintains higher throughput across GPU architectures and extends accessible system sizes relative to PME, with the largest-system speed-ups annotated for each GPU. 
+
+36 Extended Data Figure 15: Backend-paired enthalpy of vaporization benchmark across 36 QUBEKit liquids. Left, molecular atlas of the 36 QUBEKit liquids included in the paired HVap benchmark. Molecules are ordered by increasing reference HVap, with the bottom colour strip in each tile using the same reference-HVap scale as in the right panel. Rendered structures show heavy atoms only for clarity; element colours are indicated in the legend. Right, comparison of enthalpies of vaporization computed with the PME and PSWF electrostatics backends for the same 36-molecule QUBEKit subset. Each point corresponds to one liquid; the x axis gives the PME reference value and the y axis gives the PSWF value. Marker colour reports the reference HVap computed with the higher-accuracy backend, and marker size encodes the absolute backend difference, |∆HPSWF vap − ∆HPME vap |. The dashed line denotes parity. The calculation method for Hvap as well as the R2 value is shown in the right panel. The high correlation indicates that PSWF preserves the molecule-wise HVap ranking of the PME reference while introducing only small backend-dependent deviations. 
+
+37 Supplementary Information for “Prolate spheroidal wave functions enable fast and exponent-aware long-range machine learning interatomic potentials” 
+
+Jiuyang Liang 1,3 , Libin Lu 1, Yajie Ji 2,3 , and Shidong Jiang 1,* 1Center for Computational Mathematics, Flatiron Institute, Simons Foundation, New York, New York 10010, USA 
+
+> 2
+
+Department of Statistics and Data Science, Yale University, New Haven, CT 06511, USA 
+
+> 3
+
+School of Mathematical Sciences, Shanghai Jiao Tong University, Shanghai, 200240, China 
+
+# Contents 
+
+1 Introduction 22 Three-dimensional Fourier transforms of inverse-power kernels 33 A general framework for kernel splitting 4
+
+3.1 Admissible windows and splitting conditions . . . . . . . . . . . . . . . . . . . . . . . 43.2 Splittings for p = 1 and p = 2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 53.3 Splitting for p = 3 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 53.4 Splitting for p = 4 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 63.5 Splitting for p = 5 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 73.6 Splitting for p = 6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+
+4 Prolate spheroidal wave functions 85 Specialization to prolate spheroidal wave functions 96 Extension to higher inverse powers 10 7 Numerical evaluation and notational correspondence 11 
+
+7.1 Numerical evaluation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11 7.2 Correspondence with the main-manuscript notation . . . . . . . . . . . . . . . . . . . 11 
+
+8 Self-corrections and zero-frequency terms 11 9 Accuracy validation and implementation details 14 
+
+9.1 Accuracy and parameter setting for performance benchmarks . . . . . . . . . . . . . 14 9.2 Fast kernel automatic-differentiation implementation . . . . . . . . . . . . . . . . . . 16  
+
+> ∗Correspondence: sjiang@flatironinstitute.org
+
+11 Introduction 
+
+Pairwise inverse-power interactions of the form Kp(r) = 1 /r p with p ≥ 1 arise throughout computa-tional physics and chemistry: p = 1 governs Coulomb electrostatics, p = 2 , 3 couple to charge–dipole and dipole–dipole channels, p = 4 , 5 describe charge-induced-dipole and dipole-induced-dipole ef-fects, and p = 6 controls dispersion. Their direct evaluation in a finite simulation cell of N particles costs O(N 2) operations, and a long line of acceleration techniques relies on splitting the kernel into a smooth, slowly decaying long-range component and a localized short-range component. Once such a splitting is fixed, the long-range part can be evaluated by spectral methods on a coarse Fourier grid, while the short-range part is summed by direct truncation in physical space. The accuracy and efficiency of the resulting algorithm depend critically on the choice of window function used to define the splitting. In the main manuscript we use as the window the first prolate spheroidal wave function (PSWF) of order zero, ψc
+
+> 0
+
+, i.e. the eigenfunction associated with the largest eigenvalue λc 
+
+> 0
+
+of the truncated Fourier integral operator on [ −1, 1]. We use the normalization ψc
+
+> 0
+
+(0) = 1. After unit-norm rescaling, 
+
+ψc 
+
+> 0
+
+uniquely maximizes the fraction of L2 energy contained in the band [ −c, c ] among all unit-norm functions supported on [ −1, 1] 1–3 . This extremal property makes ψc 
+
+> 0
+
+a near-optimal window when the kernel splitting is to be evaluated by FFT-based methods. The present supplement collects the mathematical material on which the main manuscript relies. The contributions are as follows. 1. In Section 2 we record the three-dimensional Fourier transforms of 1 /r p for p = 1 , . . . , 6. The borderline case p = 3 is handled rigorously by analytic continuation as a tempered distribution. 2. In Section 3 we introduce a general kernel-splitting framework based on an admissible window function ϕ and derive closed-form expressions for the long-range part Sp(r), the short-range part Lp(r), and the Fourier-space transform ̂ Sp(k) for p = 1 , . . . , 6. 3. In Section 4 we summarize the properties of ψc 
+
+> 0
+
+that are needed in the sequel. 4. In Section 5 we specialize the generic splittings of Section 3 to ϕ = ψc
+
+> 0
+
+(r)/ψ c
+
+> 0
+
+(0). 5. In Section 6 we establish a unified recurrence that extends the construction to arbitrary 
+
+p ≥ 7 and record explicit splittings for p = 8 and p = 10, which are relevant to polarizable force fields and machine-learning interatomic potentials with induction-like and anisotropic-dispersion channels. 6. In Section 7 we discuss the numerical evaluation of the splittings and the correspondence with the notation used in the main manuscript. 7. In Section 8 we derive the self-correction and zero-frequency terms required to define the periodic PSWF-LR energy. 8. In Section 9 we provide matched-tolerance accuracy checks for PSWF-LR and the PME comparisons, supporting the runtime and memory comparisons reported in the main text. The cutoff radius rc of the main manuscript does not appear in Sections 2–6; it is reinstated by a dimensional substitution in Section 7 and is used in Sections 8-9. Together, these sections provide the technical support for the main-text PSWF-LR framework. The Fourier-transform and kernel-splitting derivations justify the PSWF-based mollifiers Gp(r) and 2reciprocal-space multipliers ̂ Φ(p)(k) used in the inverse-power LR channels of main text and the Methods. The numerical-evaluation and notation section connects the dimensionless splittings 
+
+Sp,̂ Sp to the physical-cutoff notation Gp,̂ Φ(p) used in the main manuscript. The matched-tolerance accuracy checks support the differentiable PME comparisons in Fig. 4, showing that the reported speed-ups are not obtained by relaxing LR accuracy. The FKAD section explains how the same PSWF-LR kernels are evaluated efficiently and differentiated automatically in the PyTorch, JAX and OpenMM/CUDA implementations used in the runtime and MD benchmarks. 
+
+# 2 Three-dimensional Fourier transforms of inverse-power kernels 
+
+We adopt the convention ̂
+
+f (k) = 
+
+∫
+
+> R3
+
+e ik·r f (r) d 3r, f (r) = 1(2 π)3
+
+∫
+
+> R3
+
+e− ik·r̂ f (k) d 3k, k = |k|, r = |r|, (S1) and recall that for a radial function f (r) the transform reduces to ̂
+
+f (k) = 4πk
+
+∫ ∞
+
+> 0
+
+r f (r) sin( kr ) d r. (S2) The standard identity ∫
+
+> R3
+
+e ik·r r−α d3r = 2 3−απ3/2 Γ( 3−α
+
+> 2
+
+)
+
+Γ( α
+
+> 2
+
+) kα−3 (S3) is valid for 0 < α < 3. Beyond this range, Kp fails to be locally integrable and the transform must be understood in the sense of tempered distributions. We will use repeatedly the elementary identity 
+
+∇2(r−m) = m(m − 1) r−m−2, r > 0, (S4) which translates into −k2 multiplication on the Fourier side. 
+
+Lemma 1 (3D Fourier transforms of 1 /r p, p = 1 , . . . , 6) . As tempered distributions on R3,̂
+
+r−1(k) = 4πk2 , (S5) ̂
+
+r−2(k) = 2π2
+
+k , (S6) ̂
+
+r−3(k) = −4π ln k, (S7) ̂
+
+r−4(k) = −π2k, (S8) ̂
+
+r−5(k) = 2π
+
+3 k2 ln k, (S9) ̂
+
+r−6(k) = π2
+
+12 k3, (S10) 
+
+where k = |k| and the logarithmic terms are defined up to an additive constant arising from the choice of renormalization scale. 
+
+3Proof. For p = 1 and p = 2, set α = p in (S3). For p ∈ { 4, 5, 6}, apply (S4) recursively to the cases already established. Concretely, 
+
+r−4 = 12 ∇2(r−2), r−5 = 16 ∇2(r−3), r−6 = 112 ∇2(r−4), (S11) and the corresponding k-space transforms acquire factors of −k2/2, −k2/6, and −k2/12, respec-tively. The case p = 3 is borderline and is treated in Proposition 1 below. 
+
+Proposition 1 (Distributional Fourier transform of 1 /r 3). The function r−3 defines a tempered distribution on R3, and its Fourier transform satisfies ̂
+
+r−3(k) = −4π ln k (S12) 
+
+modulo additive contact terms supported at the origin and a scale-dependent constant. Proof. Set α = 3 − ε for 0 < ε < 3, apply (S3), and expand. With Γ
+
+( ε
+
+2
+
+)
+
+= 2
+
+ε − γ + O(ε), Γ
+
+( 32 − ε
+
+2
+
+)
+
+= Γ 
+
+( 32
+
+) [ 
+
+1 − ε
+
+2 ψ
+
+( 32
+
+)
+
++ O(ε2)
+
+]
+
+, (S13) 2ε = 1 + ε ln 2 + O(ε2), k−ε = 1 − ε ln k + O(ε2), Γ(3 /2) = √π/ 2, and ψ(3 /2) = 2 − γ − 2 ln 2. The ln 2 contributions from 2 ε and ψ(3 /2) cancel, and the convergent transform ̂ r−3+ ε(k) expands as ̂
+
+r−3+ ε(k) = 4πε − 4π ln k + 4 π(1 − γ) + O(ε).
+
+The ε−1 pole is momentum-independent and corresponds to a contact term proportional to δ(r), which can be absorbed by renormalization. The finite constant similarly depends on the renormal-ization scale through −4π ln k = −4π ln( k/μ ) − 4π ln μ. Discarding the contact counterterm and the arbitrary constant yields the stated formula. As a dimensional check, [ r−3] = L−3 and the d 3r measure contributes L3, so ̂ r−3 is dimensionless and ln k is appropriate. 
+
+# 3 A general framework for kernel splitting 
+
+3.1 Admissible windows and splitting conditions 
+
+We seek a decomposition 
+
+Kp(r) = 1
+
+rp = Sp(r) + Lp(r), p = 1 , . . . , 6, (S14) where Sp is the smooth, long-range part whose Fourier transform decays rapidly, and Lp is the localized short-range part. Since the only singularity of Kp is at the origin, Sp must satisfy (i) Sp is smooth at r = 0, (ii) lim r→∞ |S p(r) − Kp(r)| = 0. Such splittings underlie fast Ewald summation 4,5 and the dual-space multilevel kernel-splitting (DMK) framework 6, in which fast algorithms require explicit forms of both ̂ Sp and Lp.4Definition 1 (Admissible window function) . A function ϕ : [0 , ∞) → R is an admissible window if it is positive, real, even, radially symmetric, monotonically decreasing on [0 , ∞), smooth on [0 , 1], and either truncated to zero at r = 1 or rapidly decaying as r → ∞ . Without loss of generality we normalize ϕ by 
+
+ϕ(0) = 1 , ϕ(1) = O(ε),̂ ϕ(c) = O(ε), (S15) where ε > 0 is a prescribed tolerance and c > 0 is the chosen Fourier bandwidth parameter. For an admissible ϕ we write its Taylor expansion at the origin in the form 
+
+ϕ(r) = ∑
+
+> n≥0
+
+c2n r2n, c2n = ϕ(2 n)(0) (2 n)! , (S16) so that c0 = 1, c2 = ϕ′′ (0) /2, c4 = ϕ(4) (0) /24, and in general c2n is the Taylor coefficient of r2n.We further adopt the shorthand Φ( r) := 
+
+∫ r
+
+> 0
+
+ϕ(x) d x, C0 := 
+
+∫ ∞
+
+> 0
+
+ϕ(x) d x, 
+
+and denote by ̂ ϕ the one-dimensional Fourier transform of ϕ, with ̂ Φ( k) := ∫ k
+
+> 0
+
+̂ ϕ(s) d s,̂ C0 := 
+
+∫ ∞
+
+> 0
+
+̂ ϕ(k) d k, and ̂ c0 := ̂ ϕ(0). Note that Φ is odd, radially symmetric, and smooth on [0 , 1]. 
+
+3.2 Splittings for p = 1 and p = 2 
+
+Proposition 2 (Coulomb splitting, p = 1) . For any admissible window ϕ, the splitting 
+
+S1(r) = Φ( r)
+
+C0r , L1(r) = 1 − Φ( r)/C 0
+
+r ,̂ S1(k) = 4π̂
+
+ϕ(0) k2̂ ϕ(k) (S17) 
+
+satisfies the splitting conditions and reduces the original DMK construction 6 to inverse-power form. 
+
+The Fourier transform of 1 /r is 4 π/k 2 by (S5). Substituting r ↔ k formally in (S17) therefore yields a splitting of the Fourier-side kernel 1 /k 2, which in turn corresponds to a real-space splitting of 1 /r 2.
+
+Proposition 3 (Charge–dipole splitting, p = 2) . For any admissible window ϕ,
+
+S2(r) = 1 − ϕ(r)
+
+r2 , L2(r) = ϕ(r)
+
+r2 ,̂ S2(k) = 2π2
+
+k
+
+(
+
+1 −̂ Φ( k)̂
+
+C0
+
+)
+
+(S18) 
+
+satisfies the splitting conditions. 
+
+3.3 Splitting for p = 3 
+
+Proposition 4 (Dipole–dipole splitting, p = 3) . For any admissible window ϕ,
+
+S3(r) = Φ( r) − rϕ (r)
+
+C0 r3 , L3(r) = 1 − (Φ( r) − rϕ (r)) /C 0
+
+r3 (S19) 
+
+satisfies the splitting conditions, with 
+
+lim  
+
+> r→0
+
+S3(r) = − ϕ′′ (0) 3 C0
+
+= − 2 c2
+
+3 C0
+
+, (S20) 5and if ϕ is truncated at r = 1 then S3(r) = K3(r) for r > 1, so L3 is compactly supported in the unit ball. The Fourier transform is ̂
+
+S3(k) = 2πC0
+
+∫ ∞
+
+> k
+
+̂
+
+ϕ(ξ)
+
+ξ dξ. (S21) 
+
+Proof. Smoothness at r = 0 and the limit follow from the Taylor expansion of ϕ near the origin. The behavior S3(r) = K3(r) for r > 1 when ϕ is truncated is immediate from Φ( r) = C0 and 
+
+ϕ(r) = 0 in that range. For the Fourier transform, observe that (Φ( r) − rϕ (r)) /r 2 = −(d /dr)(Φ( r)/r ), so substituting the splitting into the radial transform formula (S2) gives ̂
+
+S3(k) = − 4πC0k
+
+∫ ∞
+
+> 0
+
+ddr
+
+( Φ( r)
+
+r
+
+)
+
+sin( kr ) d r. (S22) Integrating by parts and noting that the boundary terms vanish (as r → 0, sin( kr ) → 0 and Φ( r)/r → ϕ(0) = 1; as r → ∞ , Φ( r) approaches a constant while sin( kr )/r → 0), one obtains ̂
+
+S3(k) = 4πC0
+
+∫ ∞
+
+> 0
+
+Φ( r)
+
+r cos( kr ) d r. (S23) Expressing Φ( r) through the 1D cosine transform ϕ(r) = π−1 ∫ ∞
+
+> 0
+
+̂ ϕ(ξ) cos( ξr ) d ξ gives Φ( r) = 
+
+π−1 ∫ ∞
+
+> 0
+
+̂ ϕ(ξ) sin( ξr )/ξ dξ. Substituting and applying the Dirichlet integral 
+
+∫ ∞
+
+> 0
+
+cos( kr ) sin( ξr )
+
+r dr =
+
+{
+
+π/ 2, ξ > k, 
+
+0, ξ < k, 
+
+yields (S21). 
+
+3.4 Splitting for p = 4 
+
+For p = 4 we exploit the Fourier relation ̂ r−2(k) = 2 π2/k from (S6). Treating the splitting of 1 /r 2
+
+in Proposition 3 as a Fourier-side splitting of 1 /k 2 and performing the formal substitution k ↔ r
+
+gives a candidate splitting of 1 /r 4 in physical space. 
+
+Proposition 5 (Charge–apolar splitting, p = 4) . For any admissible window ϕ,
+
+S4(r) = 1 − ϕ(r) + 12 rϕ ′(r)
+
+r4 , L4(r) = ϕ(r) − 12 rϕ ′(r)
+
+r4 , (S24) 
+
+satisfies the splitting conditions, with 
+
+lim  
+
+> r→0
+
+S4(r) = ϕ(4) (0) 24 , (S25) 
+
+and if ϕ is truncated at r = 1 then S4(r) = K4(r) for r > 1. The Fourier transform is ̂
+
+S4(k) = −π2
+
+(
+
+k − k̂
+
+C0
+
+∫ k
+
+> 0
+
+̂ ϕ(ξ) d ξ + 1̂
+
+C0
+
+∫ k
+
+> 0
+
+ξ̂ ϕ(ξ) d ξ − 1̂
+
+C0
+
+∫ ∞
+
+> 0
+
+ξ̂ ϕ(ξ) d ξ
+
+)
+
+. (S26) 6Proof. Smoothness at r = 0, the limit, and the truncation property follow from Taylor expansion. For the Fourier transform, the identity (1−ϕ(r)+ 12 rϕ ′(r))/r 3 = − 12 (d /dr)((1 −ϕ(r)) /r 2) combined with (S2) gives ̂
+
+S4(k) = 2 π
+
+∫ ∞
+
+> 0
+
+1 − ϕ(r)
+
+r2 cos( kr ) d r. (S27) Differentiating in k yields ̂ S′
+
+> 4
+
+(k) = − 12 k̂ S2(k), and integrating with ̂ S4(∞) = 0 recovers (S26) using (S18). 
+
+Remark 1. An alternative splitting for p = 4 is 
+
+˜S4(r) = 1 − ϕ(r)(1 − c2r2)
+
+r4 , ˜L4(r) = ϕ(r)(1 − c2r2)
+
+r4 , (S28) which has the same boundary behavior but trades the explicit derivative term for a polynomial factor in r. The two are interchangeable for our purposes. 
+
+3.5 Splitting for p = 5 
+
+Proposition 6 (Polar–apolar splitting, p = 5) . For any admissible window ϕ,
+
+S5(r) = Φ( r) − rϕ (r) + 13 r2ϕ′(r)
+
+C0 r5 , L5(r) = 1 − (Φ( r) − rϕ (r) + 13 r2ϕ′(r))/C 0
+
+r5 , (S29) 
+
+satisfies the splitting conditions, with 
+
+lim  
+
+> r→0
+
+S5(r) = ϕ(4) (0) 45 C0
+
+, (S30) 
+
+and if ϕ is truncated at r = 1 then S5(r) = K5(r) for r > 1. The Fourier transform is ̂
+
+S5(k) = − π
+
+3C0
+
+(
+
+k2
+
+∫ ∞
+
+> k
+
+̂
+
+ϕ(ξ)
+
+ξ dξ −
+
+∫ ∞
+
+> k
+
+ξ̂ ϕ(ξ) d ξ
+
+)
+
+. (S31) 
+
+Proof. Smoothness and the limit follow from the Taylor expansion Φ( r) = r + 13 c2r3 + 15 c4r5 +O(r7).
+
+For the Fourier transform, the identity (Φ( r)−rϕ (r)+ 13 r2ϕ′(r))/r 4 = − 13 (d /dr)((Φ( r)−rϕ (r)) /r 3)
+
+together with (S2) yields ̂ S′
+
+> 5
+
+(k) = − 13 k̂ S3(k), and integration with ̂ S5(∞) = 0 recovers (S31). 
+
+Remark 2. An alternative splitting for p = 5 is 
+
+˜S5(r) = Φ( r) − ϕ(r)(r − 23 c2r3)
+
+C0 r5 , ˜L5(r) = 1 − (Φ( r) − ϕ(r)( r − 23 c2r3))
+
+C0 r5 . (S32) 
+
+3.6 Splitting for p = 6 
+
+Proposition 7 (Dispersion splitting, p = 6) . For any admissible window ϕ,
+
+S6(r) = 1 − ϕ(r) + 58 rϕ ′(r) − 18 r2ϕ′′ (r)
+
+r6 , L6(r) = ϕ(r) − 58 rϕ ′(r) + 18 r2ϕ′′ (r)
+
+r6 (S33) 
+
+satisfies the splitting conditions, with 
+
+lim  
+
+> r→0
+
+S6(r) = − ϕ(6) (0) 720 , (S34) 7and if ϕ is truncated at r = 1 then S6(r) = K6(r) for r > 1. The Fourier transform is ̂
+
+S6(k) = π2
+
+12 
+
+(
+
+k3 − k3̂
+
+C0
+
+∫ k
+
+> 0
+
+̂ ϕ(ξ) d ξ − 3k2
+
+2̂C0
+
+∫ ∞
+
+> k
+
+ξ̂ ϕ(ξ) d ξ + 12̂ C0
+
+∫ ∞
+
+> k
+
+ξ3̂ ϕ(ξ) d ξ
+
+)
+
+. (S35) 
+
+Proof. Smoothness at r = 0 and the limit follow from Taylor expansion. For the Fourier transform, the identity (1 − ϕ(r) + 58 rϕ ′(r) − 18 r2ϕ′′ (r))/r 5 = − 14 (d /dr)((1 − ϕ(r) + 12 rϕ ′(r)) /r 4) combined with (S2) gives ̂ S′
+
+> 6
+
+(k) = − 14 k̂ S4(k), and integration with ̂ S6(∞) = 0 recovers (S35) using (S26). 
+
+Remark 3. An alternative splitting for p = 6 is 
+
+˜S6(r) = 1 − ϕ(r)(1 − c2r2 − (c4 − c22)r4)
+
+r6 , ˜L6(r) = ϕ(r)(1 − c2r2 − (c4 − c22)r4)
+
+r6 . (S36) 
+
+# 4 Prolate spheroidal wave functions 
+
+The prolate spheroidal wave functions of order zero form a countable family {ψcn}n≥0 of eigenfunc-tions of the truncated Fourier integral operator Fc : L2[−1, 1] → L2[−1, 1] defined by 
+
+Fc[σ]( x) = 
+
+∫ 1
+
+> −1
+
+σ(t) eicxt dt. (S37) The corresponding eigenvalues {λcn}n≥0 are conventionally ordered by decreasing magnitude, |λc
+
+> 0
+
+| >
+
+|λc
+
+> 1
+
+| > · · · . In what follows we use only ψc
+
+> 0
+
+, the first member of this family — equivalently, the eigenfunction associated with the largest eigenvalue λc 
+
+> 0
+
+— normalized by ψc
+
+> 0
+
+(0) = 1: 
+
+λc 
+
+> 0
+
+ψc
+
+> 0
+
+(x) = 
+
+∫ 1
+
+> −1
+
+ψc
+
+> 0
+
+(t) eicxt dt. (S38) Writing ̂ ψc
+
+> 0
+
+(k) := ∫ 1 
+
+> −1
+
+ψc
+
+> 0
+
+(t) eikt dt for the 1D Fourier transform of ψc 
+
+> 0
+
+extended by zero outside [−1, 1], the substitution k = cx in (S38) gives ̂
+
+ψc
+
+> 0
+
+(k) = λc 
+
+> 0
+
+ψc
+
+> 0
+
+(k/c ), |k| ≤ c. (S39) While no nontrivial function is exactly band-limited in both physical and Fourier spaces, ψc
+
+> 0
+
+is essentially band-limited in both: it is compactly supported on [ −1, 1] and its Fourier transform decays rapidly outside [ −c, c ]. The fundamental Slepian extremal property states that the unit-norm rescaling of ψc 
+
+> 0
+
+uniquely maximizes the L2 norm of its Fourier transform on [ −c, c ] among all unit-norm functions in L2[−1, 1] 1. This optimality underpins the use of ψc 
+
+> 0
+
+as a near-optimal window in signal processing, numerical quadrature, and kernel splitting. The eigenvalue equation (S38) provides stable expressions for several quantities that we will need. Differentiating both sides 2 n times and evaluating at x = 0 gives 
+
+λc 
+
+> 0
+
+ψc
+
+> 0(2 n)
+
+(0) = ( −1) nc2n
+
+∫ 1
+
+> −1
+
+ψc
+
+> 0
+
+(t) t2n dt, (S40) so high-order derivatives of ψc 
+
+> 0
+
+at the origin can be evaluated by integration of ψc 
+
+> 0
+
+rather than by numerical differentiation. Setting n = 0 in (S40) yields 
+
+λc 
+
+> 0
+
+ψc
+
+> 0
+
+(0) = 
+
+∫ 1
+
+> −1
+
+ψc
+
+> 0
+
+(t) d t. (S41) 85 Specialization to prolate spheroidal wave functions 
+
+We now specialize the generic splittings of Section 3 to the window obtained from the first PSWF of order zero, 
+
+ϕ(r) = ψc
+
+> 0
+
+(r)/ψ c
+
+> 0
+
+(0) , (S42) which is admissible in the sense of Definition 1 and is consistent with the normalization ϕ(0) = 1. We adopt the truncation convention ̂ ϕ(k) ≡ 0 for |k| > c , so that ϕ is exactly band-limited to [−c, c ]. Under this convention the bandwidth admissibility condition ̂ ϕ(c) = O(ε) in Definition 1 is enforced exactly, and all integrals ∫ ∞
+
+> 0
+
+̂ ϕ(·) d k that appear below reduce to integrals on [0 , c ]. The cutoff radius rc of the main manuscript does not appear in this section; it is reinstated through the variable substitution r → r/r c in Section 7. Under (S42), direct computation gives 
+
+C0 =
+
+∫ 10
+
+ϕ(x) d x, ̂ ϕ(k) = 2C0
+
+ψc
+
+> 0
+
+(0) ψc
+
+> 0
+
+(k/c ), (S43) together with the auxiliary identities Φ( r) = 1
+
+ψc
+
+> 0
+
+(0) 
+
+∫ r
+
+> 0
+
+ψc
+
+> 0
+
+(x) d x, ̂ Φ( k) = 2C0
+
+ψc
+
+> 0
+
+(0) 
+
+∫ k
+
+> 0
+
+ψc
+
+> 0
+
+(ξ/c ) d ξ, (S44) ̂
+
+C0 =
+
+∫ c
+
+> 0
+
+̂ ϕ(k) d k = 2 c C 20 ,̂ Φ( k)̂
+
+C0
+
+= 1
+
+C0
+
+∫ k/c 
+
+> 0
+
+ϕ(x) d x, (S45) ̂
+
+ϕ(ξ)
+
+C0
+
+= 2 ϕ(ξ/c ),̂ ϕ(ξ)̂
+
+C0
+
+= 1
+
+c C 0
+
+ϕ(ξ/c ). (S46) Substituting these identities into Propositions 2–7 produces compact closed-form expressions for the Fourier-side splittings. 
+
+Theorem 1 (PSWF-based Fourier-side splittings) . With ϕ = ψc
+
+> 0
+
+/ψ c
+
+> 0
+
+(0) , the long-range Fourier transforms of Section 3 take the form ̂
+
+S1(k) = 4π ϕ (k/c )
+
+k2 , (S47) ̂
+
+S2(k) = 2π2
+
+k − 2π2
+
+C0 k
+
+∫ k/c 
+
+> 0
+
+ϕ(x) d x, (S48) ̂
+
+S3(k) = −4π ln( k/c ) + 4 π
+
+∫ 1
+
+> k/c
+
+ϕ(x) − 1
+
+x dx, (S49) ̂
+
+S4(k) = −π2
+
+(
+
+k − kC0
+
+∫ k/c 
+
+> 0
+
+ϕ(x) d x − cC0
+
+∫ 1
+
+> k/c
+
+x ϕ (x) d x
+
+)
+
+, (S50) ̂
+
+S5(k) = 2π
+
+3
+
+(
+
+k2 ln( k/c ) + k2
+
+∫ 1
+
+> k/c
+
+1 − ϕ(x)
+
+x dx + c2
+
+∫ 1
+
+> k/c
+
+x ϕ (x) d x
+
+)
+
+, (S51) ̂
+
+S6(k) = π2
+
+12 
+
+(
+
+k3 − k3
+
+C0
+
+∫ k/c 
+
+> 0
+
+ϕ(x) d x − 3c k 2
+
+2C0
+
+∫ 1
+
+> k/c
+
+x ϕ (x) d x + c3
+
+2C0
+
+∫ 1
+
+> k/c
+
+x3 ϕ(x) d x
+
+)
+
+. (S52) 
+
+Each ̂ Sp equals the unwindowed Fourier transform from Lemma 1 plus a smooth correction expressed as a finite combination of integrals of ϕ, and satisfies ̂ Sp(c) = 0 for p = 1 , . . . , 6.
+
+9Remark 4 (Recurrences among the real-space splittings) . The splittings Sp obey the elementary recurrences 
+
+S3(r) = − 1
+
+r
+
+ddr S1(r), S5(r) = − 13r
+
+ddr S3(r), (S53) 
+
+S4(r) = − 12r
+
+ddr S2(r), S6(r) = − 14r
+
+ddr S4(r), (S54) which reflect the elementary identity − 1 
+
+> p r
+> ddr
+
+(1 /r p) = 1 /r p+2 . These relations extend to a unified recurrence valid for arbitrary p ≥ 1, as we now show. 
+
+# 6 Extension to higher inverse powers 
+
+The main text focuses on p = 1 , · · · , 6,, which cover the effective Coulombic, charge–polar, polar– polar, higher-order induction-like and dispersion-like channels used in the reported benchmarks. The recurrence below shows that the same splitting strategy formally extends to higher inverse powers. These higher-p formulas are included for completeness and future extensions. 
+
+Theorem 2 (Unified recurrence for inverse-power splittings) . For any admissible window ϕ and any p ≥ 1,
+
+Sp+2 (r) = − 1
+
+p r 
+
+ddr Sp(r), (S55) ddk̂ Sp+2 (k) = − kp̂ Sp(k),̂ Sp+2 (k) = 1
+
+p
+
+∫ ∞
+
+> k
+
+ŝ Sp(s) d s. (S56) 
+
+Proof. Because − 1 
+
+> p r
+> ddr
+
+(1 /r p) = 1 /r p+2 , the operator on the right of (S55) maps any valid splitting 
+
+Sp to a function that (i) agrees with 1 /r p+2 outside the support of ϕ and (ii) remains smooth at 
+
+r = 0, hence is a valid splitting Sp+2 . Taking the three-dimensional radial Fourier transform of (S55) and using ̂ Sp+2 (∞) = 0 yields (S56). The four splitting relations stated in Section 5 are the special cases p = 1 , 2, 3, 4 of Theorem 2. Iterating once and twice more produces explicit formulas for S8 and S10 .
+
+Corollary 1 (Explicit splittings for p = 8 and p = 10) . For any admissible window ϕ,
+
+S8(r) = 1 − ϕ(r) + 11 16 r ϕ ′(r) − 316 r2ϕ′′ (r) + 148 r3ϕ′′′ (r)
+
+r8 , (S57) 
+
+S10 (r) = 1 − ϕ(r) + 93 128 r ϕ ′(r) − 29 128 r2ϕ′′ (r) + 7192 r3ϕ′′′ (r) − 1384 r4ϕ(4) (r)
+
+r10 , (S58) 
+
+with limits at the origin 
+
+lim  
+
+> r→0
+
+S8(r) = ϕ(8) (0) 8! , lim  
+
+> r→0
+
+S10 (r) = − ϕ(10) (0) 10! . (S59) 
+
+If ϕ is truncated at r = 1 then S8(r) = K8(r) and S10 (r) = K10 (r) for r ≥ 1, and the corresponding short-range parts L8 = K8 − S 8 and L10 = K10 − S 10 are compactly supported in the unit ball. 
+
+The Fourier-space transforms ̂ S8(k) and ̂ S10 (k) follow from (S56) applied to ̂ S6 in (S52) and ̂
+
+S8, respectively. The same procedure produces splittings for arbitrary p ≥ 7. Channels with p = 8 (induction-like) and p = 10 (anisotropic dispersion) appear in polarizable force fields and in some machine-learning interatomic potentials; the construction continues unchanged to p = 12, relevant to Lennard-Jones-like short-range repulsion. 10 7 Numerical evaluation and notational correspondence 
+
+7.1 Numerical evaluation 
+
+The expressions for Sp(r) and ̂ Sp(k) derived in Sections 5–6 involve ψc 
+
+> 0
+
+together with its derivatives, antiderivatives, and weighted integrals appearing in Theorem 1. All of these reduce to spectrally accurate operations once ψc 
+
+> 0
+
+is represented by a Chebyshev or Legendre expansion of modest degree on [0 , 1]; the relevant computational aspects of ψc
+
+> 0
+
+, including stable evaluation, differentiation, antidifferentiation, and weighted quadrature, are developed in detail in Ref. 7.For inner-loop evaluation in production molecular dynamics packages such as GROMACS 8 and LAMMPS 9, a piecewise polynomial approximation of Sp(r) and ̂ Sp(k) on a uniform partition of the working interval is typically preferred over repeated spectral evaluation. Such an approximation is itself a simple one-dimensional precomputation: once the spectral representation of ψc 
+
+> 0
+
+is in hand, the coefficients of the piecewise polynomial approximation of each Sp and ̂ Sp are obtained at negligible cost and can be tabulated once per choice of bandwidth c, after which kernel and force evaluations reduce to Horner evaluation on the appropriate panel. Their runtime evaluation and automatic differentiation are described in Section 9.2. 
+
+7.2 Correspondence with the main-manuscript notation 
+
+The splittings Sp derived above are defined on the unit interval with the dimensionless window 
+
+ϕ = ψc
+
+> 0
+
+(r)/ψ c
+
+> 0
+
+(0). The main manuscript instead works on the physical cutoff [0 , r c], with the long-range part written as Gp(r)/r p, where Gp(r) is the dimensionless mollifier defined in the main-manuscript Methods. The two notations are related by the substitution r → r/r c:
+
+Gp(r)
+
+rp = 1
+
+r pc
+
+Sp(r/r c),̂ Φ(p)(k) = r 3−pĉ Sp(∥k∥ rc). (S60) Equivalently, Gp(r) = ( r/r c)p Sp(r/r c). As a check for p = 1, 
+
+G1(r) = rrc
+
+S1(r/r c) = 1
+
+C0
+
+∫ r/r c
+
+> 0
+
+ϕ(x) d x, (S61) which reproduces the main-manuscript expression for G1. The corresponding Fourier-space form is ̂
+
+Φ(1) (k) = r 2
+
+> c
+
+̂ S1(kr c) = 4π ϕ (kr c/c )
+
+k2 , (S62) which, on identifying ϕ with the main-manuscript ψc 
+
+> 0
+
+(both normalized to unity at the origin), reproduces the ̂ Φ1 entry of the main-manuscript expression for ̂ Φ(p). The remaining Gp and ̂ Φ(p)
+
+formulas in the main manuscript follow from Propositions 2–7, Theorem 1, and (S60) in the same way. 
+
+# 8 Self-corrections and zero-frequency terms 
+
+The splittings derived above define the nonzero real- and reciprocal-space parts of each inverse-power channel. In a periodic particle system, two additional energy-level terms are needed to obtain a complete decomposition: a self-correction, which removes the interaction of each particle with its own smooth long-range cloud, and a zero-frequency term, which specifies the treatment of the 
+
+k = 0 mode. We derive both terms here using the same notation as in the main manuscript. 11 For a channel p, define the net latent charge and the self-weight 
+
+Q(p)net =
+
+> N
+
+∑
+
+> i=1
+
+q(p) 
+
+> i
+
+, Q(p)self =
+
+> N
+
+∑
+
+> i=1
+
+|q(p) 
+
+> i
+
+|2. (S63) The physical long-range and short-range kernels are 
+
+Sp,r c (r) = 1
+
+rpc
+
+Sp(r/r c), Lp,r c (r) = 1
+
+rpc
+
+Lp(r/r c). (S64) Here Sp,r c is the smooth LR kernel and Lp,r c is the real-space complement. With these definitions, the periodic energy for channel p can be written as 
+
+E(p) = E(p)real + 12V
+
+∑ 
+
+> k̸=0
+
+̂
+
+Φ(p)(k)
+
+∣∣∣ρ(p)(k)
+
+∣∣∣2
+
++ E(p)0 − E(p)self , (S65) where E(p)real is the direct sum over the short-range complement Lp,r c excluding the singular self term, and the term E(p)self is subtracted to remove the unwanted self-interaction of the smooth LR kernel. 
+
+Self-correction. The reciprocal-space representation of the smooth long-range kernel includes the term in which a particle interacts with the smooth cloud generated by itself. This unwanted contribution is 12
+
+∑ 
+
+> i
+
+|q(p) 
+
+> i
+
+|2Sp,r c (0) , and therefore 
+
+E(p)self = 12 Sp,r c (0) Q(p)self = 12rpc
+
+Sp(0) Q(p)self . (S66) The values of Sp(0) follow from the Taylor expansions used in Section 3: 
+
+p Sp(0) 1 C−10
+
+2 −ϕ′′ (0) /23 −ϕ′′ (0) /(3 C0)4 ϕ(4) (0) /24 5 ϕ(4) (0) /(45 C0)6 −ϕ(6) (0) /720 (S67) Thus, for the PSWF ϕ(r) = ψc
+
+> 0
+
+(r)/ψ c
+
+> 0
+
+(0), and with the normalization ψc
+
+> 0
+
+(0) = 1 used in the main text, Eq. (S66) gives 
+
+E(1) self = 12C0rc
+
+Q(1) self , E(2) self = − ψc ′′  
+
+> 0
+
+(0) 4r2
+
+> c
+
+Q(2) self , E(3) self = − ψc ′′  
+
+> 0
+
+(0) 6C0r3
+
+> c
+
+Q(3) self ,E(4) self = ψc (4) 0 (0) 48 r4
+
+> c
+
+Q(4) self , E(5) self = ψc (4) 0 (0) 90 C0r5
+
+> c
+
+Q(5) self , E(6) self = − ψc (6) 0 (0) 1440 r6
+
+> c
+
+Q(6) self .
+
+(S68) These terms remove only the artificial self-interaction of the smooth LR kernel and do not modify the pairwise interaction between distinct particles. 12 Uniform-background correction for p < 3. For p ≤ 3, a nonzero Q(p)net makes the periodic inverse-power sum divergent or convention-dependent. For p < 3, the standard neutralization procedure is to add a uniform background of density −Q(p)net /V . Let 
+
+Ip =
+
+∫
+
+> R3
+
+Lp,r c (r) d3r = 4 π
+
+∫ ∞
+
+> 0
+
+r2Lp,r c (r) dr. (S69) Applying the Poisson summation formula gives 
+
+∑
+
+> n
+
+Kp(r + n) − 1
+
+V
+
+∫
+
+> R3
+
+Kp(r′) d3r′ = ∑
+
+> n
+
+Lp,r c (r + n) + 1
+
+V
+
+∑ 
+
+> k̸=0
+
+̂
+
+Φ(p)(k)eik·r − Ip
+
+V . (S70) Multiplying by the particle weights and including the usual factor 1 /2 for double counting, the background correction is therefore 
+
+E(p)bg = −
+
+(
+
+Q(p)net 
+
+)2
+
+2V Ip, p < 3. (S71) The integral Ip is finite only for p < 3, because near the origin Lp,r c (r) ∼ r−p and hence r2Lp,r c (r) ∼
+
+r2−p.For p = 1, using G1(r) = C−10
+
+∫ r/r c 
+
+> 0
+
+ϕ(x) dx , we obtain 
+
+I1 = 4 π
+
+∫ rc
+
+> 0
+
+r [1 − G 1(r)] dr 
+
+= 4 πr 2
+
+> c
+
+∫ 10
+
+u
+
+[
+
+1 − 1
+
+C0
+
+∫ u
+
+> 0
+
+ϕ(x) dx 
+
+]
+
+du 
+
+= 2πr 2
+
+> c
+
+C0
+
+∫ 10
+
+u2ϕ(u) du. (S72) Thus 
+
+E(1) 0 = −
+
+(
+
+Q(1) net 
+
+)2
+
+2V I1 + EIB = −
+
+πr 2
+
+> c
+
+(
+
+Q(1) net 
+
+)2
+
+V C 0
+
+∫ 10
+
+u2ϕ(u) du + EIB . (S73) The additional term EIB denotes the infinite-boundary contribution associated with the condi-tionally convergent Coulomb sum; its value depends on the macroscopic boundary condition and summation convention 10 .For p = 2, since G2(r) = 1 − ϕ(r/r c), 
+
+I2 = 4 π
+
+∫ rc
+
+> 0
+
+[1 − G 2(r)] dr = 4 πr c
+
+∫ 10
+
+ϕ(u) du = 4 πr cC0, (S74) and therefore 
+
+E(2) 0 = − 2πr cC0
+
+V
+
+(
+
+Q(2) net 
+
+)2
+
+. (S75) 
+
+Zero mode for p = 3 . The case p = 3 is critical. A uniform compensating background is required to remove the non-neutrality of the periodic sum, but the background interaction ∫ L3,r c (r) d3r
+
+diverges logarithmically. We therefore define the zero mode by a finite-part convention in reciprocal space. From the PSWF-specialized Fourier multiplier, ̂
+
+Φ(3) (k) = −4π log 
+
+( kr c
+
+c
+
+)
+
++ 4 π
+
+∫ 1
+
+> kr c/c
+
+ϕ(u) − 1
+
+u du, k = ∥k∥, (S76) 13 we separate the divergent −4π log k part and retain the finite constant: FP k→0̂ Φ(3) (k) = 4 π
+
+[
+
+log 
+
+( crc
+
+)
+
++
+
+∫ 10
+
+ϕ(u) − 1
+
+u du 
+
+]
+
+. (S77) The corresponding zero-frequency contribution is 
+
+E(3) 0 =2π
+
+(
+
+Q(3) net 
+
+)2
+
+V
+
+[
+
+log 
+
+( crc
+
+)
+
++
+
+∫ 10
+
+ϕ(u) − 1
+
+u du 
+
+]
+
+. (S78) This convention is equivalent to fixing the additive constant in the Fourier transform of the 1 /r 3
+
+kernel. With this normalization, the PSWF-LR energy is independent of the particular reciprocal-space algorithm used to evaluate the nonzero modes. 
+
+Finite zero mode for p > 3. For p > 3, the inverse-power kernel is integrable at large distances in three dimensions, and the PSWF reciprocal-space multiplier is nonsingular at k = 0. No uniform compensating background is required. The zero-frequency contribution is simply the finite k = 0 mode: 
+
+E(p)0 = 12V̂ Φ(p)(0)
+
+(
+
+Q(p)net 
+
+)2
+
+, p > 3. (S79) Eqs. (S68), (S73)–(S78) and (S79) complete the periodic PSWF-LR energy decomposition used in the main manuscript. 
+
+# 9 Accuracy validation and implementation details 
+
+9.1 Accuracy and parameter setting for performance benchmarks 
+
+The performance benchmarks in the main text compare PSWF-LR with PME in evaluating dif-ferentiable long-range interactions. To verify that the runtime gains are not obtained by relaxing the long-range accuracy, we evaluated the force and energy errors against a high-accuracy PME reference. In this test, the short-range contribution is kept identical to the production calculation, so that the reported errors isolate the reciprocal-space long-range discretization error. Let F ∈ R3N denote the concatenated force vector over all particles, and let E denotes the energy. For a computed F and E, the relative errors are defined as 
+
+εF = ∥F − Fref ∥2
+
+∥Fref ∥2
+
+, εE = |E − Eref ||Eref | , (S80) where ∥·∥ 2 denotes the Euclidean norm. For systems small enough for direct high-accuracy reference calculations, Fref and Eref are obtained from double-precision PME calculations using the same real-space cutoff as the production runs. For larger systems, where such PME references become memory-limited, we instead use a stricter PSWF-LR calculation with target tolerance εtarget = 10 −7
+
+as the reference. On smaller systems where both references are affordable, we verify that the stricter PSWF-LR reference gives errors comparable to the double-precision PME reference. The production PME and PSWF-LR calculations use single-precision arithmetic and the reciprocal grids reported in Tables S1–S3. Following the Torch-PME and JAX-PME benchmark protocol 11 ,we use reciprocal-grid sizes that are powers of two to improve GPU efficiency. In Tables S1–S3, the real-space cutoff is set to 4 ˚A, the PSWF bandwidth parameter is set to c = 13 .75, and the PME Gaussian screening parameter is set to α = 0 .8, corresponding to an estimated force error of 10 −4
+
+14 Table S1: Accuracy checks for differentiable PSWF-LR and PME on NaCl crystals with a cutoff of 
+
+rc = 4 ˚A. Errors are measured relative to high-accuracy double-precision reference calculations. The table reports the inverse-power exponent p in 1/r p, the number of particles N , the reciprocal-grid sizes used by PSWF-LR and PME, and the relative energy εE and force εF errors. 
+
+p N PSWF grid PME grid PSWF εF PME εF PSWF εE PME εE
+
+1 512 16 3 64 3 5.466 ×10 −5 1.254 ×10 −4 3.793 ×10 −6 3.666 ×10 −6
+
+1 4096 32 3 128 3 5.674 ×10 −5 1.270 ×10 −4 3.859 ×10 −6 3.644 ×10 −6
+
+1 32768 64 3 256 3 6.011 ×10 −5 1.262 ×10 −4 3.868 ×10 −6 3.604 ×10 −6
+
+1 262144 128 3 512 3 6.366 ×10 −5 1.265 ×10 −4 3.853 ×10 −6 3.581 ×10 −6
+
+1 2097152 256 3 1024 3 6.386 ×10 −5 1.269 ×10 −4 3.865 ×10 −6 3.574 ×10 −6
+
+2 512 16 3 64 3 1.329 ×10 −5 5.970 ×10 −5 1.189 ×10 −6 1.825 ×10 −6
+
+2 4096 32 3 128 3 1.372 ×10 −5 6.007 ×10 −5 1.229 ×10 −6 1.882 ×10 −6
+
+2 32768 64 3 256 3 1.463 ×10 −5 6.010 ×10 −5 1.178 ×10 −6 1.752 ×10 −6
+
+2 262144 128 3 512 3 1.703 ×10 −5 6.055 ×10 −5 1.224 ×10 −6 1.798 ×10 −6
+
+2 2097152 256 3 1024 3 2.246 ×10 −5 6.269 ×10 −5 1.199 ×10 −6 1.824 ×10 −6
+
+3 512 16 3 64 3 2.401 ×10 −5 2.061 ×10 −5 1.065 ×10 −5 1.047 ×10 −6
+
+3 4096 32 3 128 3 2.343 ×10 −5 2.097 ×10 −5 1.072 ×10 −5 1.044 ×10 −6
+
+3 32768 64 3 256 3 2.415 ×10 −5 2.156 ×10 −5 1.072 ×10 −5 1.022 ×10 −6
+
+3 262144 128 3 512 3 2.568 ×10 −5 2.345 ×10 −5 1.068 ×10 −5 9.819 ×10 −7
+
+3 2097152 256 3 1024 3 3.026 ×10 −5 2.827 ×10 −5 1.074 ×10 −5 1.036 ×10 −6
+
+4 512 16 3 64 3 3.109 ×10 −6 9.208 ×10 −6 2.041 ×10 −6 8.724 ×10 −7
+
+4 4096 32 3 128 3 4.174 ×10 −6 9.381 ×10 −6 1.954 ×10 −6 9.618 ×10 −7
+
+4 32768 64 3 256 3 6.442 ×10 −6 1.070 ×10 −5 2.013 ×10 −6 9.107 ×10 −7
+
+4 262144 128 3 512 3 1.459 ×10 −5 1.640 ×10 −5 1.882 ×10 −6 1.044 ×10 −6
+
+4 2097152 256 3 1024 3 2.137 ×10 −5 2.294 ×10 −5 1.792 ×10 −6 9.272 ×10 −7
+
+5 512 16 3 64 3 4.201 ×10 −6 4.116 ×10 −6 5.870 ×10 −7 2.421 ×10 −7
+
+5 4096 32 3 128 3 4.082 ×10 −6 4.515 ×10 −6 6.447 ×10 −7 3.499 ×10 −7
+
+5 32768 64 3 256 3 6.644 ×10 −6 6.933 ×10 −6 6.450 ×10 −7 3.540 ×10 −7
+
+5 262144 128 3 512 3 1.985 ×10 −5 1.994 ×10 −5 5.663 ×10 −7 4.337 ×10 −7
+
+5 2097152 256 3 1024 3 2.449 ×10 −5 2.460 ×10 −5 5.510 ×10 −7 3.671 ×10 −7
+
+6 512 16 3 64 3 4.436 ×10 −6 4.642 ×10 −6 2.943 ×10 −7 7.727 ×10 −7
+
+6 4096 32 3 128 3 4.718 ×10 −6 4.766 ×10 −6 1.273 ×10 −7 9.379 ×10 −7
+
+6 32768 64 3 256 3 7.282 ×10 −6 7.357 ×10 −6 2.269 ×10 −7 9.791 ×10 −7
+
+6 262144 128 3 512 3 2.778 ×10 −5 2.766 ×10 −5 1.310 ×10 −7 1.076 ×10 −6
+
+6 2097152 256 3 1024 3 2.907 ×10 −5 2.908 ×10 −5 9.720 ×10 −8 1.113 ×10 −6
+
+15 for the Coulombic p = 1 case. The same parameter choices are used for the other exponents to provide a controlled comparison of the reciprocal-space treatments across p, rather than separately retuning each exponent. For the NaCl crystal benchmark, high-accuracy references fit in memory for all tested accuracy-check sizes. Across p = 1 , . . . , 6, PSWF-LR gives force errors comparable to or lower than PME while using 64 × fewer reciprocal-grid points. For SWM4-NDP water and the LiPF 6/DMC elec-trolyte, PSWF-LR preserves PME-level force and energy accuracy on the reference-accessible sys-tems. In these replicated systems, partial cancellation of local force errors is observed across repeated cells, while accumulated single-precision rounding error becomes more visible as the repli-cated system size increases. We therefore use larger systems only for timing and memory-scaling comparisons, because high-accuracy PME and stricter PSWF-LR reference calculations become GPU-memory limited and the error estimates are no longer a clean measure of LR discretization error alone. 
+
+9.2 Fast kernel automatic-differentiation implementation 
+
+Fast kernel automatic differentiation (FKAD) is an implementation-level acceleration used to eval-uate PSWF-LR kernels without changing their mathematical definition. At the code level, each special-function or quadrature-based kernel evaluation is replaced by a static piecewise-polynomial evaluation graph. The polynomial coefficients are precomputed for each PSWF bandwidth, inverse-power exponent and polynomial panel, stored as non-trainable buffers, and moved to the same device and data type as the atomic coordinates during execution. For an input scalar tensor x,representing a normalized pair distance, normalized Fourier magnitude or normalized spreading coordinate on a given polynomial panel, the kernel value is evaluated by Horner’s rule, 
+
+P (x) = a0 + x(a1 + x(a2 + · · · + xa m)), (S81) where the coefficients {aj }mj=0 are fixed once the PSWF bandwidth, inverse-power exponent and panel are specified. The same polynomial-evaluation routine is used for the real-space complementary pair kernel, the reciprocal-space diagonal multiplier and the atom-grid spreading window. Because these op-erations are expressed using differentiable tensor operations, the backward pass is generated by automatic differentiation. No separate analytical PSWF derivative, quadrature derivative or hand-written backward rule is required. The resulting forces and parameter gradients are therefore the exact derivatives of the polynomial kernels used in the forward pass. Their deviation from the derivatives of the analytical PSWF kernels is controlled by the polynomial approximation error. In performance-critical paths, the Horner recurrence is fused with the surrounding scatter, diagonal-scaling or reduction operation. In the PyTorch and JAX implementations, this fusion is enabled through compiled computation graphs, while in the OpenMM/CUDA implementation it is implemented through fused CUDA kernels. As a result, polynomial evaluation is lowered together with the neighboring PSWF-LR operation rather than launched as a separate kernel. The imple-mentation avoids explicitly materializing large intermediate arrays such as Gp(r),̂ Φ(p)(k) or full spreading-weight tensors when these quantities are only needed locally for accumulation. Instead, the evaluated kernel values are accumulated directly into the real-space energy, reciprocal-space energy or grid density. This preserves end-to-end differentiability while reducing memory traffic, kernel-launch overhead and special-function evaluation cost compared with an implementation that evaluates special functions, quadratures or full kernel arrays as separate intermediate tensors. 16 Table S2: Accuracy checks for differentiable PSWF-LR and PME on SWM4–NDP water systems with a cutoff of rc = 4 ˚A. Errors are measured relative to high-accuracy double-precision reference calculations. The table reports the inverse-power exponent p in 1/r p, the number of particles N , the reciprocal-grid sizes used by PSWF-LR and PME, and the relative energy ϵE and force ϵF errors. Entries marked “— ” were not available because the corresponding PME calculation or high-accuracy reference exceeded H200 GPU memory. 
+
+p N PSWF grid PME grid PSWF εF PME εF PSWF εE PME εE
+
+1 560 32 3 128 3 9.295 ×10 −6 9.322 ×10 −6 1.284 ×10 −7 5.042 ×10 −7
+
+1 4480 64 3 256 3 2.027 ×10 −5 2.027 ×10 −5 2.475 ×10 −7 6.574 ×10 −8
+
+1 35840 128 3 512 3 4.413 ×10 −5 4.417 ×10 −5 3.727 ×10 −7 6.574 ×10 −8
+
+1 286720 256 3 1024 3 8.003 ×10 −5 8.007 ×10 −5 2.001 ×10 −6 1.563 ×10 −6
+
+1 2293760 512 3 2048 3 1.598 ×10 −4 — 7.399 ×10 −8 —2 560 32 3 128 3 1.231 ×10 −5 1.230 ×10 −5 6.041 ×10 −7 6.041 ×10 −7
+
+2 4480 64 3 256 3 3.013 ×10 −5 3.012 ×10 −5 2.557 ×10 −7 2.557 ×10 −7
+
+2 35840 128 3 512 3 7.016 ×10 −5 7.015 ×10 −5 1.307 ×10 −6 1.211 ×10 −6
+
+2 286720 256 3 1024 3 1.133 ×10 −4 1.134 ×10 −4 4.173 ×10 −6 4.077 ×10 −6
+
+2 2293760 512 3 2048 3 2.346 ×10 −4 — 8.493 ×10 −8 —3 560 32 3 128 3 1.515 ×10 −5 1.512 ×10 −5 1.357 ×10 −6 1.357 ×10 −6
+
+3 4480 64 3 256 3 4.312 ×10 −5 4.307 ×10 −5 2.753 ×10 −7 2.753 ×10 −7
+
+3 35840 128 3 512 3 1.064 ×10 −4 1.065 ×10 −4 3.578 ×10 −6 3.645 ×10 −6
+
+3 286720 256 3 1024 3 1.516 ×10 −4 1.516 ×10 −4 5.470 ×10 −6 5.403 ×10 −6
+
+3 2293760 512 3 2048 3 3.337 ×10 −4 — 1.055 ×10 −8 —4 560 32 3 128 3 1.733 ×10 −5 1.736 ×10 −5 2.599 ×10 −6 2.599 ×10 −6
+
+4 4480 64 3 256 3 5.766 ×10 −5 5.776 ×10 −5 1.794 ×10 −6 1.794 ×10 −6
+
+4 35840 128 3 512 3 1.487 ×10 −4 1.486 ×10 −4 7.958 ×10 −6 7.958 ×10 −6
+
+4 286720 256 3 1024 3 1.900 ×10 −4 1.901 ×10 −4 4.648 ×10 −6 4.737 ×10 −6
+
+4 2293760 512 3 2048 3 4.605 ×10 −4 — 3.808 ×10 −7 —5 560 32 3 128 3 1.884 ×10 −5 1.890 ×10 −5 4.238 ×10 −6 4.238 ×10 −6
+
+5 4480 64 3 256 3 7.276 ×10 −5 7.286 ×10 −5 4.904 ×10 −6 4.904 ×10 −6
+
+5 35840 128 3 512 3 1.925 ×10 −4 1.925 ×10 −4 1.529 ×10 −5 1.540 ×10 −5
+
+5 286720 256 3 1024 3 2.270 ×10 −4 2.271 ×10 −4 8.652 ×10 −7 7.543 ×10 −7
+
+5 2293760 512 3 2048 3 6.213 ×10 −4 — 1.514 ×10 −6 —6 560 32 3 128 3 1.991 ×10 −5 1.981 ×10 −5 6.648 ×10 −6 6.584 ×10 −6
+
+6 4480 64 3 256 3 8.777 ×10 −5 8.770 ×10 −5 1.026 ×10 −5 1.033 ×10 −5
+
+6 35840 128 3 512 3 2.360 ×10 −4 2.361 ×10 −4 2.639 ×10 −5 2.639 ×10 −5
+
+6 286720 256 3 1024 3 2.630 ×10 −4 2.630 ×10 −4 7.294 ×10 −6 7.294 ×10 −6
+
+6 2293760 512 3 2048 3 7.650 ×10 −4 — 4.247 ×10 −6 —
+
+17 Table S3: Accuracy checks for differentiable PSWF-LR and PME on LiPF 6/DMC electrolyte systems with a cutoff of rc = 4 .0 ˚A. Errors are measured relative to high-accuracy double-precision reference calculations. The table reports the inverse-power exponent p in 1/r p, the number of particles N , the reciprocal-grid sizes used by PSWF-LR and PME, and the relative energy εE and force εF errors. Entries marked “—” were not available because the corresponding PME calculation or high-accuracy reference exceeded H200 GPU memory. 
+
+p N PSWF grid PME grid PSWF εF PME εF PSWF εE PME εE
+
+1 10062 128 3 512 3 1.674 ×10 −4 5.782 ×10 −4 5.435 ×10 −6 1.723 ×10 −5
+
+1 80496 256 3 1024 3 1.676 ×10 −4 5.784 ×10 −4 5.435 ×10 −6 1.723 ×10 −5
+
+1 643968 512 3 2048 3 1.680 ×10 −4 — 5.435 ×10 −6 —1 5151744 1024 3 4096 3 1.690 ×10 −4 — 5.435 ×10 −6 —2 10062 128 3 512 3 3.083 ×10 −5 4.559 ×10 −4 1.345 ×10 −6 2.752 ×10 −5
+
+2 80496 256 3 1024 3 3.173 ×10 −5 4.562 ×10 −4 1.255 ×10 −6 2.752 ×10 −5
+
+2 643968 512 3 2048 3 3.472 ×10 −5 — 1.345 ×10 −6 —2 5151744 1024 3 4096 3 4.183 ×10 −5 — 1.345 ×10 −6 —3 10062 128 3 512 3 1.825 ×10 −5 3.157 ×10 −4 6.347 ×10 −6 3.020 ×10 −5
+
+3 80496 256 3 1024 3 2.015 ×10 −5 3.159 ×10 −4 6.235 ×10 −6 3.009 ×10 −5
+
+3 643968 512 3 2048 3 2.647 ×10 −5 — 6.347 ×10 −6 —3 5151744 1024 3 4096 3 3.863 ×10 −5 — 6.459 ×10 −6 —4 10062 128 3 512 3 1.515 ×10 −5 1.992 ×10 −4 9.535 ×10 −6 2.686 ×10 −5
+
+4 80496 256 3 1024 3 1.315 ×10 −5 1.995 ×10 −4 9.535 ×10 −6 2.686 ×10 −5
+
+4 643968 512 3 2048 3 2.394 ×10 −5 — 9.607 ×10 −6 —4 5151744 1024 3 4096 3 4.115 ×10 −5 — 9.678 ×10 −6 —5 10062 128 3 512 3 9.801 ×10 −6 1.155 ×10 −4 1.011 ×10 −5 2.092 ×10 −5
+
+5 80496 256 3 1024 3 1.442 ×10 −5 1.161 ×10 −4 1.030 ×10 −5 2.083 ×10 −5
+
+5 643968 512 3 2048 3 2.724 ×10 −5 — 1.011 ×10 −5 —5 5151744 1024 3 4096 3 4.732 ×10 −5 — 1.011 ×10 −5 —6 10062 128 3 512 3 1.037 ×10 −5 6.313 ×10 −5 1.937 ×10 −6 1.451 ×10 −5
+
+6 80496 256 3 1024 3 1.617 ×10 −5 6.461 ×10 −5 1.693 ×10 −6 1.433 ×10 −5
+
+6 643968 512 3 2048 3 3.077 ×10 −5 — 1.937 ×10 −6 —6 5151744 1024 3 4096 3 5.362 ×10 −5 — 1.937 ×10 −6 —
+
+18 References 
+
+[1] Slepian, D. & Pollak, H. O. Prolate spheroidal wave functions, Fourier analysis and uncertainty – I. Bell Syst. Tech. J. 40 , 43–63 (1961). [2] Landau, H. J. & Pollak, H. O. Prolate spheroidal wave functions, Fourier analysis and uncer-tainty –II. Bell Syst. Tech. J. 40 , 65–84 (1961). [3] Slepian, D. Prolate spheroidal wave functions, Fourier analysis, and uncertainty –V: The discrete case. Bell Syst. Tech. J. 57 , 1371–1430 (1978). [4] Darden, T., York, D. & Pedersen, L. Particle mesh Ewald: An N · log( N ) method for Ewald sums in large systems. J. Chem. Phys. 98 , 10089–10092 (1993). [5] Essmann, U. et al. A smooth particle mesh Ewald method. J. Chem. Phys. 103 , 8577–8593 (1995). [6] Jiang, S. & Greengard, L. A dual-space multilevel kernel-splitting framework for discrete and continuous convolution. Commun. Pure Appl. Math. 78 , 1086–1143 (2025). [7] Osipov, A., Rokhlin, V. & Xiao, H. Prolate Spheroidal Wave Functions of Order Zero , vol. 187 of Springer Ser. Appl. Math. Sci (Springer, 2013). [8] Berendsen, H. J., van der Spoel, D. & van Drunen, R. GROMACS: A message-passing parallel molecular dynamics implementation. Comput. Phys. Commun. 91 , 43–56 (1995). [9] Thompson, A. P. et al. LAMMPS-A flexible simulation tool for particle-based materials mod-eling at the atomic, meso, and continuum scales. Comput. Phys. Commun. 271 , 108171 (2021). [10] Smith, E. R. Electrostatic energy in ionic crystals. Proc. R. Soc. London A: Math. Phys. Sci. 
+
+375 , 475–505 (1981). [11] Loche, P. et al. Fast and flexible long-range models for atomistic machine learning. The Journal of Chemical Physics 162 (2025). 19

@@ -1,0 +1,436 @@
+Title: Inverse design of bespoke interatomic potentials via active learning by information-matching
+
+URL Source: https://arxiv.org/pdf/2606.08148v1
+
+Published Time: Tue, 09 Jun 2026 00:40:35 GMT
+
+Number of Pages: 28
+
+Markdown Content:
+# Inverse design of bespoke interatomic potentials via active learning by information-matching 
+
+## Yonatan Kurniawan 1, Logan D. Williams 2, Amit Samanta 2,Ilia Nikiforov 3, Daniel Schwalbe-Koda 4, Mark K. Transtrum 5,Ellad B. Tadmor 3, Vincenzo Lordi 2, Vasily V. Bulatov 2* 
+
+> 1
+
+Department of Physics and Astronomy, Brigham Young University, Provo, UT, USA. 
+
+> 2
+
+Lawrence Livermore National Laboratory, Livermore, CA, USA. 
+
+> 3
+
+Department of Aerospace Engineering and Mechanics, University of Minnesota, Minneapolis, MN, USA. 
+
+> 4
+
+Department of Materials Science and Engineering, University of California, Los Angeles, CA, USA. 
+
+> 5
+
+Cross Stream Consulting, Springville, UT, USA. *Corresponding author(s). E-mail(s): bulatov1@llnl.gov; Contributing authors: kurniawanyo@outlook.com; williams332@llnl.gov; samanta1@llnl.gov; nikif002@umn.edu; dskoda@ucla.edu; mark@cross-stream.ai; tadmor@umn.edu; lordi2@llnl.gov; 
+
+Abstract 
+
+Interatomic potentials (IPs) enable large-scale atomistic simulations beyond the reach of first-principles methods, but their predictive reliability depends critically on the selection of training data, quantified uncertainty, and model expressive-ness. Active learning (AL) provides a principled framework for constructing efficient and accurate IPs, yet most strategies reduce parameter uncertainty with-out explicitly accounting for the specific material properties being predicted. The information-matching (IM) approach addresses this limitation by requiring that the selected training data provide at least as much parameter space informa-tion as needed to achieve prescribed uncertainty targets for selected quantities of interest (QoIs). Here, we apply IM to develop bespoke IPs specifically tailored for predicting plastic strength in metals. Due to the high computational cost of simulating plastic strength, we employ an indirect IM strategy that targets inex-pensive intermediate QoIs that correlate with strength. The IM method enables 
+
+1 
+
+> arXiv:2606.08148v1 [cond-mat.mtrl-sci] 6 Jun 2026 precise parameter constraints with minimal training data, yielding precise pre-dictions for both the intermediate QoIs and plastic strength. Yet, model error remains a key limitation, and a post hoc uncertainty inflation correction pro-vides a viable means to mitigate this limitation. These findings illustrate both the promise and limits of uncertainty-aware AL for predicting complex material properties.
+> Keywords: Bespoke interatomic potential, Embedded Atom Method, Fisher information matrix, active learning, uncertainty quantification, plastic strength, optimal experimental design
+
+# 1 Introduction 
+
+Atomistic simulations provide a powerful framework for probing the fundamental mechanisms that govern material behavior. These simulations offer direct insight into processes such as defect formation, plastic deformation, and phase transitions, which are difficult to access experimentally at the relevant length and time scales. A cen-tral component of such simulations is the interatomic potential (IP), which encodes the effective interactions between atoms and determines the accuracy of the predicted material properties. While first-principles approaches, such as density functional the-ory (DFT), offer high accuracy, their computational cost is prohibitive for the large systems and long timescales required to study the mechanical response of materials. In contrast, IPs provide a computationally efficient alternative that captures the essen-tial physics of bonding and interactions, enabling simulations of millions of atoms and bridging the gap toward experimentally relevant conditions. Generally, the development of an IP model requires prioritizing among the trilemma of mutually conflicting requirements: (1) model transferability across differ-ent material systems and properties of interest, (2) model accuracy, and (3) model computational efficiency. One approach that has gained popularity in recent years is the construction of universal or foundation IPs designed to work across a wide range of materials and conditions [1–4]. An alternative strategy, which we pursue here, is to generate bespoke or `a la carte IPs, that sacrifice broad transferability in favor of greater accuracy and efficiency for a specific targeted application [5–7]. Regardless of its intended uses, the predictive accuracy of an IP is strongly depen-dent on the quality and diversity of the training data. A straightforward approach is to generate a large ground truth (GT) training dataset, but this approach can become computationally expensive due to the typically high acquisition cost of GT data. Additionally, high degrees of redundancy in arbitrary large datasets often lead to training bias and less accurate IPs. Active learning (AL) addresses this challenge by iteratively identifying and selecting the most informative data points for training [8, 9]. In the context of atomistic simulations, AL is often coupled with on-the-fly learning, where GT data are selected and generated dynamically during simulations [10, 11]. This strategy ensures that the potential is continually refined in regions of configuration space that are most relevant to the target application. As a result, the 2number of GT calculations can be reduced substantially, leading to significant savings in computational cost without substantially sacrificing model accuracy. In addition to achieving high prediction accuracy, it is important to assess the reliability and precision of predictions based on an IP model. As a surrogate model, the reliability of an IP depends on the simulation conditions under which it is applied. To provide meaningful information alongside experimental data, predictions from an IP should be accompanied not only by an estimate of its prediction error, but also by a quantified prediction uncertainty. While error measures accuracy with respect to GT, uncertainty characterizes the model’s confidence in its predictions. In many practical applications, including the one considered in this work, direct evaluation of prediction error by validation against GT is infeasible because of the prohibitive cost of GT calculations. In such cases, prediction uncertainty has been suggested to serve as a practical proxy for prediction error [12, 13]. In this context, having a large but known prediction uncertainty may be more useful than having unrecognized or unknown uncertainty, as it enables informed assessment of model reliability and supports uncertainty-aware decision making. Recently, we introduced a novel AL strategy, the information-matching (IM) method, that incorporates prediction uncertainty directly into the data selection pro-cess [14]. Like some other AL approaches [15–17], IM relies on the Fisher information matrix (FIM) to quantify the information content of IP parameters. However, rather than aiming to minimize parameter uncertainty indiscriminately and irrespective of the IP’s intended use, IM selects training data by requiring that the information supplied by the data is sufficient to achieve prescribed uncertainty targets for specific quanti-ties of interest (QoIs). The IM method identifies the level of IP parameter precision required to predict the target QoI with the desired precision and then selects a minimal set of training data sufficient to meet this requirement. Thus, IM avoids unnecessary overspecification of the IP parameters while ensuring that model reliability is aligned with the prediction task. In previous work [14], we demonstrated the versatility of the IM method across distinct experimental design problems, including sensor placement in power networks and underwater acoustics, and construction of an IP for targeted material QoIs. In the latter case, specifically, the QoIs were relatively simple material properties that could be computed from and validated against ground truth DFT, thus providing a useful test bed for the method. In this work, we push the IM method into a far more demanding setting, aiming to develop an IP capable of predicting the plastic strength of a metal. Unlike previously considered simple material properties, plastic strength emerges from the collective dynamics of extended defects such as dislocations and deformation twins. Capturing these microstructural mechanisms requires molecular dynamics (MD) simulations on extreme scales—on the order of 10 8 atoms and 10 6
+
+integration time steps—far out of reach for direct validation against DFT. Facing the “direct validation being impossible” conundrum, we investigate whether the prediction uncertainty of IP models developed using the IM method can serve as a meaningful proxy for the expected error in strength predictions. We take an indirect approach in which informative data for IP fitting are selected in an IM loop that, rather than targeting the ultimate QoI (strength) itself, targets several QoIs that 3are less costly to compute, referred to as indicator properties, that can be validated against GT calculations and are known to be covariant with strength. In developing this indirect version of the IM method, the key question is whether constraining IP model parameters through these indicator properties delivers sufficiently confident predictions not only for the indicator properties themselves, but also for the ultimate target QoI, strength. The remainder of the paper is organized as follows. Section 2 describes the func-tional form of IP employed in this study and the IM algorithm used to select informative GT data and to train the IP. Section 3 presents results from several case studies, each contributing a step toward the overarching goal of constructing an IP model capable of predicting plastic strength. Finally, Section 4 discusses limitations of our approach and proposes possible corrections and extensions. A summary of this work is then given in Sec. 5. 
+
+# 2 Methods 
+
+Our goal in this work is to develop bespoke IPs optimized for predicting plastic strength of the metal tantalum (Ta) using an AL framework based on the IM method. The IM workflow for IP optimization starts by defining three key ingredients: (1) an IP functional form, (2) a pool of candidate data points to be subsampled for IP train-ing, and (3) one or more target QoIs along with their desired uncertainty bounds. In what follows, we first present and motivate the IP functional form adopted in this work, then define the loss function employed in IP training and describe two datasets that serve as candidate pools for AL. Next, we introduce the IM method in detail and explain how it is embedded within the AL loop. Finally, we describe our target QoIs and define their desired prediction uncertainties. Using an iterative AL workflow with IM, we determine a minimal set of training data required to sufficiently constrain the IP parameters and to ensure that prediction uncertainties of the target QoIs remain within the prescribed bounds. 
+
+## 2.1 EAM potential 
+
+For this study, we employ an embedded-atom method (EAM) potential developed in [18] as the functional form of the trial interatomic potential (IP). This choice is moti-vated by three factors: (i) the demonstrated success of EAM potentials in molecular dynamics (MD) simulations of plastic deformation in metals [19, 20], (ii) the compu-tational efficiency of EAM potentials, and (iii) the relatively small number of fitting parameters—specifically, 20 parameters in the EAM implementation proposed by Zhou et al. [18]—which reduces the computational burden of IM-based IP development for metal strength simulations. In the EAM formalism, the total energy of an atomic configuration with N atoms is given by 
+
+E =
+
+> N
+
+X
+
+> i,j =1
+> j>i
+
+ϕ(rij ) + 
+
+> N
+
+X
+
+> i=1
+
+F (ρi), (1) 4where ϕ(rij ) is the energy of interaction between a pair of atoms i and j separated by distance rij , and F (ρi) is the energy produced by embedding atom i into the local electron density ρi supplied by all other atoms. The local electron density at the position of atom i is calculated as 
+
+ρi =
+
+> N
+
+X 
+
+> j=1
+> j̸=i
+
+f (rij ), (2) where f (rij ) represents the contribution to the electron density from atom j at distance 
+
+rij .Various analytical forms for the pair potential, embedding energy, and electron density functions have been proposed in the literature [21–23]. Here we adopt the formulation proposed by Zhou et al. [18], in which the pair potential is defined as: 
+
+ϕ(r) = A exp[ −α(r/r e − 1)] 1 + ( r/r e − κ)20 − B exp[ −β(r/r e − 1)] 1 + ( r/r e − λ)20 . (3) The first term represents pairwise repulsion and the second term accounts for pairwise attraction. The electron density function has the same decaying exponential form as the attractive part of the pair potential, but with a different prefactor: 
+
+f (r) = fe exp[ −β(r/r e − 1)] 1 + ( r/r e − λ)20 . (4) The embedding function is defined as a piecewise function: 
+
+F (ρ) = 
+
+P3 
+
+> i=0
+
+Fni 
+
+ ρρn − 1
+
+i
+
+, ρ < ρ n, ρ n = 0 .85 ρe,
+
+P3 
+
+> i=0
+
+Fi
+
+ ρρe − 1
+
+i
+
+, ρn ≤ ρ < ρ 0, ρ 0 = 1 .15 ρe,Fe
+
+h
+
+1 − log 
+
+ ρρs
+
+η i  ρρs
+
+η
+
+, ρ0 ≤ ρ. 
+
+(5) The functions ϕ(r), f (r) and F (ρ) contain in total 20 numerical parameters. How-ever, in optimizing our IPs, we allow variations only in a subset of seven parameters: 
+
+re, β, A, B, κ, η, and Fe. Three additional parameters ( ρs, α, λ) are fixed to account for gauge invariance in the EAM formalism [21], and one parameter ( ρe) is fixed because its variation either does not measurably affect simulated plastic strength or induces spurious phase transformations irrelevant to this study. Finally, the remaining parameters are adjusted in response to any variations of the seven master parameters to ensure continuity up to the second derivatives of the pair, embedding, and electron density functions. Physical constraints require all seven master parameters to remain non-negative, as: 
+
+• re is a distance scaling factor, 
+
+• β defines the decay rate of interactions with increasing atomic separation, 
+
+• A, B, and Fe are energy scaling factors, 
+
+• κ is a dimensionless interaction cutoff parameter, and 
+
+• η is an exponent that ensures proper behavior of the embedding function at large electron densities. 5To account for different physical units and magnitudes of EAM potential parameters, and to improve numerical conditioning during IP training, we reparameterize the three functions defining the total energy in terms of logarithms of their parameters. 
+
+## 2.2 Loss function 
+
+A statistical model is typically trained by minimizing its prediction loss on reference data. Although other types of GT data can be utilized in training an IP, total energies and forces on atoms computed over many atomic configurations are often used [24, 25]. A parametric IP model is fitted to data by minimizing the loss function 
+
+L(θ) = Ldata (θ) + γL reg (θ), (6) where θ denotes the parameters in the chosen model parameterization (logarithms of the seven tunable parameters in our case). Here, the hyperparameter γ defines a bal-ance between closely fitting the reference data (the first loss term) and regularization penalty (the second loss term). Although not always used or needed, the regulariza-tion penalty helps to mitigate data overfitting, especially dangerous when the model is fitted to a small dataset. The same penalty prevents the model parameters from drift-ing toward unphysical values (e.g., diverging to infinity) that may nonetheless closely fit the training data. Data contribution to the loss is most often defined as a weighted sum of squared residuals (i.e., prediction errors) computed over configuration energies and atomic forces, 
+
+Ldata (θ) = 
+
+> M
+
+X
+
+> m=1
+
+"
+
+wEm(EGT  
+
+> m
+
+− Em(θ)) 2 +
+
+> Nm
+
+X
+
+> nm=1
+
+wFnm
+
+> 3
+
+X
+
+> i=1
+
+(F GT  
+
+> nm,i
+
+− Fnm,i (θ)) 2
+
+#
+
+, (7) where the superscript “GT” denotes the ground truth values, index m labels atomic configurations, nm indexes the atoms in configuration m, and i denotes the Cartesian component of the force vector. The weights wEm and wFnm control the relative contri-butions of each data point in the training set. The regularization term is chosen to be the ℓ2-norm, 
+
+Lreg (θ) = 
+
+> N
+
+X
+
+> n=1
+
+(θn − θ0
+
+> n
+
+)2, (8) where θ0 is the center of the regularization. In defining the data loss Ldata , the developer decides on a weighting scheme for the squared residuals in Eq. (7), which may be used to select data to include in training. For example, one can train using only atomic forces by setting wEm = 0 for all configurations, effectively excluding energy contributions, or alternatively train using only energies by setting all force weights wFnm = 0. Additionally, while total energy is uniquely defined only per configuration [26], thus necessitating a single weight per configuration energy, forces are naturally partitioned by atom, permitting more flexible weighting. Different weights can be assigned to force residuals on each atom in a configuration or even to each of the three Cartesian components of the per-atom force. A single weight can be also assigned to forces on all atoms within each configuration 6in the dataset, which is achieved by setting wFnm = wFm for all nm = 1 , 2, . . . , N m and Cartesian components i = 1 , 2, 3. As described in the next section, in the latter of the two case studies undertaken in this work, we explore several different weighting schemes. A common approach is to assign equal weights to all residuals of the same data type in the training dataset. Alternatively, greater weights can be assigned to data deemed more relevant based on the developer’s understanding of intended uses of the IP. Instead, our IM method largely removes intuition from IP fitting by selecting (compressively) a minimal subset of reference data needed to constrain prediction uncertainty of the target QoIs and assigning non-arbitrary optimal weights for each retained data entry. 
+
+## 2.3 Dataset 
+
+In this study, we train EAM potentials for Ta using three candidate datasets— referred to in the following as the “MD–EAM-proxy”, “MD–SNAP-proxy”, and “DFT-reference” datasets—which differ in the origin and number of included atomic configurations and/or in the method used to compute the reference training data. The datasets are selected to facilitate exploration and step-by-step analysis of the utility and performance of the IM method, with each dataset introducing additional complexity and illuminating distinct challenges in reaching our overall objective. The MD–EAM-proxy and MD–SNAP-proxy candidate datasets contain local atomic environments sampled from a single snapshot of an MD simulation of Ta crystal plasticity. Given the large number of atoms in the snapshot—around 33 million—we screened all atomic environments in the snapshot to control the cost of IM iteration and retained 2,000 of them, selected for maximal diversity while also making sure that the selected subset is representative of the entire 33-million-atom snapshot. To achieve this, we mapped all the environments onto the QUESTS descriptor space [27] and used farthest-point sampling (FPS). To efficiently perform this computation without computing a distance matrix for 33 million environments, we split the 33 million vec-tor representations into approximately 3,300 chunks of 10,000 and used FPS to sample 2,000 environments from each chunk. The sampled environments were then joined and partitioned again, forming new chunks of size 10,000 and allowing the process to be repeated. The final 2,000 atomic environments were obtained after six iterations of this loop. Furthermore, because these datasets consist of extracted local environments rather than complete atomic configurations, only the central atom force is used as GT data. The forces on the other atoms in each extracted environment, as well as the total energy of the extracted environment, are not used because they depend on inter-actions with atoms outside the local environment and are therefore not well defined for the truncated configuration. Ground truth forces on the central atom of each environment for these two datasets were then generated using two widely used IPs previously developed for Ta: the EAM potential reported in [18] and the SNAP potential in [28]. In addition to greatly reducing the cost of generating GT data, using these two computationally efficient IPs as proxy sources of GT data permits direct validation of our AL workflow. By comparing Ta strength predicted using an IP fitted to proxy GT data to strength predicted by the proxy potentials themselves, we can assess if and how well our IM 7method works toward its ultimate purpose—accurate prediction of Ta strength. In comparison, similar direct validation against DFT is far beyond reach. The DFT-reference candidate dataset is taken from the DFT training set used by Sharma et al. [29] for developing an IP for the W–Ta system. Here, we use only the Ta configurations from this dataset, resulting in 136 atomic configurations ranging in size from 51 to 1,280 atoms. These configurations span a diverse set of Ta envi-ronments relevant to potential development, including strained bulk crystals, point defects, grain boundaries, dislocations, surfaces, stacking faults, void-like structures, and high-temperature solid and liquid configurations. Unlike the MD–EAM-proxy and MD–SNAP-proxy datasets, in which only the central atom forces are used as reference data, in the DFT-reference case we explore five different combinations of configuration energies and per-atom forces by properly selecting different weighting schemes in the loss function, as described in Sec. 2.2. In the “DFT-E” subcase, only configuration energies are used, with weights applied per configuration. The “DFT-F” subcase uses only atomic forces, with the same weights assigned to all per-atom forces in the same configuration. In the “DFT-F atom ” subcase, again only atomic forces are used, but weights are assigned individually to each atom. In the “DFT-E+F” subcase, weights are assigned per configuration to both energies and forces. Finally, the “DFT-E+F atom ” subcase includes both energies and forces, using per-configuration weights for energies and per-atom weights for forces. These five subcases form a useful testbed to examine how different combinations of training data influence the resulting potential. By its functional form and regardless of the values of its seven variable parameters, our trial EAM potential predicts zero per-atom force for any atomic environment in which the central atom is a center of inversion symmetry. Such is the case for all atoms in half of the 136 configurations in the DFT-reference dataset. Since such zero forces contain no information about the parameters of our trial potential, forces from these centrosymmetric configurations are not included in the loss function. 
+
+## 2.4 Information-matching method 
+
+At the core of our information-matching (IM) method lies the Fisher information matrix (FIM), which quantifies the amount of information that observed data pro-vides about the parameters of a parametric statistical model. The inverse of the FIM provides a theoretical lower bound on the covariance of an unbiased estimator of the parameters, known as the Cram´ er-Rao bound [30, 31]. Mathematically, the FIM is defined as statistical expectation of the Hessian of the log-likelihood with respect to the model parameters, 
+
+Iij (θθθ) = −E
+
+ ∂2
+
+∂θ iθj
+
+log p(x | θθθ)
+
+
+
+, (9) where p(x | θθθ) is the likelihood of data x given parameters θθθ. When multiple indepen-dent data points x = {xm}Mm=1 with associated measurement uncertainties {σm} are 8available, the total FIM equals the weighted sum of the individual per-data FIMs, 
+
+I(θθθ) = 
+
+> M
+
+X
+
+> m=1
+
+wmIm(θθθ), (10) where Im is the FIM for data xm and wm = 1 /σ 2
+
+> m
+
+. This relation emphasizes that the information contributed by each data point accumulates additively to yield the total expected information. Importantly, the FIM is independent of the exact GT and can be computed prior to data acquisition. This property enables its use in planning which data points would most effectively reduce parameter uncertainty—a critical consideration in fields where data acquisition is expensive, such as astrophysics [32]. Consequently, the FIM under-pins optimal experimental design by identifying data acquisition conditions that, once acquired, would maximally improve the precision of model predictions. Beyond exper-imental design, the same property allows the FIM to be evaluated for downstream predictions of target quantities of interest (QoIs). In this setting, the uncertainty mea-sures for the target QoIs (denoted by δn) specify desired precision thresholds. In such application, the FIM quantifies the information about model parameters required to achieve predictions within these target uncertainties. The IM method exploits both consequences of the GT-independent nature of the FIM and focuss specifically on prediction uncertainty of one or more QoIs ,rather than on global parameter uncertainty. In this work, IM enables the development of bespoke IPs tailored for accurately predicting metal strength in atomistic simula-tions. The central objective is to identify a minimal set of training data such that, once acquired and used to fit the IP, the resulting parameter uncertainties are sufficiently bounded to meet the required precision of the target QoIs. This condition is achieved by requiring that the information contained in the selected data exceeds the informa-tion needed to achieve the desired QoI uncertainties. Rather than relying on simple scalar measures of gross information content, such as the determinant (D-optimality), IM is defined through a matrix inequality that accounts for the geometric alignment between two FIMs in parameter space. Specifically, we require that the FIM summed over the data is greater than the FIM associated with the QoIs: 
+
+X
+
+> m∈data
+
+wmIm(θθθ) ⪰ J (θθθ), J (θθθ) = X
+
+> n∈QoI
+
+1
+
+δ2
+
+> n
+
+Jn(θθθ), (11) where Jn denotes the FIM associated with QoI n. The matrix inequality means that the difference between the left-hand side and the right-hand side is positive semi-definite. This condition formalizes the information constraint and ensures that the optimal training data provide at least as much information as required to achieve the desired uncertainty of the target QoIs. Finding a minimal informative subset is essential for reducing the cost of GT data acquisition and therefore constitutes the objective of data selection. Given a pool of candidate data, compressive data selection within the IM method can be performed in several ways. If the uncertainty for each data point is known, binary programming can be used to determine a minimal informative subset. If uncertainties are unknown but can be bounded, one may instead optimize the data weights subject to an appropriate 9upper-bound constraint. In this work, we follow the IM approach developed in [14] and assume that data uncertainties are undefined, and perform ℓ1-norm minimization 
+
+over the data weights: minimize 
+
+> M
+
+X
+
+> m=1
+
+wm
+
+subject to wm ≥ 0,
+
+X
+
+> m∈data
+
+wmIm(θθθ) ⪰ J (θθθ),
+
+(12) where the constraint wm ≥ 0 preserves the statistical interpretation of the weights as inverse variances of the data. The other aforementioned approaches for weight optimization can be incorporated into this framework by adding simple constraints, such as wm ∈ { 0, 1} or wm ≤ wmax .While other approaches have been proposed for selecting optimal training weights in IP development [33], the IM framework provides a principled, information-theoretic basis for doing so. Furthermore, when GT data have not yet been acquired, the optimal weights offer quantitative guidance on the target precision needed for collecting GT values. This approach ensures a parsimonious selection of data minimally sufficient to achieve the desired precision in the prediction of the target QoIs. The IM method can be naturally integrated into an AL loop, forming what we refer to as the Active Learning by Information-Matching (ALIM) workflow. The loop begins with an initial parameter guess θθθinit , followed by weight optimization through solving Eq. (12). The resulting weights w∗ are merged with those from previous iterations. For configurations with nonzero weights, GT data are computed if not already available, with the target uncertainty of each calculation set by the inverse square-root of its optimal weight. These data, along with their optimal weights, are then used to retrain the model to get updated parameters θθθ that serve as the starting point for the next iteration. The procedure is repeated until the weights in successive iterations converge within a specified tolerance ϵ. At the conclusion of the AL loop, the resulting optimal potential can be used to predict the target QoIs and to estimate their corresponding prediction uncertainties. For example, the prediction uncertainty of QoI gn can be estimated as 
+
+σgn =
+
+sX
+
+> i,j
+
+[I−1]ij 
+
+∂g n
+
+∂θ i
+
+∂g n
+
+∂θ j
+
+, (13) where σgn is the estimated uncertainty of gn, I is the FIM computed for the final optimal dataset with its optimized weights, and both I and the QoI derivatives are evaluated at converged optimal parameters θθθopt . The ALIM workflow is illustrated in Fig. 1. Weight merging in the AL loop above is performed to prevent iterations from getting stuck in a limit cycle, i.e., oscillating between the same sets of weights and parameters. A practical strategy is to compare the newly optimized weight w∗ 
+
+> m
+
+with the weight from the previous iteration, wt−1 
+
+> m
+
+, and retain the larger value for each con-figuration, thus effectively preventing loss of information over subsequent iterations. On the other hand, merging can result in disproportionately large weights assigned to 10 Fig. 1: Workflow of Active Learning by Information-Matching (ALIM). At each iteration, weights are optimized and merged across iterations. Then, the GT data are generated for those configurations with nonzero weights. The potential is then retrained using the generated GT data and their corresponding optimal weights. The loop continues until weight convergence, after which the optimized potential is used to predict quantities of interest and estimate their uncertainties. some data, which may in turn over-constrain the model parameters, particularly when iterations start from a poor initial parameter guess. To mitigate this issue, we run 5–10 initial iterations without weight merging and begin to collect and merge the weights only after the loop passes this initial burn-in stage. The burn-in can be interpreted as giving the model time to explore data weights freely before enforcing memory of past iterations, leading to a well-conditioned learning dynamic. 
+
+## 2.5 Target material properties 
+
+Although the main objective of this study is to develop an IP tailored for predicting the plastic strength of Ta, directly targeting plastic strength as a QoI for ALIM is prohibitively expensive, primarily due to the computational cost of evaluating the FIM for strength, which requires at least 15 large-scale MD simulations per iteration in the AL loop. Prior work has demonstrated that several intermediate-scale properties (requiring only ∼ 100 atoms to compute) correlate strongly with plastic strength in FCC single crystals [34]. Anticipating that similar trends may also hold for Ta, we adopt an indirect approach in which five intermediate-scale properties of BCC Ta, referred to here as indicator properties, are used as QoIs for ALIM rather than directly targeting strength. The selected indicator properties are the lattice constant, cohesive energy [35, 36], and the elastic constants c11 , c12 , and c44 [37–39] for the cubic BCC Ta crystal, all computed using property tests implemented in OpenKIM [40–44]. At the end of the optimization, we assess post factum whether these indicator properties contain suffi-cient information to enable reliable large-scale predictions of plastic strength. While this step still necessitates evaluating the FIM for plastic strength, it reduces the com-putational cost to just one expensive strength FIM evaluation for the entire iterative process. 11 For the target uncertainties δn of the indicator properties, an ideal choice would be values derived from the actual covariance between plastic strength and the indicator properties. However, such covariance information for BCC metals is unknown, and selecting δn arbitrarily would be ad hoc . As a practical alternative, we instead compute 
+
+δn using the prediction variance of the indicator properties over an ensemble of IPs for Ta available in OpenKIM [45]. Furthermore, although the full covariance matrix could in principle be included in the QoI FIM calculation, the cross-correlations among the indicator properties are also unknown, and addressing them lies beyond the scope of this study. The resulting target uncertainty for each indicator property is listed in Table 1.              
+
+> a0(˚ A) Ecoh (eV) c11 (GPa) c12 (GPa) c44 (GPa) 0.0075 1.0869 9.6143 5.9992 6.4602
+
+Table 1 : Target uncertainties of the indicator properties, calcu-lated from the standard deviations of the ensemble predictions over IPs for Ta in OpenKIM. 
+
+# 3 Results 
+
+## 3.1 Training with proxy ground truth 
+
+We use two previously developed IPs for Ta as proxy sources of GT data and compare the Ta strength predicted by our newly fitted (trial) potentials against predictions from these proxy potentials. Even though such proxy GT data may not describe the plastic behavior of Ta at the highest accuracy, this comparison still serves as a validation of the ALIM workflow. The two proxy datasets under study contain forces on central atoms from the same set of 2,000 diverse environments extracted from a large-scale MD simulation of Ta strength, as described in Sec. 2.3, and differ only by the method used to compute the forces: the MD–EAM-proxy dataset uses forces computed using the EAM potential [18], while the MD–SNAP-proxy dataset uses forces computed using the SNAP potential [28]. The FIMs of the candidate environments are computed using the central-atom forces and are then matched to the FIM of five indicator properties: lattice constant, cohesive energy, and elastic constants c11 , c12 , and c44 . After each iteration, the parameters θθθ of the trial IPs are fitted by minimizing the loss function Eq. (6), evaluated only over the optimal (down-selected) environments with their corresponding optimal weights. We refer to these two fitting cases according to the dataset used for training: the MD–EAM-proxy case and the MD–SNAP-proxy case. Figure 2 shows the distribution of the candidate environments in the space of QUESTS descriptors [27], projected onto the first two principal components. Optimal environments selected in fully converged ALIM iterations are shown as red circles, with diameters proportional to the square root of their optimal weights, visually indicating their relative importance in fitting the two optimal trial IPs. In both cases, as few as 12 0.5–1.0% of the 2,000 candidate environments are sufficient to satisfy the information constraint and achieve the desired prediction precision for the five indicator proper-ties. Interestingly, the optimal environments identified as particularly informative for the indicator properties tend to lie in relatively sparsely populated regions of the pro-jected QUESTS descriptor space. However, this behavior should not be interpreted as a general preference for low-density regions; rather, it reflects the fact that ALIM selects environments based on their contribution to the QoI-relevant FIM, not on their representativeness in descriptor space. Thus, candidate environments in the dense central cluster may provide largely redundant information for the selected indicator properties, whereas some peripheral environments supply complementary information needed to satisfy the information constraint. Inspection of the selected environments, provided with the data repository, suggests that several of these peripheral configu-rations correspond to atoms near vacancies and dislocation cores. Such environments break the local symmetry and can induce distinct local force responses, making them especially useful for constraining QoI-relevant model directions. The strictest tolerance on the accuracy of GT calculations required to match the QoI FIM—computed as the inverse square root of the minimum optimal weight—is 5.87 meV/˚ A and 7.98 meV/˚ A for the MD–EAM-proxy and MD–SNAP-proxy cases, respectively. While these tolerances have limited meaning for proxy GT forces, which contain no calculation uncertainty, they nevertheless fall within the typical accuracy range of DFT force calculations [46]. (b) (a) 
+
+Fig. 2 : PCA representation of the selected optimal environments for (a) MD–EAM-proxy and (b) MD–SNAP-proxy cases. The projection is computed from the QUESTS descriptors of the full candidate set. The candidate environments are shown as black dots, and selected environments as red circles with diameters proportional to the square root of their optimal weights (normalized within each set). After solving Eq. (12) for the weights, each trial IP is trained on its respective GT data by fitting forces on the central atoms of the selected environments, with the optimal weights used in the loss function Eq. (6). In the MD–EAM-proxy case, the reference and trial potentials share the same functional form, so explicit regularization is unnecessary. In contrast, the SNAP proxy potential has a different functional form, 13 requiring a fitting regularization to prevent the trial EAM parameters from diverg-ing toward unphysical values (e.g., vanishing or diverging to infinity). In this case, an initially large regularization hyperparameter λ was gradually reduced to a value just above the threshold where parameter runaway was observed, i.e., where fitted param-eter values diverged toward either zero or infinity. The optimal parameters for each case are listed in Table 2, along with the mean and standard deviation of dimension-less weighted residuals (w-residuals) computed over the training data to assess overall fit quality.                        
+
+> Model parameters Dataset MD–EAM-proxy MD–SNAP-proxy
+> re(˚ A) 2.8559 2.8682
+> β4.5269 4.7375
+> A(eV) 0.6197 0.7204
+> B(eV) 1.0508 1.0783
+> κ0.1782 0.2059
+> η0.7458 0.5523
+> Fe(eV) −5.1358 −5.7449 Mean w-residuals 0.0001 8.7942 Stdev. w-residuals 0.0013 8.6157
+
+Table 2: Optimal EAM parameters obtained using the ALIM method, fitted to MD–EAM-proxy and MD–SNAP-proxy GT. Units are given in parentheses; parameters without units are dimensionless. The mean and standard deviation of the weighted residuals are reported as measures of fit quality. Assuming Gaussian noise—implicit in the least-squares loss—a well-specified model would produce weighted residuals with a mean near zero and a standard devi-ation close to or below one. This is indeed observed for the MD–EAM-proxy case, as expected, since the fitted model and GT share the same functional form. In contrast, the MD–SNAP-proxy case exhibits both a large mean and a large standard deviation of the weighted residuals, indicating significant model error .The large model error for the MD–SNAP-proxy case arises from at least two sources. From a model-form perspective, the SNAP proxy GT is generated by a more flexible potential form than the fitted EAM model. As a result, the fitted EAM poten-tial may not have sufficient flexibility to reproduce all features of the SNAP GT. Additionally, there is a mismatch in the absolute reference energy between the fit-ted EAM potential and the SNAP proxy considered in this study. Because the EAM potential is fitted only to forces from condensed-phase configurations, the loss func-tion constrains only the local shape of the SNAP potential energy surface near those configurations, but not the absolute energy difference between the condensed phase and the isolated-atom limit. As a result, the absolute energy scale cannot be reliably learned during fitting. 14 To further illustrate the effect of model error, we use the trained IPs to compute the five indicator properties as well as the ultimate target QoI of plastic strength, and evaluate the prediction errors relative to GT values obtained from the two proxy GT potentials. The results, along with the associated uncertainties computed using Eq. (13), are listed in Table 3. For the MD–EAM-proxy case, the prediction uncertain-ties closely match the actual errors, indicating that the uncertainties reliably reflect prediction accuracy. In contrast, for the MD–SNAP-proxy case, while the predic-tion uncertainties satisfy the uncertainty constraints for the indicator properties (cf. Table 1), they systematically underestimate the true errors and give overconfident estimates of prediction accuracy. 
+
+Quantities of interest Dataset MD–EAM-proxy MD–SNAP-proxy 
+
+a0
+
+(˚ A) Mean 3.3019 3.3835 Error 0.0007 −0.0672 Uncertainty 0.0053 0.0034 Inflated uncertainty – 0.1183 
+
+Ecoh 
+
+(eV/atom) Mean 8.1491 8.3938 Error −0.0591 3.4578 a
+
+Uncertainty 0.2301 0.2321 Inflated uncertainty – 8.1531 
+
+c11 
+
+(GPa) Mean 253.93 197.17 Error 8.7936 73.068 Uncertainty 6.8172 4.1493 Inflated uncertainty – 145.77 
+
+c12 
+
+(GPa) Mean 148.99 126.21 Error 8.6992 29.669 Uncertainty 5.7185 3.8332 Inflated uncertainty – 134.66 
+
+c44 
+
+(GPa) Mean 82.691 86.872 Error −0.7846 −13.152 Uncertainty 3.5366 1.7173 Inflated uncertainty – 60.329 Strength (GPa) Mean 2.5299 2.0014 Error 0.0035 0.1594 Uncertainty 0.0466 0.0288 Inflated uncertainty – 1.0108  
+
+> aHere, we instead use the potential energy prediction of the SNAP proxy as the GT value, i.e., no isolated-atom energy is subtracted. The SNAP proxy includes a constant energy shift that sets a different absolute energy reference. Comparing cohesive energies would therefore introduce a reference-energy mismatch.
+
+Table 3 : Predicted values, errors, and uncertainties for the target mate-rial properties in the MD–EAM-proxy and MD–SNAP-proxy cases. The first five rows correspond to the indicator properties used in ALIM; the last row reports the plastic strength of Ta. Errors are defined as the difference between GT and prediction (negative values indicate overestimation). Uncertainties are computed using Eq. (13); inflated uncertainties are obtained by rescaling these propagated uncertainties by a model-error scale inferred from the fitting residuals. 15 This discrepancy highlights a fundamental limitation of FIM-based approaches: while they can reduce parameter uncertainty within a given model form, they do not indicate how the model itself should be improved to reduce prediction error. When the model is insufficiently expressive or otherwise misspecified, the estimated uncer-tainties primarily reflect limitations of the training data rather than intrinsic model inadequacy, causing predictions to appear more confident than they truly are. A prac-tical remedy is to apply a post hoc correction that inflates the propagated uncertainty estimates by a model-error scale inferred from the fitting residuals [12, 47, 48]. While this simple correction can mitigate overconfidence, it often substantially overestimates the prediction error, reducing the practical utility and reliability of the predictions. A similar over-correction is observed in the plastic strength prediction for the MD– SNAP-proxy case: the uncorrected uncertainties (which do not account for model error) are roughly an order of magnitude smaller than the actual prediction error, while the corrected (inflated) uncertainties substantially exceed the prediction error, reaching up to 50% of the predicted strength value itself. In addition to revealing the inadequacy of the trial potential for fitting the SNAP GT data, these obser-vations highlight the need for cautious interpretation of the corrected uncertainty estimates [49]. 
+
+## 3.2 Training with DFT reference data 
+
+The second case study follows a common workflow in IP development, where the GT dataset consists of relatively small ( ∼ 100 atom) configurations with energies and forces on atoms computed using accurate but computationally expensive DFT calculations. We examine five subcases that use DFT-reference dataset, each defined by a different selection of quantities—energies and/or forces—included in the training loss and distinct weighting schemes. Our goal is to assess whether, and to what extent, these weighting choices influence the resulting IP prediction uncertainties for the same five indicator properties and for the ultimate QoI, the plastic strength of Ta. We also assess prediction errors for the indicator properties by comparing the IP predictions to their DFT GT values. In contrast, an analogous validation for plastic strength is not feasible because computing strength directly from DFT is prohibitively expensive. Figure 3 shows all atomic environments in the dataset, along with the optimal envi-ronments selected at the completion of the ALIM iterations, projected onto the first two principal components of the QUESTS descriptor space. To highlight differences in data coverage across the five subcases, each subfigure distinguishes centrosym-metric environments—where the force on the central atom is trivially zero and only the total energy can be used for fitting (black dots)—from the much larger set of non-centrosymmetric environments, for which force data are also available (orange dots). Most candidate environments form a dense cluster, whereas the centrosymmet-ric environments span a broader region of the PCA subspace, extending into areas of descriptor space that are inaccessible when training solely on force information. Table 4 lists the number of atomic configurations (not atomic environments) from which energy and/or force data were selected for fitting in each of the five subcases, along with the total number of energy and force data included in the optimal training set. The next two rows report the minimum and maximum uncertainties permitted 16 (a) All candidate environments (b) DFT-E subcase (c) DFT-F subcase (f) DFT-E+F atom subcase (d) DFT-F atom subcase (e) DFT-E+F subcase Fig. 3 : PCA projection of the QUESTS descriptor space showing candidate envi-ronments and those selected for five ALIM subcases fitted to different subsets of the DFT-reference dataset. Panel (a) shows all candidates: black dots denote centrosym-metric environments (energy-only data), and orange dots denote non-centrosymmetric environments (energy and force data). Panels (b)–(f) show the selected environments for the DFT-E, DFT-F, DFT-F atom , DFT-E+F, and DFT-E+F atom subcases. Red circles’ diameters are proportional to the square root of the optimal weights, normal-ized within each subcase. for DFT energy calculations—computed as the inverse square root of the minimum and maximum weights of the down-selected energy data—to match the FIM of the five indicator properties. The bottom two rows list the corresponding minimum and maximum uncertainties required for DFT force calculations. Although the number of down-selected atomic configurations is similar in magnitude across the five subcases, the number of selected environments in the subcases using per-atom weighting is much smaller than in those using per-configuration weighting (see the third row). This occurs because, when permitted to assign weights to individual environments within a configuration, ALIM typically selects only a few highly informative environments, leaving most local environments unused (with zero weights). In contrast, assigning the same nonzero weight to all per-atom forces in a selected configuration tends to redundantly sample less informative environments. Thus, per-atom weighting allows the method to better prioritize the most informative environments while avoiding oversampling of redundant local structures. For each of the five subcases of data weighting, the ALIM workflow selected an opti-mal subset of informative atomic configurations and/or environments together with their corresponding optimal weights, which were then used to fit five EAM potentials by minimizing the loss function in Eq. (6). As in the MD–SNAP-proxy case, regu-larization was applied, with the regularization penalty parameter γ tuned separately for each subcase. The resulting optimal EAM parameters are listed in Table 5, along 17 Dataset DFT-E DFT-F DFT-F atom DFT-E+F DFT-E+F atom                                               
+
+> Number of configurations 17 711 77Number of energy data 17 ––12Number of force data –5,235 456 3,744 27 Min σEm(meV/atom) 10.011 ––707.80 90.562 Max σEm(meV/atom) 79.674 ––707.80 132.22 Min σFnm(meV/˚ A/atom) –0.9974 19.200 0.8656 34.293 Max σFnm(meV/˚ A/atom) –4.6550 3,047.7 6.7245 487.54
+
+Table 4 : Number of selected atomic configurations, total selected energy and force data (counting each Cartesian force component separately), and the minimum and maximum required uncertainties for DFT GT energy and force calculations in each subcase. Uncertainties are computed as the inverse square root of the optimal weights and represent target error bounds for the DFT calculations. For subcases using per-configuration force weighting, the listed force uncertainties are divided by the number of atoms to yield per-atom target force error bounds. with the mean and standard deviation of the weighted residuals (w-residuals), which serve as indicators of fit quality in each subcase. Predictions of the intermediate tar-get QoIs obtained from the newly fitted IPs, together with their errors, uncertainties, and inflated uncertainties accounting for model error are presented in Table 6. The bottom row of the same table lists the predicted plastic strength of Ta from all five IPs and the corresponding prediction uncertainties and inflated uncertainties.                                                        
+
+> Model parameters DFT-reference subcases DFT-E DFT-F DFT-F atom DFT-E+F DFT-E+F atom
+> re(˚ A) 2.9416 2.4584 2.7044 2.4720 2.6797
+> β4.5703 4.6567 4.9898 4.6893 4.9102
+> A(eV) 0.6470 1.4576 0.7435 1.3775 0.8713
+> B(eV) 1.1770 0.5058 0.9156 0.3928 1.2900
+> κ0.1660 0.2632 0.1850 0.2664 0.1474
+> η0.5946 0.5248 0.7213 0.2747 0.5816
+> Fe(eV) −6.0244 −4.1796 −6.6282 −5.4055 −4.9709 Mean w-residuals −0.8951 8.2463 ×10 −9−0.2082 0.0041 −2.7504 Stdev. w-residuals 6.0573 0.8962 6.5473 1.2627 23.028
+
+Table 5 : Optimal EAM parameters obtained using the ALIM method for each DFT subcase. Units are given in parentheses; parameters without units are dimensionless. The mean and standard deviation of the weighted residuals are reported as measures of fit quality. For these subcases, although the mean and standard deviation of the residuals sug-gest that the optimal EAM potentials fit the training data reasonably well, they alone do not imply that the model error uncertainty is negligible. In fact, the model errors for these subcases are substantial, such that there are many instances in Table 6 where the indicator property predictions are overconfident. Applying the suggested uncer-tainty inflation correction improves the agreement between predicted uncertainties and 18 Quantities of interest DFT-reference subcases DFT-E DFT-F DFT-F atom DFT-E+F DFT-E+F atom                                                                                                                    
+
+> a0
+> (˚ A) Mean 3.3536 3.3280 3.2865 3.3184 3.1296 Error −0.0346 −0.0090 0.0325 0.0006 0.1894 Uncertainty 0.0027 0.0033 0.0020 0.0023 0.0024 Inflated uncertainty 0.0257 0.0803 0.1074 0.0676 0.1145
+> Ecoh
+> (eV/atom) Mean 9.6464 3.6177 7.9983 4.5802 8.2321 Error −0.0082 6.0204 1.6398 5.0579 1.4061 Uncertainty 0.0232 0.0801 0.0963 0.0682 0.1061 Inflated uncertainty 0.2216 1.9638 5.0906 1.9926 5.0078
+> c11
+> (GPa) Mean 255.24 190.48 337.12 237.98 492.95 Error 14.755 79.516 −67.125 32.020 −222.95 Uncertainty 5.4122 4.9561 2.3834 3.9663 7.0384 Inflated uncertainty 51.644 121.46 126.01 115.84 332.24
+> c12
+> (GPa) Mean 140.84 165.05 237.83 203.46 221.86 Error 15.155 −9.0351 −81.826 −47.458 −65.855 Uncertainty 1.8387 2.8316 2.0336 2.2591 3.1113 Inflated uncertainty 17.546 69.397 107.52 65.982 146.87
+> c44
+> (GPa) Mean 93.191 66.418 82.725 64.636 163.38 Error −19.191 7.5819 −8.7247 9.3644 −89.383 Uncertainty 2.5785 1.3964 0.7806 0.5831 1.4290 Inflated uncertainty 24.604 34.222 41.272 17.032 67.456 Strength (GPa) Mean 2.9730 1.4530 1.9797 1.3771 5.4042 Uncertainty 0.0821 0.1803 0.0157 0.0342 0.1536 Inflated uncertainty 0.7833 4.4183 0.8308 0.9999 7.2515
+
+Table 6 : Predictions, errors, uncertainties, and inflated uncertainties of the target material properties obtained from EAM potentials fitted to DFT GT for each sub-case. Results are reported for the five indicator properties used in the ALIM method and the large-scale target plastic strength of Ta. Errors are defined as the difference between GT and prediction (negative values indicate overestimation). Uncertainties are computed using Eq. (13); inflated uncertainties are obtained by rescaling these propagated uncertainties by a model-error scale inferred from the fitting residuals, providing a basis for assessing reliability when ground truth data are unavailable (e.g., plastic strength). actual errors in most instances. Nonetheless, the corrected uncertainties sometimes significantly overestimate the true errors, such as for subcases involving per-atom force weighting, thus call for cautious interpretation of the inflated uncertainties. For the plastic strength predictions, direct comparison with GT is not possible, since no ref-erence DFT data is available. Instead, based on analyses in previous cases with proxy GT, we anticipate that the inflated uncertainty serves as a conservative bound on the true error. Comparing the errors of the indicator properties with the strength predictions in Table 6, we observe an apparent positive correlation between the plastic strength and the elastic constants c11 and c44 , and a negative correlation with the lattice constant a0.The inflated uncertainties for these three indicator properties also appear to correlate with the uncertainty in strength, though the correlation is weaker. These trends are qualitatively consistent with findings reported for FCC crystals [34]. However, because the present study focuses on a BCC system and is based on a limited number of samples, these correlations should be considered suggestive rather than conclusive. 19 Although the strength prediction uncertainties vary substantially across subcases— with two subcases exhibiting spuriously large inflated uncertainties—they nonetheless overlap in a relatively narrow range. All inflated uncertainties include the interval of approximately 2.19–2.38 GPa. While direct DFT validation of the strength is infea-sible, this overlapping interval provides a reasonable estimate of the true strength. Encouragingly, this range also aligns with the values obtained from the proxy GT potentials. We therefore propose this overlapping region as our best estimate of the plastic strength predicted by the DFT-fitted models. 
+
+# 4 Discussion 
+
+## 4.1 Model error correction 
+
+The results presented in Sec. 3 highlight the effectiveness of the ALIM method in selecting small yet highly informative training sets that capture the parameter sen-sitivities necessary to predict indicator properties with specified precision. However, despite these strengths, we observe that the resulting prediction uncertainties often underestimate the actual errors. This limitation stems from the fact that ALIM guar-antees precision—meaning it constrains parameter uncertainty relative to the chosen model—but cannot ensure accuracy if the model form itself cannot adequately rep-resent the ground truth. In other words, the method is dependent on the learning capacity of the chosen IP, and any inherent model error is not automatically included in the uncertainty estimates. We expect the use of highly-flexible functional forms, such as machine-learned interatomic potentials, could avoid such issues, but at the expense of requiring a large number of parameters to be handled. Our study demonstrates that in realistic IP development, model error can be sub-stantial and, if left uncorrected, can lead to overconfident predictions of material properties. A practical remedy is to apply a post hoc uncertainty inflation correc-tion, in which the propagated uncertainty estimates are rescaled by a model-error scale inferred from the fitting residuals or training loss [12, 47, 48]. This correction accounts for the fact that the residual error may reflect not only uncertainty in the fitted parameters, but also limitations of the model form itself. Applying this correc-tion generally improves the reliability of uncertainty estimates, making them better aligned with the observed errors. Nevertheless, in cases with particularly large model errors, the corrected uncertainties can become so large that the predictions and uncer-tainties themselves become impractical. This highlights that while such corrections can mitigate overconfidence, they do not overcome the limitations of an insufficiently flexible model. Large-scale property predictions, such as plastic strength, present additional chal-lenges due to the high cost or infeasibility of obtaining ground truth data. In these applications, uncertainty estimates often serve as the only available proxy for model reliability. Applying model error corrections is particularly important in this context to avoid underestimating prediction error and creating a false sense of confidence. However, when the corrections are large, the resulting uncertainties can overwhelm the predictions, rendering them effectively unusable. This once again illustrates how 20 limitations in model flexibility directly impact the interpretability and practical utility of uncertainty estimates for large-scale properties. 
+
+## 4.2 Sufficiency of indicator properties 
+
+While the central objective of this study is to develop IPs suitable for simulating plas-tic strength, we adopt a practical strategy that targets indicator properties that are expected to correlate with plastic strength to overcome the computational cost of plas-tic strength simulations. Our results show predictions and associated uncertainties for these indicator properties and for plastic strength itself. However, an important ques-tion remains: have we chosen indicator properties that contain sufficient information to effectively constrain plastic strength predictions? To address this question, we perform an additional IM analysis after the ALIM iterations, this time comparing the FIMs of the five indicator properties and the plastic strength property. Unlike the IM procedure used during potential development—where the candidate data are matched to the indicator properties—here we treat the indicator properties as the “candidates” and the plastic strength as the “target QoI,” performing the matching once at the end rather than iteratively. As an illustration, we perform this analysis to the MD–EAM-proxy case. However, the weight optimization problem is infeasible, meaning that no set of weights satisfies all constraints in Eq. (12). This outcome indicates that the indicator properties are insufficient surrogates for the target QoI; consequently, matching the FIM to these indi-cator properties does not, in principle, guarantee sufficient information for predicting plastic strength. Nevertheless, the training data selected using these indicator prop-erties contain more information than is strictly required by the indicator properties themselves. In particular, the FIM of the selected data also satisfies the information requirement for plastic strength, yielding finite and relatively small uncertainty in the predicted strength. Thus, although the indicator properties are not strictly sufficient representations of the target QoI, information sufficiency for the target may still be achieved in practice. To better understand this apparent success, we analyze how much of the plastic strength information is captured by the indicator properties. Specifically, we quan-tify their shared information content by computing the sum of squared dot products between the eigenvectors of the plastic strength FIM and those spanning the range of the indicator properties’ FIM from the final ALIM iteration. This metric provides a measure of how much of the plastic strength FIM’s eigenstructure—the type of required information—lies within the eigensubspace of the indicator properties’ FIM, i.e., the parameter directions that the indicator properties can, in principle, constrain. Across all models, this analysis reveals that the indicator properties capture a sub-stantial portion of the information required to constrain the target plastic strength. In each case, over 86% of the relevant eigenstructure is recovered, indicating that the selected indicator properties provide strong, albeit incomplete, coverage of the neces-sary parameter sensitivities. For the MD–EAM-proxy case specifically, the indicator properties account for approximately 99% of the required information. The remaining information resides in the nullspace of the indicator properties’ FIM, with associated 21 eigenvectors pointing to limited sensitivity to certain parameter combinations— particularly those involving B, η, and Fe. These combinations reflect weak constraints on long-range attractive interactions and the embedding energy parameters. Never-theless, because the missing information is relatively small, it is plausible that the training data incidentally recovers this gap. However, this level of success is not guaranteed, as it relies on incidental recovery of information missing from the chosen indicator properties. To reduce this reliance, one can perform the IM analysis discussed above—matching indicator properties and target QoIs—prior to running the ALIM loop, ensuring that the indicator properties are explicitly chosen to cover the relevant parameter directions. Equally important, expanding the set of indicator properties can further improve robustness; for exam-ple, vacancy formation and migration energies are promising candidates due to their physical relevance and demonstrated correlation with plastic strength in FCC metals [34]. By combining these strategies—early IM analysis and thoughtful expansion of indicator properties—the likelihood of satisfying the IM condition increases and lead to more reliable predictions. 
+
+# 5 Conclusion 
+
+In this study, we have demonstrated that the ALIM approach provides a powerful framework for developing bespoke IPs for specific target properties with specified uncertainty. The central idea of ALIM is to select training data that provide the specific parameter space information required to achieve prescribed uncertainty targets for the QoIs, rather than simply maximizing global information content or reducing param-eter uncertainty indiscriminately. By systematically selecting a small yet informative subset of training data, the method enables precise constraints on model parameters relevant to the target QoIs. However, to ensure reliable uncertainty quantification, it is critical to account for model error. Without this correction, even optimally chosen training data cannot guarantee trustworthy uncertainty estimates when the model’s representational limitations are significant. We show that applying a post hoc correc-tion based on uncertainty inflation, which rescales the propagated uncertainties using a model-error scale inferred from the fitting residuals, can mitigate overconfident pre-dictions. However, in cases with substantial model error, this correction may lead to large uncertainties—highlighting fundamental limits to model reliability. To address the challenge of high computational cost associated with large-scale target properties, we also explored an alternative strategy that targets computationally cheaper indicator properties that are expected to correlate with the large-scale target QoIs. While our results suggest this is a promising approach, its success depends on whether the chosen indicator properties impose sufficient information constraints on the parameters relevant for predicting the large-scale property. Even when they are formally insufficient, the selected training data can sometimes incidentally supply the missing information, although this outcome is not guaranteed in general. Rather than relying on this luck, we recommend performing an initial analysis, such as IM-based sufficiency check as discussed in Sec. 4.2, prior to running ALIM iterations to ensure that the indicator properties can impose sufficient parameter constraint. 22 Finally, our results highlight that the accuracy and reliability of IPs are ultimately constrained by model expressiveness. The limited flexibility of the EAM functional form emerges as a key source of both prediction error and uncertainty—affecting not only the matched QoIs but also complex target properties such as plastic strength. We anticipate that both prediction errors and uncertainties can be reduced by adopting more flexible functional forms that better approximate the ground truth. In particular, potentials based on complete and systematically extensible structural descriptors— such as Atomic Cluster Expansion (ACE) [50] or Moment Tensor Potentials (MTP) [51]—offer a principled path toward improved accuracy and uncertainty in the pre-diction of complex material properties. Embedding such models within the ALIM framework would enable tighter parameter constraints, better predictive performance, and more rigorous uncertainty control via the FIM. 
+
+Acknowledgements. Calculations were performed on the Borax and Lassen clus-ters at the Livermore Computing facility at LLNL. 
+
+# Declarations 
+
+## Funding 
+
+This work was performed under the auspices of the U.S. Department of Energy by Lawrence Livermore National Laboratory (LLNL) under Contract DE-AC52-07NA27344, and was funded by the Laboratory Directed Research and Development Program at LLNL under project tracking code 23-ERD-006. 
+
+## Conflict of interest 
+
+The authors declare no conflict of interests. 
+
+## Data and code availability 
+
+The data that support the findings of this study are openly available in Zen-odo at https://zenodo.org/records/18012696. The corresponding code is available at the following GitHub repository: https://github.com/yonatank93/information-matching eam-strength. 
+
+## Author contributions 
+
+Y.K. conceived and carried out the research, performed the investigation and analysis, and wrote the original draft. Y.K. and M.K.T. developed the active learning method. L.D.W. and D.S.-K. performed atomic environment extraction and provided atomic configurations. L.D.W. also provided SNAP potential code and contributed to the investigation and analysis. A.S. provided additional atomic configurations and the corresponding DFT ground-truth data. I.N. and E.B.T. provided support with the OpenKIM infrastructure. V.L. managed the project, acquired funding, and provided technical input. V.V.B. provided the EAM potential code, carried out the plastic strength simulations, supervised the project, and contributed to writing the original draft. All authors reviewed and edited the manuscript and approved the final version. 23 References 
+
+[1] Chen, C., Ong, S.P.: A universal graph deep learning interatomic potential for the periodic table. Nature Computational Science 2(11), 718–728 (2022) https: //doi.org/10.1038/s43588-022-00349-3 . Accessed 2025-08-22 [2] Batzner, S., Musaelian, A., Sun, L., Geiger, M., Mailoa, J.P., Kornbluth, M., Molinari, N., Smidt, T.E., Kozinsky, B.: E(3)-equivariant graph neural networks for data-efficient and accurate interatomic potentials. Nature Communications 
+
+13 (1), 2453 (2022) https://doi.org/10.1038/s41467-022-29939-5 . Accessed 2025-04-30 [3] Deng, B., Zhong, P., Jun, K., Riebesell, J., Han, K., Bartel, C.J., Ceder, G.: CHGNet as a pretrained universal neural network potential for charge-informed atomistic modelling. Nature Machine Intelligence 5(9), 1031–1041 (2023) https: //doi.org/10.1038/s42256-023-00716-3 . Accessed 2025-04-30 [4] Batatia, I., Benner, P., Chiang, Y., Elena, A.M., Kov´ acs, D.P., Riebesell, J., Advincula, X.R., Asta, M., Avaylon, M., Baldwin, W.J., Berger, F., Bernstein, N., Bhowmik, A., Blau, S.M., C˘ arare, V., Darby, J.P., De, S., Pia, F.D., Deringer, V.L., Elijoˇ sius, R., El-Machachi, Z., Falcioni, F., Fako, E., Ferrari, A.C., Genreith-Schriever, A., George, J., Goodall, R.E.A., Grey, C.P., Grigorev, P., Han, S., Handley, W., Heenen, H.H., Hermansson, K., Holm, C., Jaafar, J., Hofmann, S., Jakob, K.S., Jung, H., Kapil, V., Kaplan, A.D., Karimitari, N., Kermode, J.R., Kroupa, N., Kullgren, J., Kuner, M.C., Kuryla, D., Liepuoniute, G., Mar-graf, J.T., Magd˘ au, I.-B., Michaelides, A., Moore, J.H., Naik, A.A., Niblett, S.P., Norwood, S.W., O’Neill, N., Ortner, C., Persson, K.A., Reuter, K., Rosen, A.S., Schaaf, L.L., Schran, C., Shi, B.X., Sivonxay, E., Stenczel, T.K., Svahn, V., Sut-ton, C., Swinburne, T.D., Tilly, J., Oord, C.v.d., Varga-Umbrich, E., Vegge, T., Vondr´ ak, M., Wang, Y., Witt, W.C., Zills, F., Cs´ anyi, G.: A foundation model for atomistic materials chemistry. arXiv. arXiv:2401.00096 [physics] (2024). https:// doi.org/10.48550/arXiv.2401.00096 . http://arxiv.org/abs/2401.00096 Accessed 2025-08-22 [5] Alavi, S.F., Chen, Y., Hou, Y.-F., Ge, F., Zheng, P., Dral, P.O.: ANI-1ccx-gelu Universal Interatomic Potential and Its Fine-Tuning: Toward Accurate and Efficient Anharmonic Vibrational Frequencies. The Journal of Physical Chem-istry Letters 16 (2), 483–493 (2025) https://doi.org/10.1021/acs.jpclett.4c03031 . Accessed 2025-08-23 [6] Radova, M., Stark, W.G., Allen, C.S., Maurer, R.J., Bart´ ok, A.P.: Fine-tuning foundation models of materials interatomic potentials with frozen transfer learn-ing. npj Computational Materials 11 (1), 237 (2025) https://doi.org/10.1038/ s41524-025-01727-x . Accessed 2025-08-23 [7] Liu, X., Zeng, K., Wang, Y., Zhao, T.: A Study on the Fine-Tuning Perfor-mance of Universal Machine-Learned Interatomic Potentials (U-MLIPs). arXiv. 24 arXiv:2506.07401 [physics] (2025). https://doi.org/10.48550/arXiv.2506.07401 . http://arxiv.org/abs/2506.07401 Accessed 2025-08-23 [8] Leardi, R.: Experimental design in chemistry: A tutorial. Analytica Chimica Acta 
+
+652 (1), 161–172 (2009) https://doi.org/10.1016/j.aca.2009.06.015 . Accessed 2024-02-14 [9] Alizadeh, A., Tavallali, P., Khosravi, M.R., Singhal, M.: Survey on Recent Active Learning Methods for Deep Learning. In: Arabnia, H.R., Deligiannidis, L., Gri-maila, M.R., Hodson, D.D., Joe, K., Sekijima, M., Tinetti, F.G. (eds.) Advances in Parallel & Distributed Processing, and Applications, pp. 609–617. Springer, Cham (2021). https://doi.org/10.1007/978-3-030-69984-0 43 [10] Podryabinkin, E.V., Shapeev, A.V.: Active learning of linearly parametrized interatomic potentials. Computational Materials Science 140 , 171–180 (2017) https://doi.org/10.1016/j.commatsci.2017.08.031 . Accessed 2023-03-20 [11] Jinnouchi, R., Miwa, K., Karsai, F., Kresse, G., Asahi, R.: On-the-Fly Active Learning of Interatomic Potentials for Large-Scale Atomistic Simulations. The Journal of Physical Chemistry Letters 11 (17), 6946–6955 (2020) https://doi.org/ 10.1021/acs.jpclett.0c01061 . Accessed 2025-08-28 [12] Frederiksen, S.L., Jacobsen, K.W., Brown, K.S., Sethna, J.P.: Bayesian Ensem-ble Approach to Error Estimation of Interatomic Potentials. Physical Review Letters 93 (16), 165501 (2004) https://doi.org/10.1103/PhysRevLett.93.165501 . Accessed 2020-03-11 [13] Kurniawan, Y., Wen, M., Tadmor, E.B., Transtrum, M.K.: Comparative study of ensemble-based uncertainty quantification methods for neural network inter-atomic potentials. arXiv. arXiv:2508.06456 [cond-mat] (2025). https://doi.org/10. 48550/arXiv.2508.06456 . http://arxiv.org/abs/2508.06456 Accessed 2025-08-11 [14] Kurniawan, Y., Neilsen, T.B., Francis, B.L., Stankovic, A.M., Wen, M., Niki-forov, I., Tadmor, E.B., Bulatov, V.V., Lordi, V., Transtrum, M.K.: An information-matching approach to optimal experimental design and active learn-ing. Applied Physics Letters 128 (6), 064104 (2026) https://doi.org/10.1063/5. 0296026 . Accessed 2026-02-22 [15] Jacroux, M.: The A-Optimality of Block Designs for Comparing Test Treatments with a Control. Journal of the American Statistical Associa-tion 84 (405), 310–317 (1989) https://doi.org/10.1080/01621459.1989.10478771 . eprint: https://doi.org/10.1080/01621459.1989.10478771. Accessed 2024-02-19 [16] Morgan, J.P., Wang, X.: E-Optimality in Treatment versus Control Experiments. Journal of Statistical Theory and Practice 5(1), 99– 107 (2011) https://doi.org/10.1080/15598608.2011.10412053 . eprint: https://doi.org/10.1080/15598608.2011.10412053. Accessed 2024-02-19 25 [17] Jones, B., Allen-Moyer, K., Goos, P.: A-optimal versus D-optimal design of screening experiments. Journal of Quality Technology 53 (4), 369– 382 (2021) https://doi.org/10.1080/00224065.2020.1757391 . eprint: https://doi.org/10.1080/00224065.2020.1757391. Accessed 2024-02-19 [18] Zhou, X.W., Johnson, R.A., Wadley, H.N.G.: Misfit-energy-increasing disloca-tions in vapor-deposited CoFe/NiFe multilayers. Physical Review B 69 (14), 144113 (2004) https://doi.org/10.1103/PhysRevB.69.144113 . Number: 14. Accessed 2023-10-04 [19] Zepeda-Ruiz, L.A., Stukowski, A., Oppelstrup, T., Bulatov, V.V.: Probing the limits of metal plasticity with molecular dynamics simulations. Nature 550 (7677), 492–495 (2017) https://doi.org/10.1038/nature23472 . Accessed 2025-07-04 [20] Zepeda-Ruiz, L.A., Stukowski, A., Oppelstrup, T., Bertin, N., Barton, N.R., Fre-itas, R., Bulatov, V.V.: Atomistic insights into metal hardening. Nature materials 
+
+20 (3), 315–320 (2021) [21] Daw, M.S., Baskes, M.I.: Embedded-atom method: Derivation and application to impurities, surfaces, and other defects in metals. Physical Review B 29 (12), 6443– 6453 (1984) https://doi.org/10.1103/PhysRevB.29.6443 . Accessed 2025-08-21 [22] Mishin, Y., Mehl, M.J., Papaconstantopoulos, D.A.: Embedded-atom poten-tial for $B2 \ensuremath {-}\ mathrm {NiAl }$. Physical Review B 65 (22), 224114 (2002) https://doi.org/10.1103/PhysRevB.65.224114 . Accessed 2025-08-21 [23] Mishin, Y.: Atomistic modeling of the γ and γ′-phases of the Ni–Al system. Acta Materialia 52 (6), 1451–1467 (2004) https://doi.org/10.1016/j.actamat.2003.11. 026 . Accessed 2025-08-21 [24] Ercolessi, F., Adams, J.B.: Interatomic Potentials from First-Principles Calcula-tions: The Force-Matching Method. EPL (Europhysics Letters) 26 (8), 583 (1994) https://doi.org/10.1209/0295-5075/26/8/005 . Accessed 2021-04-26 [25] Wen, M., Afshar, Y., Elliott, R.S., Tadmor, E.B.: KLIFF: A framework to develop physics-based and machine learning interatomic potentials. Computer Physics Communications 272 , 108218 (2022) https://doi.org/10.1016/j.cpc.2021.108218 . Accessed 2024-04-29 [26] Yu, M., Trinkle, D.R., Martin, R.M.: Energy density in density functional theory: Application to crystalline defects and surfaces. Physical Review B—Condensed Matter and Materials Physics 83 (11), 115113 (2011) [27] Schwalbe-Koda, D., Hamel, S., Sadigh, B., Zhou, F., Lordi, V.: Model-free esti-mation of completeness, uncertainties, and outliers in atomistic machine learning using information theory. Nature Communications 16 (1), 4014 (2025) https: //doi.org/10.1038/s41467-025-59232-0 . Accessed 2025-08-05 26 [28] Thompson, A.P., Swiler, L.P., Trott, C.R., Foiles, S.M., Tucker, G.J.: Spec-tral neighbor analysis method for automated generation of quantum-accurate interatomic potentials. Journal of Computational Physics 285 , 316–330 (2015) https://doi.org/10.1016/j.jcp.2014.12.018 [29] Sharma, B., Teh, Y.S., Sadigh, B., Hamel, S., Bulatov, V., Samanta, A.: Develop-ment of an interatomic potential for the W–Ta system. Computational Materials Science 230 , 112486 (2023) https://doi.org/10.1016/j.commatsci.2023.112486 . Accessed 2025-11-03 [30] Cram´ er, H.: Mathematical Methods of Statistics. Princeton mathematical series. Princeton University Press, Princeton (1946) [31] Rao, C.R.: In: Kotz, S., Johnson, N.L. (eds.) Information and the Accu-racy Attainable in the Estimation of Statistical Parameters, pp. 235–247. Springer, New York, NY (1992). https://doi.org/10.1007/978-1-4612-0919-5 16 . 
+
+https://doi.org/10.1007/978-1-4612-0919-5 16 
+
+[32] Vallisneri, M.: Use and abuse of the fisher information matrix in the assess-ment of gravitational-wave parameter-estimation prospects. Physical Review D—Particles, Fields, Gravitation, and Cosmology 77 (4), 042001 (2008) [33] Lenosky, T.J., Kress, J.D., Kwon, I., Voter, A.F., Edwards, B., Richards, D.F., Yang, S., Adams, J.B.: Highly optimized tight-binding model of silicon. Physical Review B 55 (3), 1528–1544 (1997) https://doi.org/10.1103/PhysRevB.55.1528 . Accessed 2025-07-04 [34] Jasperson, B.A., Nikiforov, I., Samanta, A., Zhou, F., Tadmor, E.B., Lordi, V., Bulatov, V.V.: Cross-scale covariance for material property predic-tion. npj Computational Materials 11 (1), 1 (2025) https://doi.org/10.1038/ s41524-024-01453-w . Accessed 2025-07-04 [35] Karls, D.S., Li, J.: Equilibrium lattice constant and cohesive energy of a cubic lattice at zero temperature and pressure v007. OpenKIM. Published: OpenKIM, https://doi.org/10.25950/2765e3bf (2019). https://doi.org/10.25950/2765e3bf [36] Karls, D.S., Li, J.: Equilibrium zero-temperature lattice con-stant for bcc Ta v007. OpenKIM. Published: OpenKIM, https://openkim.org/cite/TE 914032759339 007 (2019) [37] Huntington, H.B.: The Elastic Constants of Crystals. Solid State Physics 7, 213– 351 (1958) https://doi.org/10.1016/S0081-1947(08)60553-6 . Place: New York [38] Li, J., Tadmor, E.: Elastic constants for bcc Ta at zero temperature v006. OpenKIM. Published: OpenKIM, https://openkim.org/cite/TE 391736780667 006 (2019) 27 [39] Tadmor, E.B., Li, J.: Elastic constants for cubic crystals at zero temperature and pressure v006. OpenKIM. Published: OpenKIM, https://doi.org/10.25950/5853fb8f (2019). https://doi.org/10.25950/5853fb8f [40] Karls, D.S., Li, J.: Equilibrium lattice constant and cohesive energy of a cubic lattice at zero temperature and pressure v007. OpenKIM (2019). https://doi.org/ 10.25950/2765e3bf [41] Karls, D.S., Li, J.: Equilibrium zero-temperature lattice constant for bcc Ta v007. OpenKIM (2019) [42] Huntington, H.B.: The elastic constants of crystals. Solid State Physics 7, 213–351 (1958) https://doi.org/10.1016/S0081-1947(08)60553-6 [43] Tadmor, E.B., Li, J.: Elastic constants for cubic crystals at zero temperature and pressure v006. OpenKIM (2019). https://doi.org/10.25950/5853fb8f [44] Li, J., Tadmor, E.: Elastic constants for bcc Ta at zero temperature v006. OpenKIM (2019) [45] Tadmor, E.B., Elliott, R.S., Sethna, J.P., Miller, R.E., Becker, C.A.: The potential of atomistic simulations and the Knowledgebase of Interatomic Models. JOM 
+
+63 (7), 17–17 (2011) https://doi.org/10.1007/s11837-011-0102-6 [46] Kresse, G., Furthm¨ uller, J.: Efficient iterative schemes for ab initio total-energy calculations using a plane-wave basis set. Physical review B 54 (16), 11169 (1996) [47] Pernot, P.: The parameter uncertainty inflation fallacy. The Journal of Chemi-cal Physics 147 (10), 104102 (2017) https://doi.org/10.1063/1.4994654 . Accessed 2025-07-04 [48] Kurniawan, Y., Petrie, C.L., Williams, K.J., Transtrum, M.K., Tadmor, E.B., Elliott, R.S., Karls, D.S., Wen, M.: Bayesian, frequentist, and information geo-metric approaches to parametric uncertainty quantification of classical empirical interatomic potentials. The Journal of Chemical Physics 156 (21), 214103 (2022) https://doi.org/10.1063/5.0084988 . Accessed 2023-03-28 [49] Pernot, P.: The parameter uncertainty inflation fallacy. The Journal of Chemical Physics 147 (10) (2017) [50] Drautz, R.: Atomic cluster expansion for accurate and transferable interatomic potentials. Physical Review B 99 (1), 014104 (2019) https://doi.org/10.1103/ PhysRevB.99.014104 . Accessed 2025-04-30 [51] Shapeev, A.V.: Moment Tensor Potentials: A Class of Systematically Improv-able Interatomic Potentials. Multiscale Modeling & Simulation 14 (3), 1153–1173 (2016) https://doi.org/10.1137/15M1054183 . Accessed 2025-08-04 28

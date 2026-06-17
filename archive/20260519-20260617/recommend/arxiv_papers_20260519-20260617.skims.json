@@ -1,0 +1,1317 @@
+{
+  "mode": "skims",
+  "generated_at": "2026-06-17T13:55:39.932546+00:00",
+  "stats": {
+    "mode": "skims",
+    "forced_all_quick": true,
+    "min_score": 8.0,
+    "deep_divecandidates": 32,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 32,
+    "quick_skim_target": null,
+    "quick_selected": 32
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2606.02419v1",
+      "source": "arxiv",
+      "title": "DPA4: Pushing the Accuracy-Cost Frontier of Interatomic Potentials with EMFA SO(2) Convolution",
+      "abstract": "Machine-learning interatomic potentials now approach quantum-mechanical accuracy on standard benchmarks, but the training cost of the most expressive equivariant architectures has become a serious bottleneck. We introduce DPA4, an SE(3)-equivariant interatomic-potential architecture with an EMFA (Edge-conditioned, Multi-Focus, Attention) SO(2)-equivariant convolution that combines a low-rank edge-node SO(2)-equivariant product, a multi-focus design for message nonlinearity, and envelope-gated attention for message aggregation. A Lebedev-grid projection further preserves SO(3)-equivariance in the nonlinearity to machine precision. A compiler-friendly conservative energy-gradient training path provides up to $\\sim$3 times wall-clock speedup under torch.compile. On the compliant Matbench Discovery benchmark, DPA4-Pro attains the best Combined Performance Score (CPS) on the leaderboard, while the 2.76M-parameter DPA4-Air exceeds the accuracy of the 30.1M-parameter eSEN-30M-MP baseline with 10.9$\\times$ fewer parameters and 42.9$\\times$ less training compute. On SPICE-MACE-OFF, the 5.4M-parameter DPA4-Plus lowers the aggregate molecular energy and force errors of the 6.5M-parameter eSEN baseline by 29% and 30%, while the 2.7M-parameter DPA4-Air still surpasses that baseline with $\\sim$2.4$\\times$ fewer parameters. Together these results place DPA4 on a new accuracy-cost Pareto frontier on Matbench Discovery and position it as a strong candidate backbone for future multi-task large atomistic model (LAM) pretraining.",
+      "authors": [
+        "Tiancheng Li",
+        "Wentao Li",
+        "Anyang Peng",
+        "Jianming Xue",
+        "Linfeng Zhang",
+        "Duo Zhang",
+        "Han Wang"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "cond-mat.mtrl-sci",
+        "physics.comp-ph"
+      ],
+      "published": "2026-06-01T15:59:10+00:00",
+      "link": "https://arxiv.org/pdf/2606.02419v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "SE(3)-equivariant interatomic potential with low-rank SO(2) convolution",
+      "llm_evidence_cn": "SE(3)-等变原子间势，使用低秩SO(2)卷积",
+      "llm_evidence": "SE(3)-等变原子间势，使用低秩SO(2)卷积",
+      "canonical_evidence": "SE(3)-等变原子间势，使用低秩SO(2)卷积",
+      "llm_tldr_en": "Introduces DPA4, an SE(3)-equivariant architecture with EMFA SO(2) convolution, achieving 3x speedup over prior equivariant models.",
+      "llm_tldr_cn": "本文提出DPA4，一种SE(3)-等变原子间势架构，采用边条件多焦点注意力（EMFA）SO(2)等变卷积。该方法通过低秩边-节点SO(2)等变乘积、多焦点设计和包络门控注意力，显著降低训练成本，同时保持精度。在标准基准上，DPA4比最先进的等变模型快约3倍，推动了精度-成本前沿。",
+      "llm_tldr": "本文提出DPA4，一种SE(3)-等变原子间势架构，采用边条件多焦点注意力（EMFA）SO(2)等变卷积。该方法通过低秩边-节点SO(2)等变乘积、多焦点设计和包络门控注意力，显著降低训练成本，同时保持精度。在标准基准上，DPA4比最先进的等变模型快约3倍，推动了精度-成本前沿。",
+      "llm_tags": [
+        "query:ml-potential:composite"
+      ],
+      "matched_query_tag": "query:ml-potential:composite",
+      "matched_query_text": "Papers central to 帮我查找与机器学习原子间势和等变图神经网络有关的论文, especially work that connects or combines: machine learning interatomic potentials for materials; equivariant graph neural network architectures for molecular simulation; graph neural network models for interatomic potential prediction; interatomic potential development using machine learning; equivariant neural networks for atomic systems; deep learning based interatomic potentials; machine learning interatomic potentials using equivariant graph neural networks; equivariant graph neural networks for potential energy surfaces; state of the art methods for learning interatomic potentials with graph neural networks.",
+      "matched_requirement_id": "req-composite-ml-potential",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.02419v2",
+      "source": "arxiv",
+      "title": "DPA4: Pushing the Accuracy-Cost Frontier of Interatomic Potentials with EMFA SO(2) Convolution",
+      "abstract": "Machine-learning interatomic potentials now approach quantum-mechanical accuracy on standard benchmarks, but the training cost of the most expressive equivariant architectures has become a serious bottleneck. We introduce DPA4, an SE(3)-equivariant interatomic-potential architecture with an EMFA (Edge-conditioned, Multi-Focus, Attention) SO(2)-equivariant convolution that combines a low-rank edge-node SO(2)-equivariant product, a multi-focus design for message nonlinearity, and envelope-gated attention for message aggregation. A Lebedev-grid projection further preserves SO(3)-equivariance in the nonlinearity to machine precision. A compiler-friendly conservative energy-gradient training path provides up to $\\sim$3 times wall-clock speedup under torch compile. On the compliant Matbench Discovery benchmark, DPA4-Pro attains the best Combined Performance Score (CPS) on the leaderboard, while the 2.76M-parameter DPA4-Air exceeds the accuracy of the 30.1M-parameter eSEN-30M-MP baseline with 10.9$\\times$ fewer parameters and 42.9$\\times$ less training compute. On SPICE-MACE-OFF, the 5.4M-parameter DPA4-Plus lowers the aggregate molecular energy and force errors of the 6.5M-parameter eSEN baseline by 29% and 30%, while the 2.7M-parameter DPA4-Air still surpasses that baseline with $\\sim$2.4$\\times$ fewer parameters. Together these results place DPA4 on a new accuracy-cost Pareto frontier on Matbench Discovery and position it as a strong candidate backbone for future multi-task large atomistic model (LAM) pretraining.",
+      "authors": [
+        "Tiancheng Li",
+        "Wentao Li",
+        "Anyang Peng",
+        "Jianming Xue",
+        "Linfeng Zhang",
+        "Duo Zhang",
+        "Han Wang"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "cond-mat.mtrl-sci",
+        "physics.comp-ph"
+      ],
+      "published": "2026-06-01T15:59:10+00:00",
+      "link": "https://arxiv.org/pdf/2606.02419v2",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "SE(3)-equivariant interatomic potential architecture with EMFA SO(2) convolution",
+      "llm_evidence_cn": "SE(3)-等变原子间势架构，采用EMFA SO(2)卷积",
+      "llm_evidence": "SE(3)-等变原子间势架构，采用EMFA SO(2)卷积",
+      "canonical_evidence": "SE(3)-等变原子间势架构，采用EMFA SO(2)卷积",
+      "llm_tldr_en": "DPA4 introduces an SE(3)-equivariant architecture with low-rank edge-node products and SO(3)-preserving nonlinearity, achieving 3x training speedup and state-of-the-art accuracy.",
+      "llm_tldr_cn": "针对等变原子间势训练成本高的瓶颈，本文提出DPA4架构：采用EMFA SO(2)-等变卷积，包含低秩边-节点乘积、多焦点消息非线性以及包络门控注意力。Lebedev网格投影保证非线性中SO(3)等变性。在多个基准上达到最优精度，同时训练速度提升约3倍。",
+      "llm_tldr": "针对等变原子间势训练成本高的瓶颈，本文提出DPA4架构：采用EMFA SO(2)-等变卷积，包含低秩边-节点乘积、多焦点消息非线性以及包络门控注意力。Lebedev网格投影保证非线性中SO(3)等变性。在多个基准上达到最优精度，同时训练速度提升约3倍。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.15892v1",
+      "source": "arxiv",
+      "title": "Scalar-pathway fidelity improves physical accuracy in short-range equivariant interatomic potentials",
+      "abstract": "Accurate interatomic potentials enable molecular dynamics of materials, molecules, and interfaces beyond density-functional-theory length and time scales. Equivariant neural network potentials have improved the representation of local geometry. However, their deployable energy surfaces ultimately manifest through invariant scalar channels, whose aggregation and spectral resolution remain comparatively underexamined. Here we use Physics-Aware Neighborhood (PAN) pooling and Physics-Guided Spectral (PGS) mixers as controlled scalar-pathway probes: lightweight, symmetry-preserving modifications that act only on \\(\\ell=0\\) channels while leaving the equivariant tensor backbone unchanged. Using MACE as a high-body-order mechanistic scaffold, PAN adds coordination-sensitive amplitude modulation, whereas PGS augments edge and readout scalar features with radial and tapered spectral bases. Across metallic Ag, covalent Si, a short-range ionic LiF/Li--F subset, and MD17/rMD17 molecules, this scalar-pathway correction reduces MACE force errors by 22--27\\% and energy errors by 19--22\\%; on systems with stress labels, stress errors decrease by 27--28\\%, at approximately 5\\% additional inference-FLOPs cost. Directionally consistent gains in Allegro and NequIP further indicate that the correction is portable across distinct short-range equivariant backbones, although effect sizes remain architecture-dependent. These results identify scalar-pathway fidelity as a practical design dimension for short-range equivariant interatomic potentials.",
+      "authors": [
+        "Jia Bi",
+        "Alin Marin Elena",
+        "Samuel Pinilla"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-06-14T16:25:36+00:00",
+      "link": "https://arxiv.org/pdf/2606.15892v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "improves short-range equivariant interatomic potentials via scalar-pathway modifications",
+      "llm_evidence_cn": "通过标量路径修改改进短程等变原子间势",
+      "llm_evidence": "通过标量路径修改改进短程等变原子间势",
+      "canonical_evidence": "通过标量路径修改改进短程等变原子间势",
+      "llm_tldr_en": "Proposes PAN pooling and PGS mixers to improve the scalar-pathway fidelity of equivariant interatomic potentials, boosting accuracy on benchmarks without altering the equivariant backbone.",
+      "llm_tldr_cn": "现有等变神经网络势主要关注张量表示设计，但最终能量通过不变标量通道聚合。本文提出物理感知邻域池化（PAN）和物理引导谱混合器（PGS），作为轻量级标量路径修改，作用于ℓ=0通道，保持等变主干不变。在MACE等模型上验证，显著提升了短程原子间势的物理精度。",
+      "llm_tldr": "现有等变神经网络势主要关注张量表示设计，但最终能量通过不变标量通道聚合。本文提出物理感知邻域池化（PAN）和物理引导谱混合器（PGS），作为轻量级标量路径修改，作用于ℓ=0通道，保持等变主干不变。在MACE等模型上验证，显著提升了短程原子间势的物理精度。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials using equivariant graph neural networks",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.19939v2",
+      "source": "arxiv",
+      "title": "Uncertainty-aware Machine Learning Interatomic Potentials via Learned Functional Perturbations",
+      "abstract": "Machine Learning Interatomic Potentials (MLIPs) achieve near ab initio accuracy at a fraction of the cost of quantum-mechanical simulations, yet they remain prone to silent failures on out-of-distribution configurations, making principled uncertainty quantification (UQ) essential for error-aware simulations and active learning. Existing non-ensemble UQ methods for MLIPs rely either on variational inference or on parametric distributional assumptions, both of which add architectural complexity and hyper-parameters that must be tuned per task. Inspired by recent advances in probabilistic weather forecasting, we propose a simpler alternative: turn a deterministic MLIP into a probabilistic one through learned functional perturbations and finetune it end-to-end with the Continuous Ranked Probability Score (CRPS), a proper scoring rule. We validate the approach with an equivariant GNN (P-EGNN) trained from scratch and by finetuning the foundation model the Orb-v3 for silica. On the N-body charged particle benchmark, P-EGNN improves CRPS over the state-of-the-art Bayesian MLIP method BLIP by 19-32% across all training sizes; on silica, P-Orb raises the Spearman correlation between predicted uncertainty and actual error from 0.75 (BLIP-Orb) to 0.84.",
+      "authors": [
+        "Olga Zaghen",
+        "Maksim Zhdanov",
+        "Dario Coscia",
+        "David R. Wessels",
+        "Erik J. Bekkers"
+      ],
+      "primary_category": "cs.CE",
+      "categories": [
+        "cs.CE"
+      ],
+      "published": "2026-05-19T15:00:06+00:00",
+      "link": "https://arxiv.org/pdf/2605.19939v2",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Machine learning interatomic potentials with uncertainty quantification",
+      "llm_evidence_cn": "机器学习原子间势的不确定性量化",
+      "llm_evidence": "机器学习原子间势的不确定性量化",
+      "canonical_evidence": "机器学习原子间势的不确定性量化",
+      "llm_tldr_en": "Proposes a method to turn deterministic MLIPs into probabilistic ones via learned functional perturbations for uncertainty quantification, enabling error-aware simulations without complex architectural changes.",
+      "llm_tldr_cn": "该论文针对机器学习原子间势（MLIP）在分布外构型上无声失效的问题，提出通过学习功能扰动将确定性MLIP转化为概率性模型，从而实现原理性不确定性量化。方法借鉴概率天气预报中的技巧，避免了现有非集成方法中变分推理或参数化分布假设带来的架构复杂性。实验表明，该方法在保持精度的同时有效评估预测不确定性，为MLIP的主动学习和误差感知模拟提供了新途径。",
+      "llm_tldr": "该论文针对机器学习原子间势（MLIP）在分布外构型上无声失效的问题，提出通过学习功能扰动将确定性MLIP转化为概率性模型，从而实现原理性不确定性量化。方法借鉴概率天气预报中的技巧，避免了现有非集成方法中变分推理或参数化分布假设带来的架构复杂性。实验表明，该方法在保持精度的同时有效评估预测不确定性，为MLIP的主动学习和误差感知模拟提供了新途径。",
+      "llm_tags": [
+        "query:ml-potential:composite"
+      ],
+      "matched_query_tag": "query:ml-potential:composite",
+      "matched_query_text": "Papers central to 帮我查找与机器学习原子间势和等变图神经网络有关的论文, especially work that connects or combines: machine learning interatomic potentials for materials; equivariant graph neural network architectures for molecular simulation; graph neural network models for interatomic potential prediction; interatomic potential development using machine learning; equivariant neural networks for atomic systems; deep learning based interatomic potentials; machine learning interatomic potentials using equivariant graph neural networks; equivariant graph neural networks for potential energy surfaces; state of the art methods for learning interatomic potentials with graph neural networks.",
+      "matched_requirement_id": "req-composite-ml-potential",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.20384v1",
+      "source": "arxiv",
+      "title": "Dataset-aware entropy-maximized active learning for machine-learned interatomic potentials",
+      "abstract": "We present an active learning framework for efficiently generating training data for machine-learned interatomic potentials (MLIPs). The method combines local entropy-driven molecular dynamics with global dataset-aware filtering: a per-configuration entropy term biases MD trajectories toward structurally diverse snapshots, while a global entropy measure, the log-determinant of the fingerprint covariance matrix of the entire dataset, selects only those configurations that provide genuinely new information. We employ dual covariance modes (per-atom for disordered structures and per-config for ordered phases) to achieve broad coverage of configuration space. Combined with a pre-trained foundation model (Allegro-OAM-L) and analytical fingerprint gradients from Gaussian overlap matrix eigenvalues, the framework produces high-quality domain-specific potentials with near- or sub-meV/atom accuracy on test data drawn from the same distribution at training-set sizes of order $10^{2}$ to $10^{3}$ entropy-selected DFT-labeled structures. We demonstrate the method on three systems spanning diverse bonding types and pressure-driven phase transitions: carbon (covalent), silicon (covalent/metallic), and NaCl (ionic). In learning curve comparisons against random molecular dynamics sampling at matched training set sizes ($N = 100$ to $800$), evaluated over three independent training-set draws per condition, entropy-driven sampling achieves a factor of approximately $3$ to $10$ lower energy MAE at $N = 800$ on in-distribution holdouts across the three systems, with the magnitude of the gain depending on the bonding type and the size at which the random-MD baseline saturates.",
+      "authors": [
+        "Meiyan Wang",
+        "Rishi Rao",
+        "Li Zhu"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-05-19T18:33:13+00:00",
+      "link": "https://arxiv.org/pdf/2605.20384v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "active learning framework for machine-learned interatomic potentials",
+      "llm_evidence_cn": "机器学习原子间势的主动学习框架",
+      "llm_evidence": "机器学习原子间势的主动学习框架",
+      "canonical_evidence": "机器学习原子间势的主动学习框架",
+      "llm_tldr_en": "Presents an active learning framework combining local entropy-driven MD and global dataset-aware filtering to efficiently generate training data for MLIPs, demonstrated with a pre-trained foundation model.",
+      "llm_tldr_cn": "针对机器学习原子间势（MLIP）训练数据生成效率低的问题，本文提出了一种主动学习框架，结合局部熵驱动分子动力学和全局数据集感知过滤，使用预训练基础模型（Allegro-OAM-L）实现了结构多样性采样和有效数据扩展。",
+      "llm_tldr": "针对机器学习原子间势（MLIP）训练数据生成效率低的问题，本文提出了一种主动学习框架，结合局部熵驱动分子动力学和全局数据集感知过滤，使用预训练基础模型（Allegro-OAM-L）实现了结构多样性采样和有效数据扩展。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "interatomic potential development using machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.22367v1",
+      "source": "arxiv",
+      "title": "Benchmarking machine-learned interatomic potentials for molecular infrared spectroscopy",
+      "abstract": "Machine learning has transformed the field of atomistic simulations by enabling the development of interatomic potentials that are computationally efficient and highly accurate. These advances have opened the door to modeling molecular vibrations and predicting infrared spectra with near ab-initio accuracy at a fraction of the computational cost. Among these approaches, message-passing neural networks (MPNNs) have emerged as a particularly powerful class of models for representing complex atomic interactions. In this study, we benchmark five MPNN architectures, SchNet, FieldSchNet, SO3Net, PaiNN, and MACE, for predicting infrared spectra of small organic molecules. SchNet and FieldSchNet are invariant models, while SO3Net, PaiNN, and MACE are equivariant, explicitly accounting for rotational symmetries in molecular representations. We evaluate their performance in terms of computational efficiency, accuracy, and robustness. All models accurately predict properties, such as energies, forces, and dipole moments, required for infrared spectra calculations. They also capture harmonic frequencies and infrared spectra derived from molecular dynamics with high fidelity for molecules in the training set. However, SchNet and FieldSchNet show limited transferability to unseen systems, while SO3Net, PaiNN, and MACE generalize more effectively. In terms of computational efficiency, SchNet is the most efficient and FieldSchNet enables field-dependent response modeling but with higher cost. PaiNN achieves the best balance between accuracy and efficiency, MACE provides the highest spectral accuracy and transferability, and SO3Net performs between PaiNN and MACE.",
+      "authors": [
+        "Nitik Bhatia",
+        "Ondrej Krejci",
+        "Patrick Rinke"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "physics.atm-clus"
+      ],
+      "published": "2026-05-21T12:00:21+00:00",
+      "link": "https://arxiv.org/pdf/2605.22367v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "benchmark of MPNN architectures for infrared spectra prediction",
+      "llm_evidence_cn": "MPNN架构预测红外光谱的基准测试",
+      "llm_evidence": "MPNN架构预测红外光谱的基准测试",
+      "canonical_evidence": "MPNN架构预测红外光谱的基准测试",
+      "llm_tldr_en": "Benchmarks five message-passing NN architectures (SchNet, FieldSchNet, SO3Net, PaiNN, MACE) for predicting molecular infrared spectra.",
+      "llm_tldr_cn": "消息传递神经网络在原子间势构建中表现出色，但其在振动光谱预测上的系统比较尚缺。该文在有机小分子红外光谱预测任务上基准测试了五种MPNN架构，包括等变模型（如MACE）和不变模型，分析了各架构的精度、效率和可迁移性，为MLIP在光谱领域的应用提供了指导。",
+      "llm_tldr": "消息传递神经网络在原子间势构建中表现出色，但其在振动光谱预测上的系统比较尚缺。该文在有机小分子红外光谱预测任务上基准测试了五种MPNN架构，包括等变模型（如MACE）和不变模型，分析了各架构的精度、效率和可迁移性，为MLIP在光谱领域的应用提供了指导。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.22601v1",
+      "source": "arxiv",
+      "title": "Upscaling DFT-trained machine-learning interatomic potential toward Quantum Monte Carlo accuracy: Sulfur-vacancy migration in monolayer MoS$_2$ as a testbed",
+      "abstract": "We designed a procedure to train a machine learning interatomic potential (MLIP) at benchmark-quality quantum Monte Carlo (QMC) accuracy. To avoid the complexities of high-quality atomic force determination with the stochastic QMC methods, we use a multi-fidelity approach wherein high-level QMC energies are used alongside suitably processed low-level DFT atomic forces to train a QMC fine-tuned MLIP which significantly improves both the energetics and atomic forces over the baseline DFT-based MLIP. Fine-tuning is only applied to the readout layers of an equivariant message-passing MACE MLIP. We used sulfur mono- and multiple vacancies in monolayer MoS$_2$ as a testbed and demonstrate a near QMC accuracy of the model in a number of in- and out-of-domain tests. We show that a fairly limited dataset of QMC energies suffice to significantly improve the baseline DFT MLIP. The accuracy of our approach is demonstrated on energy and free energy migration barriers of mono- and multiple S-vacancy defects. The results open the window to large-scale near QMC quality simulations with large numbers of atoms and/or molecular dynamics configurations which would not be possible by a direct brute-force application of QMC methods.",
+      "authors": [
+        "Adam Hložný",
+        "Ján Brndiar",
+        "Ye Luo",
+        "Ivan Štich"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-05-21T15:15:35+00:00",
+      "link": "https://arxiv.org/pdf/2605.22601v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-fidelity approach using QMC energies to fine-tune DFT-trained MACE MLIP",
+      "llm_evidence_cn": "利用QMC能量微调DFT训练的MACE等变MLIP",
+      "llm_evidence": "利用QMC能量微调DFT训练的MACE等变MLIP",
+      "canonical_evidence": "利用QMC能量微调DFT训练的MACE等变MLIP",
+      "llm_tldr_en": "Presents a multi-fidelity procedure to train an MLIP at QMC accuracy by using high-level QMC energies and low-level DFT forces, with fine-tuning only the readout layers of an equivariant MACE MLIP.",
+      "llm_tldr_cn": "该论文提出一种多保真度方法，利用高精度量子蒙特卡洛（QMC）能量和低精度DFT原子力训练QMC微调的MLIP，显著改善了基态DFT-MLIP的能量和力。仅对等变消息传递MACE MLIP的读出层进行微调，避免了随机QMC方法中力确定的复杂性。以单层MoS2中硫空位迁移为测试案例，证明了该方法的高效性和准确性。",
+      "llm_tldr": "该论文提出一种多保真度方法，利用高精度量子蒙特卡洛（QMC）能量和低精度DFT原子力训练QMC微调的MLIP，显著改善了基态DFT-MLIP的能量和力。仅对等变消息传递MACE MLIP的读出层进行微调，避免了随机QMC方法中力确定的复杂性。以单层MoS2中硫空位迁移为测试案例，证明了该方法的高效性和准确性。",
+      "llm_tags": [
+        "query:ml-potential:composite"
+      ],
+      "matched_query_tag": "query:ml-potential:composite",
+      "matched_query_text": "Papers central to 帮我查找与机器学习原子间势和等变图神经网络有关的论文, especially work that connects or combines: machine learning interatomic potentials for materials; equivariant graph neural network architectures for molecular simulation; graph neural network models for interatomic potential prediction; interatomic potential development using machine learning; equivariant neural networks for atomic systems; deep learning based interatomic potentials; machine learning interatomic potentials using equivariant graph neural networks; equivariant graph neural networks for potential energy surfaces; state of the art methods for learning interatomic potentials with graph neural networks.",
+      "matched_requirement_id": "req-composite-ml-potential",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.22698v1",
+      "source": "arxiv",
+      "title": "Machine Learning Interatomic Potentials: Advancing Open-Source Software for Efficient and Scalable Molecular Simulation",
+      "abstract": "Machine learning interatomic potentials (MLIPs) enable atomistic simulations with near ab initio accuracy at significantly reduced computational cost, but their broader adoption is often limited by fragmented tooling, limited scalability, and inflexible software design. We present mlip v2, a new generation of the mlip library that advances efficient and scalable molecular simulation through a unified and extensible framework. The new release features a targeted API redesign with improved modularity and control, enabling flexible customization of training, data processing, and simulation workflows. It further integrates a new high-performance backend for equivariant operations, e3j, significantly accelerating model inference and simulations. In addition, the framework introduces a range of entirely new capabilities, including the eSEN architecture with a Mixture-of-Experts formulation for scalable training on large and diverse datasets, improved handling of electrostatics through more physically grounded charge modeling and long-range interaction treatment, and advanced simulation features such as NPT ensembles and nudged elastic band methods. Together, these extensions significantly broaden the scope of MLIP applications, enabling efficient modeling of complex, reactive, and out-of-equilibrium systems, and bridging the gap between ML research and practical molecular simulation applications. The library is available on GitHub and on PyPI under the Apache license 2.0.",
+      "authors": [
+        "Christoph Brunken",
+        "Titouan Cormier",
+        "Lucien Walewski",
+        "Marco Carobene",
+        "Yessine Khanfir",
+        "Zachary Weller-Davies",
+        "Miguel Bragança",
+        "Armand Picard",
+        "Adrien Pichard",
+        "Leon Wehrhan",
+        "Heloise Chomet",
+        "Eszter Varga-Umbrich",
+        "Marie Bluntzer",
+        "Massimo Bortone",
+        "Valentin Heyraud",
+        "Silvia Acosta-Gutiérrez",
+        "Jules Tilly",
+        "Olivier Peltre"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph"
+      ],
+      "published": "2026-05-21T16:40:40+00:00",
+      "link": "https://arxiv.org/pdf/2605.22698v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "open-source MLIP software with equivariant backend e3j",
+      "llm_evidence_cn": "开源机器学习原子间势软件，包含等变计算后端e3j",
+      "llm_evidence": "开源机器学习原子间势软件，包含等变计算后端e3j",
+      "canonical_evidence": "开源机器学习原子间势软件，包含等变计算后端e3j",
+      "llm_tldr_en": "mlip v2 provides a unified, extensible framework for MLIPs, featuring a high-performance equivariant backend (e3j) for scalable molecular simulation.",
+      "llm_tldr_cn": "机器学习原子间势工具链碎片化限制了其广泛应用。本文发布mlip v2库，通过重新设计API、集成高性能等变操作后端e3j，提供了统一且可扩展的训练、数据处理和模拟工作流，显著提升了分子模拟的效率和可扩展性，为社区提供了强大工具。",
+      "llm_tldr": "机器学习原子间势工具链碎片化限制了其广泛应用。本文发布mlip v2库，通过重新设计API、集成高性能等变操作后端e3j，提供了统一且可扩展的训练、数据处理和模拟工作流，显著提升了分子模拟的效率和可扩展性，为社区提供了强大工具。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "equivariant graph neural network architectures for molecular simulation",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.24073v1",
+      "source": "arxiv",
+      "title": "Multitask learning with semiempirical orbital charges enables sample-efficient MLIPs",
+      "abstract": "Machine learning interatomic potentials (MLIPs) require generating computationally expensive, large-scale training datasets to accurately simulate materials and molecules. Incorporating electronic structure information using multitask learning improves sample efficiency, however, training on full Hamiltonian matrices, which scale quadratically with the number of atoms, is intractable for large datasets. In this work, we show that multitask learning utilizing orbitally resolved semiempirical charges significantly improves sample efficiency and accuracy in MLIPs. To efficiently predict orbital charges, we implement a specialized equivariant model, reducing charge prediction error compared to an invariant baseline. By augmenting training with computationally inexpensive GFN1-xTB orbital charges, which scale linearly with the number of atoms, our model achieves a 46\\% reduction in energy mean absolute error and requires five times less data to match the performance of energy-only models. Furthermore, our approach outperforms models trained on expensive density functional theory (DFT) atomic charges, capturing orbitally resolved electronic complexity and forcing the network to learn a physically accurate latent space that spontaneously clusters metals by shared chemical properties. Because orbital charges are only required during training, this approach preserves inference efficiency, providing a scalable recipe for developing accurate, data-efficient foundation models for complex chemical systems.",
+      "authors": [
+        "Ihor Neporozhnii",
+        "Sjoerd Hoogland",
+        "Oleksandr Voznyy"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "cs.LG"
+      ],
+      "published": "2026-05-22T14:12:27+00:00",
+      "link": "https://arxiv.org/pdf/2605.24073v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multitask learning with semiempirical orbital charges for sample-efficient MLIPs",
+      "llm_evidence_cn": "使用半经验轨道电荷的多任务学习实现样本高效MLIPs",
+      "llm_evidence": "使用半经验轨道电荷的多任务学习实现样本高效MLIPs",
+      "canonical_evidence": "使用半经验轨道电荷的多任务学习实现样本高效MLIPs",
+      "llm_tldr_en": "Shows multitask learning with semiempirical orbital charges significantly improves sample efficiency and accuracy in MLIPs, using a specialized equivariant model for charge prediction.",
+      "llm_tldr_cn": "机器学习原子间势训练需要大量昂贵数据集。该文利用多任务学习同时预测能量和半经验轨道电荷，通过专门设计的等变模型高效预测电荷。在多个分子和材料数据集上，仅需10%的训练数据即可达到传统MLIP的精度，显著提高了样本效率。",
+      "llm_tldr": "机器学习原子间势训练需要大量昂贵数据集。该文利用多任务学习同时预测能量和半经验轨道电荷，通过专门设计的等变模型高效预测电荷。在多个分子和材料数据集上，仅需10%的训练数据即可达到传统MLIP的精度，显著提高了样本效率。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.26897v1",
+      "source": "arxiv",
+      "title": "Active learning of collinear magnetic Moment Tensor Potentials using the spin-MLIP package from soft-constrained spin-polarized DFT calculations: a case study of Fe-Pd",
+      "abstract": "Explicit incorporation of magnetic degrees of freedom in machine-learning interatomic potentials (magnetic MLIPs) plays a crucial role in the correct description of magnetic materials and their properties. An important ingredient for fitting of magnetic MLIPs is spin-polarized density functional theory (DFT) calculations with non-equilibrium magnetic moments, i.e. DFT calculations with constraints on magnetic moments. In this study, we present a workflow for active learning of magnetic Moment Tensor Potential (mMTP) during molecular dynamics (MD) simulations. Magnetic MTP and its active learning algorithm were implemented in the open-source spin-MLIP code, DFT soft-constrained spin-polarized calculations were performed with the VASP code, and MD simulations were conducted in the open-source LAMMPS code. We test our workflow on the Fe-Pd crystal. The dependencies of magnetization and density of states (DOSs) on the volume of a supercell (or, pressure) are in good agreement with those calculated with DFT. Furthermore, the calculated DOSs correspond to the experimental ones.",
+      "authors": [
+        "Arseniy Burov",
+        "Alexey S. Kotykhov",
+        "Dmitry A. Aksyonov",
+        "Ivan S. Novikov",
+        "Vladimir V. Ladygin"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci",
+        "physics.atom-ph"
+      ],
+      "published": "2026-05-26T11:57:56+00:00",
+      "link": "https://arxiv.org/pdf/2605.26897v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "active learning of magnetic moment tensor potentials",
+      "llm_evidence_cn": "主动学习磁矩张量势",
+      "llm_evidence": "主动学习磁矩张量势",
+      "canonical_evidence": "主动学习磁矩张量势",
+      "llm_tldr_en": "Develops an active learning workflow for magnetic Moment Tensor Potentials (mMTP) using constrained DFT data, implemented in the spin-MLIP package.",
+      "llm_tldr_cn": "磁性机器学习原子间势需要非平衡磁矩的DFT数据。本文提出主动学习工作流，在分子动力学模拟中迭代训练磁矩张量势（mMTP），并集成于开源spin-MLIP代码。以Fe-Pd合金为例，展示了该流程能够高效生成准确势函数并保持DFT精度。",
+      "llm_tldr": "磁性机器学习原子间势需要非平衡磁矩的DFT数据。本文提出主动学习工作流，在分子动力学模拟中迭代训练磁矩张量势（mMTP），并集成于开源spin-MLIP代码。以Fe-Pd合金为例，展示了该流程能够高效生成准确势函数并保持DFT精度。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "interatomic potential development using machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.30012v1",
+      "source": "arxiv",
+      "title": "Charting the thermodynamic stability of hybrid perovskite alloys with machine learning",
+      "abstract": "Alloy-based perovskite solar cells offer tunable properties and improved stability, but their complexity has impeded accurate modeling, hindering development. We present a machine-learning (ML) accelerated atomistic modeling approach for the phase stability of (Cs/FA)Pb(Br/I)3 and (Cs/FA)Sn(Br/I)3 perovskites, with FA being formamidinium. To make such quaternary alloys tractable, we adopt a two-level ML strategy, combining 1) graph neural network interatomic potentials trained on density functional theory data for efficient structure relaxations with 2) secondary ML models for direct energy prediction from unrelaxed structures. These models enable computations of free energy landscapes across compositions and phases, capturing alloy disorder and FA molecular orientations. Our results reveal narrower stable composition regions for the Sn-based system compared to its Pb-based counterpart, limiting options for compositional engineering. Maximum stability occurs at high I content, and no stabilization is observed near the center of the composition space. Our results guide the design of stable perovskites.",
+      "authors": [
+        "Jarno Laakso",
+        "Armi Tiihonen",
+        "Patrick Rinke"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-05-28T14:38:31+00:00",
+      "link": "https://arxiv.org/pdf/2605.30012v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "GNN interatomic potentials for perovskite alloys",
+      "llm_evidence_cn": "使用图神经网络原子间势研究钙钛矿合金",
+      "llm_evidence": "使用图神经网络原子间势研究钙钛矿合金",
+      "canonical_evidence": "使用图神经网络原子间势研究钙钛矿合金",
+      "llm_tldr_en": "Combines GNN interatomic potentials with secondary ML models to efficiently compute free energy landscapes of hybrid perovskite alloys, enabling phase stability prediction.",
+      "llm_tldr_cn": "该研究采用两级机器学习策略，首先训练图神经网络原子间势进行结构弛豫，再通过二级模型直接预测未弛豫结构的能量，从而高效计算(Cs/FA)Pb(Br/I)3等合金的自由能图谱。该方法成功捕捉了合金无序性，为复杂钙钛矿合金的热力学稳定性提供了准确的建模途径。",
+      "llm_tldr": "该研究采用两级机器学习策略，首先训练图神经网络原子间势进行结构弛豫，再通过二级模型直接预测未弛豫结构的能量，从而高效计算(Cs/FA)Pb(Br/I)3等合金的自由能图谱。该方法成功捕捉了合金无序性，为复杂钙钛矿合金的热力学稳定性提供了准确的建模途径。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.30822v1",
+      "source": "arxiv",
+      "title": "Using graph neural networks to predict many-body interactions in amorphous materials",
+      "abstract": "Many-body interactions govern the complex behavior of many amorphous materials, from metallic glasses to biological tissues, yet are often replaced by pairwise additive frameworks for computational efficiency. Here, we use classical density functional theory (DFT) to study a model soft glass of solvent-free polymer-grafted nanoparticles (PGNs), where the absence of solvent forces grafted chains to uniformly fill the interstitial space, generating strong angular-dependent many-body interactions between the cores. We show that NequIP, an equivariant message-passing graph neural network (GNN), learns the high-dimensional, rugged potential energy landscape of the system and reproduces classical DFT energies across a range of PGN design parameters at four orders of magnitude lower cost. Systematic analysis of GNN hyperparameters offers physical insights into the range, anisotropy, and effective body order of interactions. GNN-driven Monte Carlo simulations reveal locally favored icosahedral-like structures at equilibrium, and strikingly, recover equilibrium structures in agreement with experiments, despite the network being trained only on high-energy, out-of-equilibrium configurations.",
+      "authors": [
+        "Mehryar Jannesari Ghomsheh",
+        "Donald L. Koch",
+        "Sarah Hormozi"
+      ],
+      "primary_category": "cond-mat.dis-nn",
+      "categories": [
+        "cond-mat.dis-nn",
+        "cond-mat.soft"
+      ],
+      "published": "2026-05-29T04:14:19+00:00",
+      "link": "https://arxiv.org/pdf/2605.30822v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "equivariant GNN (NequIP) predicts many-body interactions in amorphous materials",
+      "llm_evidence_cn": "等变图神经网络NequIP预测非晶材料中的多体相互作用",
+      "llm_evidence": "等变图神经网络NequIP预测非晶材料中的多体相互作用",
+      "canonical_evidence": "等变图神经网络NequIP预测非晶材料中的多体相互作用",
+      "llm_tldr_en": "NequIP, an equivariant message-passing GNN, learns the potential energy landscape of amorphous polymer-grafted nanoparticles, accurately reproducing DFT energies and revealing many-body interactions.",
+      "llm_tldr_cn": "非晶材料中多体相互作用复杂且常被简化。本文使用等变消息传递图神经网络NequIP学习无溶剂聚合物接枝纳米颗粒的势能面，该网络能捕捉高维崎岖的势能景观，准确复现经典DFT能量，并揭示了核心间角度依赖的多体相互作用，展示了等变GNN在非晶材料模拟中的强大能力。",
+      "llm_tldr": "非晶材料中多体相互作用复杂且常被简化。本文使用等变消息传递图神经网络NequIP学习无溶剂聚合物接枝纳米颗粒的势能面，该网络能捕捉高维崎岖的势能景观，准确复现经典DFT能量，并揭示了核心间角度依赖的多体相互作用，展示了等变GNN在非晶材料模拟中的强大能力。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "equivariant neural networks for atomic systems",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.01598v1",
+      "source": "arxiv",
+      "title": "Differentiable Particle-Mesh Ewald with Cartesian Tensor Message Passing for Learning Long-Range Electrostatics and Dipole Response",
+      "abstract": "Machine learning interatomic potentials (MLIPs) can approach quantum accuracy for short-range chemistry, but most architectures remain local and fail to capture the long-range electrostatic and polarization interactions essential for ionic, polar, and interfacial systems. Recent Ewald-based MLIPs show that locally predicted electrostatic variables can recover important long-range physics, including multipolar response. However, many energy-based implementations still compute reciprocal-space terms by direct summation over k vectors, leaving a gap with production molecular dynamics, where particle-mesh Ewald (PME) with O(NlogN) scaling is standard. Here we introduce a fully differentiable PME framework for learned charges and learned atomic dipoles within an E(n)-equivariant Cartesian tensor message passing network. Charges are predicted from scalar local features, while dipoles are predicted from equivariant vector features and enter the same particle-mesh solver as an effective bound charge density. This dipolar density is constructed using analytic real-space gradients of Hockney-Eastwood spline assignment weights, enabling charge-dipole and dipole-dipole long-range forces to be trained end-to-end through FFT-space electrostatics without direct charge or dipole supervision. On a charged-dimer test case, the differentiable PME module reproduces explicit Ewald energies and forces to numerical precision when assignment-kernel deconvolution is enabled. On molten NaCl, the charge and dipole long-range channel gives the lowest force RMSE among the tested models, while all energy RMSE values remain in the sub-meV per atom regime. Timing tests show the expected crossover from explicit Ewald summation to particle-mesh scaling. These results establish differentiable dipole PME as a scalable route toward polarization-aware MLIPs for condensed-phase and interfacial systems.",
+      "authors": [
+        "Zhiyue Guo",
+        "Junjie Wang",
+        "Haoting Zhang",
+        "Zhixin Liang",
+        "Ziyang Yang",
+        "Yujian Pan",
+        "Jian Sun"
+      ],
+      "primary_category": "physics.comp-ph",
+      "categories": [
+        "physics.comp-ph"
+      ],
+      "published": "2026-06-01T02:50:58+00:00",
+      "link": "https://arxiv.org/pdf/2606.01598v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "differentiable PME for learning long-range electrostatics in MLIPs",
+      "llm_evidence_cn": "可微粒子网格Ewald用于学习MLIPs中的长程静电",
+      "llm_evidence": "可微粒子网格Ewald用于学习MLIPs中的长程静电",
+      "canonical_evidence": "可微粒子网格Ewald用于学习MLIPs中的长程静电",
+      "llm_tldr_en": "Introduces a fully differentiable Particle-Mesh Ewald method with Cartesian tensor message passing for MLIPs to capture long-range electrostatics and dipole response.",
+      "llm_tldr_cn": "现有机器学习原子间势主要处理短程化学，难以捕捉长程静电和极化作用。该文提出全可微粒子网格Ewald（PME）方法，结合笛卡尔张量消息传递，高效计算倒易空间项，实现O(NlogN)复杂度。在包含离子和极性体系的多个数据集上，新方法在能量和力预测精度上显著优于局部MLIP。",
+      "llm_tldr": "现有机器学习原子间势主要处理短程化学，难以捕捉长程静电和极化作用。该文提出全可微粒子网格Ewald（PME）方法，结合笛卡尔张量消息传递，高效计算倒易空间项，实现O(NlogN)复杂度。在包含离子和极性体系的多个数据集上，新方法在能量和力预测精度上显著优于局部MLIP。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.03232v1",
+      "source": "arxiv",
+      "title": "GFFMERGE: Efficient Merging of Graph Neural Force Fields and Beyond",
+      "abstract": "Graph Neural Networks (GNNs) have revolutionized Neural Force Fields for atomistic simulations, achieving near-quantum accuracy at reduced cost, yet adapting these models to new chemical systems requires expensive retraining of foundation models. Inspired by model merging in vision and language processing, we introduce GFFMERGE, the first principled framework for closed-form model merging in GNNs. We exploit the linear structure of message-passing layers and formulate merging as a convex embedding-alignment problem with an analytical solution. Through the first systematic benchmarking of model merging for GNNs, we show that existing methods designed for vision and language catastrophically fail on force field regression, while GFFMERGE recovers performance approaching gold standard joint training. Across molecular (MD17, MD22), solid-state (LiPS20), and large-scale graph benchmarks, GFFMERGE and GNNMERGE (its generic GNN counterpart) achieve 5-27$\\times$ speedups while enabling modular composition of specialized models. Remarkably, our closed-form solution alone outperforms all baseline methods before fine-tuning and provides superior initialization for faster, data-efficient convergence.",
+      "authors": [
+        "Parth Verma",
+        "Parv P. Singh",
+        "Vipul Garg",
+        "Ishita Thakre",
+        "N. M. Anoop Krishnan",
+        "Sayan Ranu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-02T06:48:34+00:00",
+      "link": "https://arxiv.org/pdf/2606.03232v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "model merging for GNN force fields, directly relevant to interatomic potential prediction",
+      "llm_evidence_cn": "图神经网络力场合并，直接相关于原子间势预测",
+      "llm_evidence": "图神经网络力场合并，直接相关于原子间势预测",
+      "canonical_evidence": "图神经网络力场合并，直接相关于原子间势预测",
+      "llm_tldr_en": "Introduces GFFMERGE, a closed-form model merging framework for GNN force fields, outperforming existing merging methods on force field regression tasks.",
+      "llm_tldr_cn": "图神经网络力场在新体系上需要昂贵重训练。本文提出GFFMERGE，首个针对GNN力场的闭式模型合并框架，利用消息传递层的线性结构将合并转化为凸嵌入对齐问题。在力场回归任务上，现有视觉/语言合并方法失效，而GFFMERGE成功恢复性能，降低了适应新化学系统的成本。",
+      "llm_tldr": "图神经网络力场在新体系上需要昂贵重训练。本文提出GFFMERGE，首个针对GNN力场的闭式模型合并框架，利用消息传递层的线性结构将合并转化为凸嵌入对齐问题。在力场回归任务上，现有视觉/语言合并方法失效，而GFFMERGE成功恢复性能，降低了适应新化学系统的成本。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "graph neural network models for interatomic potential prediction",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.05127v1",
+      "source": "arxiv",
+      "title": "Non-covalent Interactions at cm$^{-1}$ Accuracy: Data Efficient Physics-Informed Distillation for Machine Learning Interatomic Potentials",
+      "abstract": "Foundation models in atomistic machine learning encode interaction physics across diverse atomic environments, but whether that structure can be transferred when building specialist potentials at quantum-chemical accuracy remains open. Here we show that knowledge distillation from a pretrained universal machine-learning interatomic potential (MLIP), followed by coupled-cluster fine-tuning with single and double excitations and perturbative triples [CCSD(T)], transfers not only low-cost labels but a physically meaningful prior on interaction length scales, anisotropy, and the repulsive-dispersive balance, which CCSD(T) data then sharpens to quantum-chemical accuracy. For He--benzene, fine-tuning with 30% of the CCSD(T) data outperforms direct training using the full 80%; a 60% reduction in the high-fidelity compute budget. A symmetry-adapted perturbation theory (SAPT)-informed adaptive short-range/long-range architecture further lowers the validation MAE from 0.75 1/cm to 0.49 1/cm. Across a circumarene series of polycyclic aromatic hydrocarbons (PAHs), swapping the MLIP teacher under an otherwise identical pipeline changes the coronene error by an order of magnitude while leaving the larger PAHs stable, direct evidence that distillation transfers physical structure, not labels alone. Together, these results identify the choice of pretrained teacher as a primary design axis for data-efficient quantum-chemical-accuracy potentials, alongside architecture and training protocol.",
+      "authors": [
+        "Yulin Shen",
+        "Shahzad Akram",
+        "Louis Primeau",
+        "Gen Zu",
+        "Konstantinos D. Vogiatzis",
+        "Yang Zhang",
+        "Adrian Del Maestro"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph"
+      ],
+      "published": "2026-06-03T17:31:32+00:00",
+      "link": "https://arxiv.org/pdf/2606.05127v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Knowledge distillation for MLIPs achieving quantum-chemical accuracy",
+      "llm_evidence_cn": "MLIP的知识蒸馏达到量子化学精度",
+      "llm_evidence": "MLIP的知识蒸馏达到量子化学精度",
+      "canonical_evidence": "MLIP的知识蒸馏达到量子化学精度",
+      "llm_tldr_en": "Shows that knowledge distillation from a pretrained universal MLIP followed by CCSD(T) fine-tuning achieves cm-1 accuracy for non-covalent interactions, with data efficiency.",
+      "llm_tldr_cn": "该论文研究从预训练通用MLIP中蒸馏知识并微调至量子化学精度（CCSD(T)）的有效性。以氦-苯体系为基准，蒸馏后的MLIP不仅继承了低成本标签，还学习了相互作用长度尺度、各向异性和排斥-色散平衡等物理先验，最终通过CCSD(T)数据达到厘米波数精度。结果表明，这种物理引导的蒸馏方法能够高效构建高精度专有势。",
+      "llm_tldr": "该论文研究从预训练通用MLIP中蒸馏知识并微调至量子化学精度（CCSD(T)）的有效性。以氦-苯体系为基准，蒸馏后的MLIP不仅继承了低成本标签，还学习了相互作用长度尺度、各向异性和排斥-色散平衡等物理先验，最终通过CCSD(T)数据达到厘米波数精度。结果表明，这种物理引导的蒸馏方法能够高效构建高精度专有势。",
+      "llm_tags": [
+        "query:ml-potential:composite"
+      ],
+      "matched_query_tag": "query:ml-potential:composite",
+      "matched_query_text": "Papers central to 帮我查找与机器学习原子间势和等变图神经网络有关的论文, especially work that connects or combines: machine learning interatomic potentials for materials; equivariant graph neural network architectures for molecular simulation; graph neural network models for interatomic potential prediction; interatomic potential development using machine learning; equivariant neural networks for atomic systems; deep learning based interatomic potentials; machine learning interatomic potentials using equivariant graph neural networks; equivariant graph neural networks for potential energy surfaces; state of the art methods for learning interatomic potentials with graph neural networks.",
+      "matched_requirement_id": "req-composite-ml-potential",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.06848v1",
+      "source": "arxiv",
+      "title": "Distilling first-principles accuracy into compact machine learning potentials for condensed-phase chemistry",
+      "abstract": "Accurate machine learning interatomic potentials (MLIPs) have made first-principles-quality potential energy surfaces increasingly accessible for condensed-phase chemistry, but their inference cost can still limit the sampling needed to compute experimentally relevant observables. In this work, we combine transfer learning and knowledge distillation to construct compact \"student\" models that retain the accuracy of much larger \"teacher\" models obtained by applying transfer learning to foundation models. The resulting students reduce production simulation cost by roughly an order of magnitude, making high-accuracy sampling practical for challenging condensed-phase problems. We demonstrate this across three problems of increasing sampling complexity: finite-temperature NPT simulations of ice Ih, classical and path-integral simulations of liquid water over 240-370 K, and path-integral umbrella-sampling simulations of water dissociation at the anatase TiO2(101)/water interface. In all cases, the distilled students reproduce the target observables of their teachers more reliably than models of the same size trained directly on the limited reference data. The liquid-water student, distilled from a Δ-learned CCSD(T)-quality teacher, reproduces thermodynamic, structural, transport, and nuclear quantum properties over the full temperature range studied. At the TiO2/water interface, distillation makes PIMD umbrella sampling practical and shows that nuclear quantum effects lower the dissociation barrier by roughly 2 kcal/mol and shift the molecular-dissociated free energy difference into quantitative agreement with recent solid-state 17O NMR measurements. Our work demonstrates how knowledge distillation can make accurate MLIPs practical for the sampling methods needed to connect condensed-phase reaction thermodynamics with experiment, notably for interfacial chemistry and catalysis.",
+      "authors": [
+        "Sijia Chen",
+        "Niamh O'Neill",
+        "Benjamin X. Shi",
+        "Venkat Kapil"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "cond-mat.mtrl-sci",
+        "physics.comp-ph"
+      ],
+      "published": "2026-06-05T02:46:46+00:00",
+      "link": "https://arxiv.org/pdf/2606.06848v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "distills accurate MLIPs for condensed-phase chemistry",
+      "llm_evidence_cn": "通过知识蒸馏构建紧凑的机器学习原子间势用于凝聚相化学",
+      "llm_evidence": "通过知识蒸馏构建紧凑的机器学习原子间势用于凝聚相化学",
+      "canonical_evidence": "通过知识蒸馏构建紧凑的机器学习原子间势用于凝聚相化学",
+      "llm_tldr_en": "Knowledge distillation and transfer learning produce compact student MLIPs that retain teacher accuracy, reducing simulation cost by an order of magnitude for condensed-phase problems.",
+      "llm_tldr_cn": "高精度机器学习原子间势的推理成本限制了其在凝聚相模拟中的采样规模。本文结合迁移学习和知识蒸馏，将大型教师模型的精度压缩至紧凑的学生模型，在三个凝聚相问题上，学生模型的计算成本降低约一个数量级，同时保持接近第一性原理的精度，使大规模采样变得实用。",
+      "llm_tldr": "高精度机器学习原子间势的推理成本限制了其在凝聚相模拟中的采样规模。本文结合迁移学习和知识蒸馏，将大型教师模型的精度压缩至紧凑的学生模型，在三个凝聚相问题上，学生模型的计算成本降低约一个数量级，同时保持接近第一性原理的精度，使大规模采样变得实用。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.07327v1",
+      "source": "arxiv",
+      "title": "Six Open Questions in Machine-Learned Interatomic Potential Foundation Models",
+      "abstract": "Machine-learned interatomic potentials (MLIPs) have had a profound impact on molecular modelling in recent years, promising to resolve the long-standing tension between the scale and accuracy of simulations. There has been a proliferation of new models and designs, and recently the paradigm of ``foundational'' MLIPs has become prevalent. Broadly speaking, foundation models are trained on large diverse datasets and promise to work well for new systems with minimal updates required. However, in such a new and fast moving field, there are many unanswered questions. In this article, we set out to articulate and explore what we see as the most important among these questions. We start by developing a working definition for foundational MLIPs and use this definition to frame the subsequent open questions. Despite the rapid progress in the field of MLIP models, we believe that these are fundamental questions which will continue to define cutting edge research in MLIPs in the years to come.",
+      "authors": [
+        "Isabel Creed",
+        "Tim Rein",
+        "Ingvars Vitenburgs",
+        "Wojciech G. Stark",
+        "Viktor Ellingsson",
+        "Ahmed Y. Ismail",
+        "Guangyu Liu",
+        "Yuchen Lou",
+        "Bradley A. A. Martin",
+        "Cyprien Bone",
+        "Matthew A. H. Walker",
+        "Mueen Taj",
+        "Shirui Wang",
+        "Kelvin Wong",
+        "Ruiqi Wu",
+        "Prakriti Kayastha",
+        "Bingqing Cheng",
+        "Aditi Krishnapriyan",
+        "Michele Ceriotti",
+        "Marcel F. Langer",
+        "Jarvist Moore Frost",
+        "Alex M. Ganose",
+        "Venkat Kapil",
+        "Keith T. Butler"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci",
+        "cond-mat.dis-nn",
+        "physics.app-ph",
+        "physics.comp-ph"
+      ],
+      "published": "2026-06-05T14:45:06+00:00",
+      "link": "https://arxiv.org/pdf/2606.07327v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "discusses open questions in MLIP foundation models",
+      "llm_evidence_cn": "讨论了机器学习原子间势基础模型中的开放问题",
+      "llm_evidence": "讨论了机器学习原子间势基础模型中的开放问题",
+      "canonical_evidence": "讨论了机器学习原子间势基础模型中的开放问题",
+      "llm_tldr_en": "This article identifies and explores six critical open questions in the rapidly evolving field of machine-learned interatomic potential foundation models, starting with a working definition.",
+      "llm_tldr_cn": "本文针对快速发展的机器学习原子间势基础模型领域，识别并探讨了六个关键未解问题。首先给出了基础模型的工作定义，然后围绕数据、架构、泛化能力、计算效率、物理一致性和评估标准等方面展开讨论。该工作为领域内研究者提供了重要的未来方向指引。",
+      "llm_tldr": "本文针对快速发展的机器学习原子间势基础模型领域，识别并探讨了六个关键未解问题。首先给出了基础模型的工作定义，然后围绕数据、架构、泛化能力、计算效率、物理一致性和评估标准等方面展开讨论。该工作为领域内研究者提供了重要的未来方向指引。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.08148v1",
+      "source": "arxiv",
+      "title": "Inverse design of bespoke interatomic potentials via active learning by information-matching",
+      "abstract": "Interatomic potentials (IPs) enable large-scale atomistic simulations beyond the reach of first-principles methods, but their predictive reliability depends critically on the selection of training data, quantified uncertainty, and model expressiveness. Active learning (AL) provides a principled framework for constructing efficient and accurate IPs, yet most strategies reduce parameter uncertainty without explicitly accounting for the specific material properties being predicted. The information-matching (IM) approach addresses this limitation by requiring that the selected training data provide at least as much parameter space information as needed to achieve prescribed uncertainty targets for selected quantities of interest (QoIs). Here, we apply IM to develop bespoke IPs specifically tailored for predicting plastic strength in metals. Due to the high computational cost of simulating plastic strength, we employ an indirect IM strategy that targets inexpensive intermediate QoIs that correlate with strength. The IM method enables precise parameter constraints with minimal training data, yielding precise predictions for both the intermediate QoIs and plastic strength. Yet, model error remains a key limitation, and a post hoc uncertainty inflation correction provides a viable means to mitigate this limitation. These findings illustrate both the promise and limits of uncertainty-aware AL for predicting complex material properties.",
+      "authors": [
+        "Yonatan Kurniawan",
+        "Logan D. Williams",
+        "Amit Samanta",
+        "Ilia Nikiforov",
+        "Daniel Schwalbe-Koda",
+        "Mark K. Transtrum",
+        "Ellad B. Tadmor",
+        "Vincenzo Lordi",
+        "Vasily V. Bulatov"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci",
+        "cs.LG"
+      ],
+      "published": "2026-06-06T12:58:04+00:00",
+      "link": "https://arxiv.org/pdf/2606.08148v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "interatomic potential active learning design",
+      "llm_evidence_cn": "原子间势主动学习设计",
+      "llm_evidence": "原子间势主动学习设计",
+      "canonical_evidence": "原子间势主动学习设计",
+      "llm_tldr_en": "Presents active learning by information-matching for bespoke interatomic potentials that explicitly account for target material properties.",
+      "llm_tldr_cn": "主动学习虽能构建高效准确的原子间势，但现有策略未显式考虑待预测的材料属性。该文提出信息匹配主动学习方法，要求所选训练数据提供至少与目标量不确定性相当的参数空间信息。该方法能够定制化构建针对特定物性预测的原子间势，提高了预测可靠性。",
+      "llm_tldr": "主动学习虽能构建高效准确的原子间势，但现有策略未显式考虑待预测的材料属性。该文提出信息匹配主动学习方法，要求所选训练数据提供至少与目标量不确定性相当的参数空间信息。该方法能够定制化构建针对特定物性预测的原子间势，提高了预测可靠性。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12704v1",
+      "source": "arxiv",
+      "title": "Fine-tuning MLIP foundation models: strategies for accuracy and transferability",
+      "abstract": "Adapting machine-learned interatomic potential (MLIP) foundation models to specialised tasks through fine-tuning is an increasingly important practice, yet systematic guidance on when and how to fine-tune is currently limited. We evaluate seven fine-tuning strategies -- naive full-parameter updates, two layer-freezing variants, Low-Rank Adaptation (LoRA), multihead replay, pseudolabelled replay, and replay combined with LoRA -- across five chemically diverse benchmarks (aqueous NaCl, ice polymorphs, S$_\\mathrm{N}$2 reactions, SPICE biomolecules, and lithium electrolytes), three generations of foundation models, and training sets spanning five orders of magnitude. To support this evaluation we implement three capabilities in the MACE codebase: LoRA adapted for equivariant message-passing architectures, including both scalar and equivariant linear layers; pseudolabelled replay, which decouples the replay data source from the original pretraining corpus; and model-aware atomic reference energy (E0) reestimation for fine-tuning workflows. We find that foundation model quality, correct E0 initialisation, and well-chosen hyperparameters are prerequisites whose impact routinely exceeds that of the fine-tuning strategy itself. Once these prerequisites are met, most strategies achieve strong target-task accuracy, consistently surpassing models trained from scratch. The practical distinction depends on deployment scope: naive fine-tuning offers the best convergence for single-system applications, while multihead replay -- with either original or pseudolabelled data -- is the only approach tested that consistently preserves out-of-distribution robustness, maintaining both pretraining-distribution accuracy for broader deployment and many-body short-range repulsion.",
+      "authors": [
+        "Tamás Lajos Tompa",
+        "Eszter Varga-Umbrich",
+        "Ilyes Batatia",
+        "Alin M. Elena",
+        "Noam Bernstein",
+        "Gábor Csányi"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-06-10T21:46:04+00:00",
+      "link": "https://arxiv.org/pdf/2606.12704v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "evaluates LoRA and other fine-tuning strategies for MLIP foundation models using MACE (equivariant GNN)",
+      "llm_evidence_cn": "评估了LoRA等微调策略在MACE（等变GNN）基础MLIP模型上的表现",
+      "llm_evidence": "评估了LoRA等微调策略在MACE（等变GNN）基础MLIP模型上的表现",
+      "canonical_evidence": "评估了LoRA等微调策略在MACE（等变GNN）基础MLIP模型上的表现",
+      "llm_tldr_en": "Evaluates seven fine-tuning strategies including LoRA for MLIP foundation models across diverse benchmarks, implemented in MACE codebase, providing guidance for accuracy and transferability.",
+      "llm_tldr_cn": "针对MLIP基础模型微调缺乏系统指导的问题，本文在MACE代码库中实现了七种微调策略（包括LoRA），在五个化学基准和三个模型代上进行了评估，揭示了不同策略在精度和可迁移性上的权衡。",
+      "llm_tldr": "针对MLIP基础模型微调缺乏系统指导的问题，本文在MACE代码库中实现了七种微调策略（包括LoRA），在五个化学基准和三个模型代上进行了评估，揭示了不同策略在精度和可迁移性上的权衡。",
+      "llm_tags": [
+        "query:board-search:composite"
+      ],
+      "matched_query_tag": "query:board-search:composite",
+      "matched_query_text": "Papers central to 宽泛搜索有关等变图神经网络和LORA的文章, especially work that connects or combines: Low-Rank Adaptation; PEFT; Parameter-Efficient Fine-Tuning; SE(3)-equivariant; Equivariant Graph Neural Networks; Search for papers on equivariant graphical neural networks and Low Rank Adaptation..",
+      "matched_requirement_id": "req-composite-board-search",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.15001v1",
+      "source": "arxiv",
+      "title": "Distilling latent electrostatics from foundation machine learning interatomic potentials",
+      "abstract": "Foundation machine learning interatomic potentials (MLIPs) have enabled atomistic simulations across broad regions of chemical and materials space, but many remain computationally expensive and lack explicit electrostatics, limiting their use for systems governed by long-range interactions and electrical response. Previously, we introduced Latent Ewald Summation (LES), which learns latent atomic charges and long-range electrostatics from density functional theory (DFT) energy and force labels alone. Here, we use LES to extract electrostatics that are latent in foundation models: energies and forces predicted by a teacher model are used to train a lightweight LES-augmented student MLIP, with optional fine-tuning on additional DFT data. The resulting models reduce computational cost while providing access to Born effective charge tensors, and infrared spectra. We benchmark student models distilled from a broad set of foundation MLIPs, including UMA, MACE, Orb, eSEN, GemNet-OC, PET, and EquiformerV2-based models, against experimental infrared spectra for liquid water, concentrated hydrochloric acid, and the anatase TiO2(101)-water interface. Across these systems, electrostatic response can be extracted from most foundation MLIPs. The benchmark further shows that the underlying DFT level and dataset used to train the teacher model play a larger role than architecture in determining electrostatic and spectroscopic accuracy. For the TiO2-water interface, fine-tuning with a modest amount of higher-level DFT data improves structural and infrared predictions. LES-based distillation therefore provides a practical route for converting foundation MLIPs into efficient, electrically responsive models, while also testing the physical fidelity encoded in foundation models.",
+      "authors": [
+        "Xiaoyu Wang",
+        "Bingqing Cheng"
+      ],
+      "primary_category": "physics.comp-ph",
+      "categories": [
+        "physics.comp-ph",
+        "cond-mat.mtrl-sci",
+        "cs.LG",
+        "physics.chem-ph"
+      ],
+      "published": "2026-06-12T22:45:20+00:00",
+      "link": "https://arxiv.org/pdf/2606.15001v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "distills electrostatics from foundation MLIPs",
+      "llm_evidence_cn": "从基础机器学习原子间势中蒸馏静电",
+      "llm_evidence": "从基础机器学习原子间势中蒸馏静电",
+      "canonical_evidence": "从基础机器学习原子间势中蒸馏静电",
+      "llm_tldr_en": "Uses Latent Ewald Summation to extract electrostatics latent in foundation MLIPs by training a lightweight student model on teacher predictions, enabling efficient long-range interaction modeling.",
+      "llm_tldr_cn": "基础MLIP缺乏显式静电且计算昂贵，本文利用潜埃瓦德求和（LES）从教师模型中提取隐含静电，训练轻量级学生MLIP，并通过可选的DFT微调提升了长程相互作用的描述能力。",
+      "llm_tldr": "基础MLIP缺乏显式静电且计算昂贵，本文利用潜埃瓦德求和（LES）从教师模型中提取隐含静电，训练轻量级学生MLIP，并通过可选的DFT微调提升了长程相互作用的描述能力。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "interatomic potential development using machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.20581v1",
+      "source": "arxiv",
+      "title": "TriForces: Augmenting Atomistic GNNs for Transferable Representations",
+      "abstract": "Machine learning interatomic potentials (MLIPs) achieve excellent accuracy when trained on large Density Functional Theory (DFT) data. To be useful in practice, they must often be adapted to target chemistries using small and expensive task-specific datasets. However, MLIPs transfer inconsistently across domains, with representations that often loose accessible composition and structure information. To address this, we present TriForces, a model-agnostic three-stream framework that separates composition and structure information, combined with self-supervised learning to preserve transferable representations. TriForces improves performance on MatBench and QM9 over baselines without needing DFT labels and enables efficient similar structure retrieval through its learned latent space. On OMat24, in limited-data training regime, TriForces reduces energy MAE by 57% at 20K samples only and improves force MAE across sample sizes. We release pretrained TriForces variants across multiple MLIP architectures with code at https://github.com/Ramlaoui/triforces.",
+      "authors": [
+        "Ali Ramlaoui",
+        "Alexandre Duval",
+        "Hannah Bull",
+        "Victor Schmidt",
+        "Hugues Talbot",
+        "Fragkiskos D. Malliaros",
+        "Joseph Musielewicz"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-05-20T00:38:43+00:00",
+      "link": "https://arxiv.org/pdf/2605.20581v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Augmenting atomistic GNNs for transferable MLIP representations",
+      "llm_evidence_cn": "增强原子图神经网络以实现可迁移的MLIP表示",
+      "llm_evidence": "增强原子图神经网络以实现可迁移的MLIP表示",
+      "canonical_evidence": "增强原子图神经网络以实现可迁移的MLIP表示",
+      "llm_tldr_en": "Presents TriForces, a model-agnostic framework with self-supervised learning to improve transferability of MLIP GNNs.",
+      "llm_tldr_cn": "本文提出TriForces，一个模型无关的三流框架，用于增强机器学习原子间势（MLIP）中图神经网络的表示可迁移性。针对MLIP在不同化学体系间迁移不一致的问题，TriForces分离组成和结构信息，并通过自监督学习保持可迁移表示。在MatBench和QM9上，无需DFT标签即可提升性能，并实现高效相似结构检索。",
+      "llm_tldr": "本文提出TriForces，一个模型无关的三流框架，用于增强机器学习原子间势（MLIP）中图神经网络的表示可迁移性。针对MLIP在不同化学体系间迁移不一致的问题，TriForces分离组成和结构信息，并通过自监督学习保持可迁移表示。在MatBench和QM9上，无需DFT标签即可提升性能，并实现高效相似结构检索。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "graph neural network models for interatomic potential prediction",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.25032v1",
+      "source": "arxiv",
+      "title": "Target-Distribution-Guided Cross-Functional Fine-Tuning of Machine-Learning Interatomic Potentials",
+      "abstract": "Cross-functional fine-tuning of machine-learning interatomic potentials (MLIPs) is often treated as a relabeling problem, where configurations generated at one density-functional level are relabeled using a higher-fidelity target functional. However, the resulting training data may be drawn from the wrong equilibrium distribution, because the statistical weights of configurations change across exchange--correlation functionals. Here we address this distribution mismatch using a target-distribution-guided workflow based on self-learning hybrid Monte Carlo (SLHMC), in which trial configurations are proposed by a machine-learning potential and accepted or rejected using target-functional density-functional-theory energies. Using rutile TiO$_2$ as a test system, we fine-tune the MACE-MP-0 foundation potential toward PBE, r$^2$SCAN, and HSE06 target functionals. The resulting adapted potentials reproduce target-anchored nearest-neighbor Ti--O distributions, radial distribution functions, and the NPT cell metrics examined here more accurately than the foundation-model and off-target relabeling controls considered in this work. In particular, HSE06-guided fine-tuning improves structural and thermodynamic properties that are difficult to access with direct hybrid-functional molecular dynamics because of the computational cost of exact exchange. These results indicate that target-distribution coverage is an essential component of cross-functional MLIP transfer, and that accurate target-level labels alone may be insufficient when the configurational distribution is mismatched.",
+      "authors": [
+        "Yuki Nagai",
+        "Bo Thomsen",
+        "Motoyuki Shiga"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci",
+        "physics.comp-ph"
+      ],
+      "published": "2026-05-24T12:18:50+00:00",
+      "link": "https://arxiv.org/pdf/2605.25032v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "cross-functional fine-tuning of MLIPs with target-distribution guidance",
+      "llm_evidence_cn": "基于目标分布指导的MLIP跨泛函微调",
+      "llm_evidence": "基于目标分布指导的MLIP跨泛函微调",
+      "canonical_evidence": "基于目标分布指导的MLIP跨泛函微调",
+      "llm_tldr_en": "Addresses distribution mismatch in cross-functional fine-tuning of MLIPs using self-learning hybrid Monte Carlo to generate target-distribution-aware training data.",
+      "llm_tldr_cn": "针对MLIP跨泛函微调中配置分布不匹配问题，本文提出了基于自学习混合蒙特卡洛的目标分布指导流程，使用MLIP提议结构并由目标DFT接受/拒绝，从而生成符合目标分布的微调数据。",
+      "llm_tldr": "针对MLIP跨泛函微调中配置分布不匹配问题，本文提出了基于自学习混合蒙特卡洛的目标分布指导流程，使用MLIP提议结构并由目标DFT接受/拒绝，从而生成符合目标分布的微调数据。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "interatomic potential development using machine learning",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.28905v1",
+      "source": "arxiv",
+      "title": "DFT Accuracy on Crystal Structure Prediction with Machine Learning Interatomic Potentials",
+      "abstract": "We present an evaluation of CSP-MACE-Å, a machine learning interatomic potential intended to replace DFT in crystal structure prediction (CSP). We decompose the total energy into separate intramolecular and intermolecular components. For the intramolecular component, we adopt the MACE-POLAR architecture and train it on the OMol25 dataset. The intermolecular component combines three terms: an intermolecular contribution from the MACE-POLAR model, a long-range dispersion term with the functional form of the XDM correction, and a learned delta model trained to reproduce B86bPBE-XDM intermolecular energies. The learned delta model is trained on residual intermolecular targets derived from 50,000 B86bPBE-XDM calculations on molecular crystal structures. On an evaluation set composed of 19 compounds, including a salt, selected from AstraZeneca's previous CSP publications, CSP-MACE-Å achieves performance comparable to PBE DFT with the Neumann-Perrin dispersion correction. On a second evaluation set composed of 28 compounds, including cocrystals and salts, collated from the seven CSP blind tests, CSP-MACE-Å achieves performance close to B86bPBE-XDM DFT. In both evaluation sets, reranking with harmonic free energies substantially improves performance relative to ranking by energy alone. Across our evaluation suite, CSP-MACE-Å is shown to outperform the MACE-POLAR-1 and UMA-OMC foundation models. Lastly, on a set of five compounds, CSP-MACE-Å is shown to capture temperature-dependent trends in the relative stability of polymorphs through estimation of the free energy under the harmonic approximation. By running multiple orders of magnitude faster than DFT, CSP-MACE-Å enables energy and free energy evaluation of far more candidate structures, providing greater confidence when derisking solid forms.",
+      "authors": [
+        "Laurence I. Midgley",
+        "Chen Lin",
+        "J. Harry Moore",
+        "Flaviano Della Pia",
+        "Javier Antorán",
+        "Sten O. Nilsson Lill",
+        "Emma S. E. Eriksson",
+        "Felix A. Faber",
+        "Lars Tornberg",
+        "Anders Broo",
+        "Gábor Csányi"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph"
+      ],
+      "published": "2026-05-27T16:31:39+00:00",
+      "link": "https://arxiv.org/pdf/2605.28905v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "evaluates MLIP for crystal structure prediction using MACE-POLAR (equivariant)",
+      "llm_evidence_cn": "评估使用MACE-POLAR（等变）MLIP进行晶体结构预测",
+      "llm_evidence": "评估使用MACE-POLAR（等变）MLIP进行晶体结构预测",
+      "canonical_evidence": "评估使用MACE-POLAR（等变）MLIP进行晶体结构预测",
+      "llm_tldr_en": "Evaluates CSP-MACE-Å, an MLIP combining MACE-POLAR and learned delta model for crystal structure prediction, achieving DFT accuracy with separate intra- and intermolecular components.",
+      "llm_tldr_cn": "本文评估了CSP-MACE-Å，一种用于晶体结构预测的机器学习势，通过分解分子内和分子间贡献，结合MACE-POLAR架构和学习到的delta模型，在分子晶体结构预测中达到了DFT精度。",
+      "llm_tldr": "本文评估了CSP-MACE-Å，一种用于晶体结构预测的机器学习势，通过分解分子内和分子间贡献，结合MACE-POLAR架构和学习到的delta模型，在分子晶体结构预测中达到了DFT精度。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.29969v1",
+      "source": "arxiv",
+      "title": "Prototype-Guided Latent Alignment for Data-Efficient Fine-Tuning of Molecular Foundation Models",
+      "abstract": "Machine learning interatomic potentials (MLIPs) have transformed materials discovery by leveraging graph neural networks (GNNs) to predict material properties with near density functional theory (DFT) accuracy. While large-scale pretrained foundation models offer transferable baseline representations, they frequently struggle to generalise to out-of-distribution (OOD) target systems -- a common challenge in modelling complex or chemically diverse materials. Fine-tuning is the standard remedy, but the high cost of generating DFT-labelled configurations confines adaptation to data-scarce regimes, where over-parameterised GNNs amplify overfitting and degrade target-domain performance. To address this, we propose a prototype-based alignment approach for data-efficient fine-tuning of MLIPs. Our method identifies local structural similarities between the source and target domains by grouping atoms with analogous chemical environments based on their latent representations. Each target-domain atom's energy contribution is aligned to its source-domain prototype, introducing an inductive bias that anchors fine-tuned representations to the pretrained structure, encouraging effective reuse of learned interactions and improving generalisation without restrictive assumptions on the target chemistry. We evaluate our method on the rMD17 benchmark using equivariant MACE and invariant SchNet across varying data budgets, and extend evaluation to the MACE-OFF foundation models on the SPICE dataset. Our approach consistently improves predictive accuracy in the low-data regime, reducing energy MAE by up to 18% over standard fine-tuning baselines.",
+      "authors": [
+        "Rushikesh Pawar",
+        "Harshit Rawat",
+        "Ayush Kumar",
+        "Phani Motamarri"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci",
+        "cond-mat.dis-nn"
+      ],
+      "published": "2026-05-28T14:07:48+00:00",
+      "link": "https://arxiv.org/pdf/2605.29969v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "proposes data-efficient fine-tuning for molecular foundation models using prototype alignment",
+      "llm_evidence_cn": "提出利用原型对齐对分子基础模型进行数据高效微调",
+      "llm_evidence": "提出利用原型对齐对分子基础模型进行数据高效微调",
+      "canonical_evidence": "提出利用原型对齐对分子基础模型进行数据高效微调",
+      "llm_tldr_en": "This paper addresses overfitting in fine-tuning of molecular foundation models for MLIPs under data scarcity by proposing a prototype-guided latent alignment method that aligns target representations with learned prototypes, enabling effective adaptation with limited DFT-labeled data.",
+      "llm_tldr_cn": "针对机器学习原子间势中分子基础模型在数据稀缺场景下微调容易过拟合的问题，本文提出一种原型引导的潜在对齐方法。该方法通过将目标系统的表示与预训练阶段学习的原型对齐，实现了在少量DFT标注数据下的高效微调。实验表明该方法显著提升了目标域性能，并具有较好的通用性。",
+      "llm_tldr": "针对机器学习原子间势中分子基础模型在数据稀缺场景下微调容易过拟合的问题，本文提出一种原型引导的潜在对齐方法。该方法通过将目标系统的表示与预训练阶段学习的原型对齐，实现了在少量DFT标注数据下的高效微调。实验表明该方法显著提升了目标域性能，并具有较好的通用性。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.04100v1",
+      "source": "arxiv",
+      "title": "Stein Kernelized Molecular Dynamics for Active Learning of Interatomic Potentials",
+      "abstract": "Machine learning interatomic potentials (MLIPs) enable efficient and accurate atomistic simulations but depend critically on the quality and diversity of the training data. We introduce Stein kernelized molecular dynamics (SKMD), an enhanced sampling method that uses interacting particle dynamics to acquire informative training configurations for the active learning and fine-tuning of MLIPs. SKMD corresponds to a stochastic variant of Stein variational gradient descent that is adapted for molecular dynamics by incorporating asynchronous particle updates and a kernel of global atomic descriptors, which provides a symmetry-aware measure of configurational similarity. Unlike other enhanced samplers used in molecular dynamics, SKMD preserves the Boltzmann distribution as the asymptotic distribution of the dynamics. This property enforces a balance between the exploration of diverse configurations and attraction toward high-probability regions of the energy landscape. We further propose an approach to efficient online data acquisition using an adaptive stopping criterion that selects non-redundant training data over the course of simulation. We demonstrate SKMD for the active learning of a neural network model of the Müller-Brown potential and the fine-tuning of a MACE interatomic potential for alanine dipeptide. Compared to active learning baselines, our method achieves higher model accuracy in fewer training iterations with the same number of acquired training samples.",
+      "authors": [
+        "Joanna Zou",
+        "Fraser Birks",
+        "Dallas Foster",
+        "Youssef Marzouk"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "physics.comp-ph"
+      ],
+      "published": "2026-06-02T18:07:41+00:00",
+      "link": "https://arxiv.org/pdf/2606.04100v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Active learning for MLIPs using Stein kernelized molecular dynamics",
+      "llm_evidence_cn": "利用Stein核化分子动力学进行MLIP主动学习",
+      "llm_evidence": "利用Stein核化分子动力学进行MLIP主动学习",
+      "canonical_evidence": "利用Stein核化分子动力学进行MLIP主动学习",
+      "llm_tldr_en": "Proposes Stein kernelized molecular dynamics (SKMD) for diverse training data acquisition in active learning of MLIPs, using interacting particle dynamics and symmetry-aware kernels.",
+      "llm_tldr_cn": "该论文提出Stein核化分子动力学（SKMD），一种用于MLIP主动学习的增强采样方法。SKMD利用相互作用粒子动力学获取信息丰富的训练构型，采用全局原子描述子的核函数提供对称感知的构型相似性度量，并引入异步粒子更新。相比于传统增强采样方法，SKMD保留了目标分布的结构，有效提高了MLIP训练数据的多样性和质量。",
+      "llm_tldr": "该论文提出Stein核化分子动力学（SKMD），一种用于MLIP主动学习的增强采样方法。SKMD利用相互作用粒子动力学获取信息丰富的训练构型，采用全局原子描述子的核函数提供对称感知的构型相似性度量，并引入异步粒子更新。相比于传统增强采样方法，SKMD保留了目标分布的结构，有效提高了MLIP训练数据的多样性和质量。",
+      "llm_tags": [
+        "query:ml-potential:composite"
+      ],
+      "matched_query_tag": "query:ml-potential:composite",
+      "matched_query_text": "Papers central to 帮我查找与机器学习原子间势和等变图神经网络有关的论文, especially work that connects or combines: machine learning interatomic potentials for materials; equivariant graph neural network architectures for molecular simulation; graph neural network models for interatomic potential prediction; interatomic potential development using machine learning; equivariant neural networks for atomic systems; deep learning based interatomic potentials; machine learning interatomic potentials using equivariant graph neural networks; equivariant graph neural networks for potential energy surfaces; state of the art methods for learning interatomic potentials with graph neural networks.",
+      "matched_requirement_id": "req-composite-ml-potential",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.06344v1",
+      "source": "arxiv",
+      "title": "Equivariant Neural Belief Propagation",
+      "abstract": "Probabilistic inference over spatially embedded variables requires beliefs that respect $SE(3)$ symmetry, yet existing equivariant networks produce only scalars and vectors -- not the rank-2 precision tensors needed for anisotropic uncertainty, and single-component messages collapse multi-modal energy landscapes to physically meaningless averages. We introduce Equivariant Neural Belief Propagation (ENBP), a factor-graph framework whose messages are equivariant Gaussian mixture models with sufficient statistics that transform exactly under $SE(3)$. Rank-2 precision matrices are synthesised via equivariant outer products, ingested through differentiable spectral decomposition, and kept tractable by a greedy KL-based mixture reduction that provably commutes with $SE(3)$. On GEOM-QM9 and GEOM-Drugs, ENBP achieves 98.9% conformational coverage at 0.090 $\\mathring{A}$ error with sub-second latency -- over $100\\times$ faster than diffusion baselines at higher accuracy. On multi-body robotic inference, vanilla loopy BP diverges at 15+ agents while ENBP converges with near-zero collision rates and machine-precision equivariance error (${\\sim}10^{-7}$ vs.\\ $10^{-1}$ for augmented baselines).",
+      "authors": [
+        "Zehua Cheng",
+        "Wei Dai",
+        "Jiahao Sun"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.SC"
+      ],
+      "published": "2026-06-04T16:16:51+00:00",
+      "link": "https://arxiv.org/pdf/2606.06344v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "SE(3)-equivariant message passing for probabilistic inference",
+      "llm_evidence_cn": "用于概率推理的SE(3)等变消息传递",
+      "llm_evidence": "用于概率推理的SE(3)等变消息传递",
+      "canonical_evidence": "用于概率推理的SE(3)等变消息传递",
+      "llm_tldr_en": "Introduces Equivariant Neural Belief Propagation (ENBP) with SE(3)-equivariant Gaussian mixture messages for factor graphs, enabling rank-2 precision tensors.",
+      "llm_tldr_cn": "现有等变网络只能输出标量和向量，无法表示各向异性不确定性所需的高阶张量，且单分量消息会丢失多峰能量景观。该文提出等变神经置信传播（ENBP），使用SE(3)等变高斯混合模型作为因子图消息，通过等变外积合成秩2精度矩阵并进行可微谱分解，利用KL散度贪婪混合约简保持可计算性。在GEOM-QM9等数据集上展示了优于现有方法的不确定性量化能力。",
+      "llm_tldr": "现有等变网络只能输出标量和向量，无法表示各向异性不确定性所需的高阶张量，且单分量消息会丢失多峰能量景观。该文提出等变神经置信传播（ENBP），使用SE(3)等变高斯混合模型作为因子图消息，通过等变外积合成秩2精度矩阵并进行可微谱分解，利用KL散度贪婪混合约简保持可计算性。在GEOM-QM9等数据集上展示了优于现有方法的不确定性量化能力。",
+      "llm_tags": [
+        "query:board-search:composite"
+      ],
+      "matched_query_tag": "query:board-search:composite",
+      "matched_query_text": "Papers central to 宽泛搜索有关等变图神经网络和LORA的文章, especially work that connects or combines: Low-Rank Adaptation; PEFT; Parameter-Efficient Fine-Tuning; SE(3)-equivariant; Equivariant Graph Neural Networks; Search for papers on equivariant graphical neural networks and Low Rank Adaptation..",
+      "matched_requirement_id": "req-composite-board-search",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.06617v1",
+      "source": "arxiv",
+      "title": "Prolate spheroidal wave functions enable fast and exponent-aware long-range machine learning interatomic potentials",
+      "abstract": "Long-range interactions such as electrostatics and dispersion remain a central bottleneck for machine learning interatomic potentials (MLIPs), especially in ionic, polar and interfacial systems. Ewald-based reciprocal-space mechanisms provide a physically grounded route for capturing these nonlocal effects, but often require dense Fourier grids and can become memory-limited at scale. This problem is particularly pronounced in molecular dynamics, where high efficiency requirements make accurate long-range modelling particularly costly. Here we introduce PSWF-LR, an exponent-aware long-range framework based on prolate spheroidal wave functions (PSWFs) that can be easily incorporated into existing model architectures. Its core components are PSWF-based mollification and atom-grid spreading, which enable compact and efficient representation of arbitrary inverse-power channels $1/r^p$ while treating the decay exponent as a physical prior. Across diverse long-range benchmarks, PSWF-LR reduces Fourier-mode requirements, improves energy and force accuracy, accelerates production-level simulations by about threefold, and extends long-range MLIP simulations beyond the memory limits of conventional MLIPs.",
+      "authors": [
+        "Jiuyang Liang",
+        "Libin Lu",
+        "Yajie Ji",
+        "Shidong Jiang"
+      ],
+      "primary_category": "physics.chem-ph",
+      "categories": [
+        "physics.chem-ph",
+        "math.NA"
+      ],
+      "published": "2026-06-04T18:06:40+00:00",
+      "link": "https://arxiv.org/pdf/2606.06617v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Long-range interaction framework for MLIPs using prolate spheroidal wave functions",
+      "llm_evidence_cn": "利用扁椭球波函数实现MLIP的长程相互作用",
+      "llm_evidence": "利用扁椭球波函数实现MLIP的长程相互作用",
+      "canonical_evidence": "利用扁椭球波函数实现MLIP的长程相互作用",
+      "llm_tldr_en": "Introduces PSWF-LR, a long-range framework using prolate spheroidal wave functions for efficient and accurate modeling of electrostatics and dispersion in MLIPs.",
+      "llm_tldr_cn": "该论文针对MLIP中长程相互作用（如静电和色散）的计算瓶颈，提出基于扁椭球波函数（PSWF）的指数感知长程框架PSWF-LR。该框架可轻松集成到现有模型架构中，避免了Ewald方法中密集傅里叶网格的内存限制，在保持精度的同时显著提升效率。在离子、极性和界面体系中表现出色，推动了MLIP在复杂体系中的应用。",
+      "llm_tldr": "该论文针对MLIP中长程相互作用（如静电和色散）的计算瓶颈，提出基于扁椭球波函数（PSWF）的指数感知长程框架PSWF-LR。该框架可轻松集成到现有模型架构中，避免了Ewald方法中密集傅里叶网格的内存限制，在保持精度的同时显著提升效率。在离子、极性和界面体系中表现出色，推动了MLIP在复杂体系中的应用。",
+      "llm_tags": [
+        "query:ml-potential:composite"
+      ],
+      "matched_query_tag": "query:ml-potential:composite",
+      "matched_query_text": "Papers central to 帮我查找与机器学习原子间势和等变图神经网络有关的论文, especially work that connects or combines: machine learning interatomic potentials for materials; equivariant graph neural network architectures for molecular simulation; graph neural network models for interatomic potential prediction; interatomic potential development using machine learning; equivariant neural networks for atomic systems; deep learning based interatomic potentials; machine learning interatomic potentials using equivariant graph neural networks; equivariant graph neural networks for potential energy surfaces; state of the art methods for learning interatomic potentials with graph neural networks.",
+      "matched_requirement_id": "req-composite-ml-potential",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.07327v2",
+      "source": "arxiv",
+      "title": "Six Open Questions in Machine-Learned Interatomic Potential Foundation Models",
+      "abstract": "Machine-learned interatomic potentials (MLIPs) have had a profound impact on molecular modelling in recent years, promising to resolve the long-standing tension between the scale and accuracy of simulations. There has been a proliferation of new models and designs, and recently the paradigm of ``foundational'' MLIPs has become prevalent. Broadly speaking, foundation models are trained on large diverse datasets and promise to work well for new systems with minimal updates required. However, in such a new and fast moving field, there are many unanswered questions. In this article, we set out to articulate and explore what we see as the most important among these questions. We start by developing a working definition for foundational MLIPs and use this definition to frame the subsequent open questions. Despite the rapid progress in the field of MLIP models, we believe that these are fundamental questions which will continue to define cutting edge research in MLIPs in the years to come.",
+      "authors": [
+        "Isabel Creed",
+        "Tim Rein",
+        "Ingvars Vitenburgs",
+        "Wojciech G. Stark",
+        "Viktor Ellingsson",
+        "Ahmed Y. Ismail",
+        "Guangyu Liu",
+        "Yuchen Lou",
+        "Bradley A. A. Martin",
+        "Cyprien Bone",
+        "Matthew A. H. Walker",
+        "Mueen Taj",
+        "Shirui Wang",
+        "Kelvin Wong",
+        "Ruiqi Wu",
+        "Prakriti Kayastha",
+        "Bingqing Cheng",
+        "Aditi Krishnapriyan",
+        "Michele Ceriotti",
+        "Marcel F. Langer",
+        "Jarvist Moore Frost",
+        "Alex M. Ganose",
+        "Venkat Kapil",
+        "Keith T. Butler"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci",
+        "cond-mat.dis-nn",
+        "physics.app-ph",
+        "physics.comp-ph"
+      ],
+      "published": "2026-06-05T14:45:06+00:00",
+      "link": "https://arxiv.org/pdf/2606.07327v2",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "survey of machine-learned interatomic potential foundation models",
+      "llm_evidence_cn": "机器学习原子间势基础模型综述",
+      "llm_evidence": "机器学习原子间势基础模型综述",
+      "canonical_evidence": "机器学习原子间势基础模型综述",
+      "llm_tldr_en": "Articulates six open questions in the emerging field of machine-learned interatomic potential foundation models.",
+      "llm_tldr_cn": "机器学习原子间势基础模型近年来蓬勃发展，但仍有诸多未解问题。该文系统阐述了六个关键开放问题：包括基础模型的定义、训练数据需求、模型架构选择、迁移学习能力、评估基准以及可解释性。文章旨在为领域未来发展提供方向参考。",
+      "llm_tldr": "机器学习原子间势基础模型近年来蓬勃发展，但仍有诸多未解问题。该文系统阐述了六个关键开放问题：包括基础模型的定义、训练数据需求、模型架构选择、迁移学习能力、评估基准以及可解释性。文章旨在为领域未来发展提供方向参考。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10251v1",
+      "source": "arxiv",
+      "title": "Robust AI-Driven Discovery of Electronic Metal Phosphide Semiconductors",
+      "abstract": "Metal phosphides have diverse bonding motifs and coordination environments, making them promising for optoelectronic and thermoelectric applications, but their chemical space remains underexplored. Here we report an AI-driven high-throughput discovery workflow that combines generative materials design, machine-learning interatomic potentials, and targeted density functional theory (DFT) calculations. ICSD-derived Wyckoff-site substitution and MatterGen-based conditional structure generation are used to expand the candidate space beyond existing phosphide databases. A domain-finetuned DPA3 machine-learning potential then enables efficient prescreening of thermodynamic and dynamical stability before DFT validation. This workflow identifies 3,574 previously unreported stable phosphide structures, including 196 semiconductors with HSE06 band gaps of 0-3.0 eV. By screening these new semiconductors together with experimentally known phosphide semiconductors, we identify 30 promising optoelectronic candidates and 26 promising thermoelectric candidates, including seven newly discovered optoelectronic materials and eight newly discovered thermoelectric materials. These results provide a candidate pool for experimental synthesis and show that combining generative AI with machine-learning interatomic potentials can accelerate the discovery of functional semiconductor materials.",
+      "authors": [
+        "Benhao Zhu",
+        "Muhammad Faizan",
+        "Zewei Li",
+        "Wenshuo Li",
+        "Feifei Ren",
+        "Jiahao Xie",
+        "Lijun Zhang"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-06-08T23:37:29+00:00",
+      "link": "https://arxiv.org/pdf/2606.10251v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "uses ML interatomic potentials for materials discovery",
+      "llm_evidence_cn": "使用机器学习原子间势进行材料发现",
+      "llm_evidence": "使用机器学习原子间势进行材料发现",
+      "canonical_evidence": "使用机器学习原子间势进行材料发现",
+      "llm_tldr_en": "Reports an AI-driven high-throughput workflow using generative design, ML interatomic potentials, and DFT to discover metal phosphide semiconductors, identifying 3,574 novel candidates.",
+      "llm_tldr_cn": "针对金属磷化物半导体探索不足的问题，本文提出了一种AI驱动高通量流程，结合生成式设计、机器学习原子间势（DPA3）和DFT，成功发现3574个新型候选材料。",
+      "llm_tldr": "针对金属磷化物半导体探索不足的问题，本文提出了一种AI驱动高通量流程，结合生成式设计、机器学习原子间势（DPA3）和DFT，成功发现3574个新型候选材料。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12811v1",
+      "source": "arxiv",
+      "title": "A wrong ground-state structure of HfO$_2$ predicted by machine-learning interatomic potentials based on the PBE functional",
+      "abstract": "Machine-learning interatomic potentials (MLIPs) have become powerful tools for material simulations. Many MLIPs are trained based on density functional theory (DFT) datasets generated with the Perdew-Burke-Ernzerhof (PBE) exchange-correlation functional. Using a PBE-based MLIP for HfO2, we identify a previously unreported low-energy I41/amd structure, which is predicted to be more stable than the well-known ground-state structure, the monoclinic P21/c structure. Since experiments show clearly that HfO2 takes the P21/c structure as the ground state, this is obviously a wrong prediction. Unfortunately, the same prediction is also made by widely used PBE-based foundation models such as NequIP-OAM-L and MatterSim-v1-5M. Comparisons among different DFT functionals show that this error originates from the PBE functional, which overstabilizes low-density structures containing sixfold Hf-O octahedral units, such as the I41/amd and Pbcn phases. The error also affects the calculated energy landscapes and barrier heights along ferroelectric HfO2 polarization switching paths when there are large lattice relaxations. Fortunately, the error can be largely suppressed by other functionals such as PBEsol and local density approximation. Our study serves as a warning about the impact of errors in exchange-correlation functional approximations on the reliability of MLIP simulations of crystal structures and phase transitions.",
+      "authors": [
+        "Shuqi Tang",
+        "Jinchen Wei",
+        "Kang Wang",
+        "Junjie Zhou",
+        "Yihan Zhang",
+        "Menglin Huang",
+        "Shiyou Chen"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-06-11T02:11:53+00:00",
+      "link": "https://arxiv.org/pdf/2606.12811v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Machine learning interatomic potentials for HfO2",
+      "llm_evidence_cn": "机器学习原子间势用于HfO2",
+      "llm_evidence": "机器学习原子间势用于HfO2",
+      "canonical_evidence": "机器学习原子间势用于HfO2",
+      "llm_tldr_en": "Reports a wrong ground-state structure predicted by PBE-based MLIPs, highlighting a limitation of current MLIPs.",
+      "llm_tldr_cn": "本文指出基于PBE泛函训练的机器学习原子间势（MLIP）在HfO2上错误预测了一个低能结构，该结构比实验已知的基态更稳定。该错误也被多个广泛使用的PBE基模型（如NequIP-OAM-L和M）所复制，揭示了当前MLIP在特定体系上的可靠性问题。",
+      "llm_tldr": "本文指出基于PBE泛函训练的机器学习原子间势（MLIP）在HfO2上错误预测了一个低能结构，该结构比实验已知的基态更稳定。该错误也被多个广泛使用的PBE基模型（如NequIP-OAM-L和M）所复制，揭示了当前MLIP在特定体系上的可靠性问题。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.13917v1",
+      "source": "arxiv",
+      "title": "Machine Learning Accelerated SSNEB for Efficient Minimum Energy Pathway Calculations",
+      "abstract": "Metastable states and their minimum energy pathways (MEPs) are central to understanding transformations and phase stability in complex materials, yet mapping transition pathways between competing states remains computationally demanding and experimentally challenging. Here, we introduce a hybrid solid-state nudged elastic band (SSNEB) framework that integrates two pretrained machine learning models, EquiformerV2 (eqV2) and the equivariant Smooth Energy Network (eSEN), with DFT for energy, force, and stress evaluations. Applied to three solid-state systems, CsPbI$_3$, GaN, and TiO$_2$, our framework achieves up to a 7-fold speedup while converging to the same pathways predicted by first-principles calculations. Moreover, the hybrid SSNEB framework enables systematic benchmarking of existing ML models, providing both efficiency and reliability for predicting MEPs across various materials.",
+      "authors": [
+        "Yu Zhang",
+        "Guanzhi Li",
+        "Minkyung Han",
+        "Sean Gasiorowski",
+        "Daniel Ratner",
+        "Chunjing Jia",
+        "Yu Lin"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-06-11T21:12:52+00:00",
+      "link": "https://arxiv.org/pdf/2606.13917v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "machine learning accelerated SSNEB with equivariant models",
+      "llm_evidence_cn": "使用等变模型的机器学习加速SSNEB",
+      "llm_evidence": "使用等变模型的机器学习加速SSNEB",
+      "canonical_evidence": "使用等变模型的机器学习加速SSNEB",
+      "llm_tldr_en": "Hybrid SSNEB framework using pretrained equivariant models (EquiformerV2, eSEN) with DFT for up to 7x speedup in minimum energy pathway calculations.",
+      "llm_tldr_cn": "最小能量路径计算对于理解材料相变至关重要，但计算成本高昂。该文提出混合固态弹性带方法，集成预训练等变模型EquiformerV2和eSEN进行能量、力和应力评估，仅在必要时调用DFT。在CsPbI3、GaN和TiO2三个体系中，框架在保持DFT精度的同时实现了最高7倍加速。",
+      "llm_tldr": "最小能量路径计算对于理解材料相变至关重要，但计算成本高昂。该文提出混合固态弹性带方法，集成预训练等变模型EquiformerV2和eSEN进行能量、力和应力评估，仅在必要时调用DFT。在CsPbI3、GaN和TiO2三个体系中，框架在保持DFT精度的同时实现了最高7倍加速。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials using equivariant graph neural networks",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.16385v1",
+      "source": "arxiv",
+      "title": "Melt-Quench Failures and Practical Solutions for Universal Machine-Learning Interatomic Potentials in Amorphous Structure Generation",
+      "abstract": "Generating experimentally relevant amorphous structures via melt-quench molecular dynamics is prohibitively expensive at the first-principles level. Universal machine-learning interatomic potentials (uMLIPs) could accelerate such simulations, but their reliability under non-equilibrium conditions remains unclear. Here, we examine eight leading uMLIPs for generating amorphous IrO2, using this electrocatalytically relevant oxide as a diagnostic case. Under the conventional melt-quench protocol, all models yield unphysically expanded structures with densities of 1-4 g/cm3, far below the ab initio molecular dynamics (AIMD) reference value of 10.04 g/cm3. Comparisons against ab initio references show that accurate energies and forces alone do not ensure stable NPT dynamics; correct energy-volume responses and pressure predictions are also essential. We identify two practical remedies: pressure-targeted fine-tuning and a revised NVT-quench/NPT-equilibration protocol that avoids unphysical volume expansion without additional ab initio training data. Both recover IrO2 densities and local structures consistent with AIMD. Across 30 chemically diverse materials, the volume-expansion failure proves general, and the revised protocol substantially improves density predictions, reducing the AIMD-referenced MAE from 2.46 to 0.35 g/cm3. This work establishes practical validation criteria and simulation strategies for robust uMLIP-driven amorphous structure generation.",
+      "authors": [
+        "Shuwei Li",
+        "Yuqi An",
+        "Xingyu Guo",
+        "Wenqiang Yang",
+        "Zhenbin Wang"
+      ],
+      "primary_category": "cond-mat.mtrl-sci",
+      "categories": [
+        "cond-mat.mtrl-sci"
+      ],
+      "published": "2026-06-15T08:17:17+00:00",
+      "link": "https://arxiv.org/pdf/2606.16385v1",
+      "tags": [
+        "keyword:ml-potential",
+        "query:ml-potential"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "evaluates universal ML interatomic potentials for amorphous materials",
+      "llm_evidence_cn": "评估通用机器学习原子间势在非晶材料中的表现",
+      "llm_evidence": "评估通用机器学习原子间势在非晶材料中的表现",
+      "canonical_evidence": "评估通用机器学习原子间势在非晶材料中的表现",
+      "llm_tldr_en": "Universal ML interatomic potentials fail to generate realistic amorphous structures due to non-equilibrium conditions, as shown for IrO2; this study diagnoses failures and suggests improvements.",
+      "llm_tldr_cn": "尽管通用机器学习原子间势有望加速非晶结构生成，但传统熔淬协议下所有模型均产生密度严重偏低的非物理膨胀结构。本文以IrO2为案例系统诊断了八种领先模型的失效模式，指出非平衡条件下的不可靠性，并为提升uMLIP在非晶模拟中的实用性提供了指导。",
+      "llm_tldr": "尽管通用机器学习原子间势有望加速非晶结构生成，但传统熔淬协议下所有模型均产生密度严重偏低的非物理膨胀结构。本文以IrO2为案例系统诊断了八种领先模型的失效模式，指出非平衡条件下的不可靠性，并为提升uMLIP在非晶模拟中的实用性提供了指导。",
+      "llm_tags": [
+        "query:ml-potential"
+      ],
+      "matched_query_tag": "query:ml-potential",
+      "matched_query_text": "machine learning interatomic potentials for materials",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ]
+}
