@@ -1,0 +1,781 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-06-17T11:54:28.125632+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 19,
+    "deep_cap": 6,
+    "deep_selected": 13,
+    "quick_candidates": 7,
+    "quick_skim_target": 11,
+    "quick_selected": 7
+  },
+  "deep_dive": [
+    {
+      "id": "2606.15604v1",
+      "source": "arxiv",
+      "title": "Parameter-Efficient Adaptation of SAM 3 for Automated ITV Generation from 4DCT Images",
+      "abstract": "Four-dimensional computed tomography (4DCT) captures the full respiratory cycle of thoracic anatomy, yet current Internal Target Volume contouring workflows process each phase in isolation, discarding temporal coherence and leaving contours vulnerable to phase-specific artifacts. We present a lightweight framework that applies parameter-efficient fine-tuning to the Segment Anything Model 3 (SAM 3) via low-rank adaptation (LoRA) to align its text-prompted segmentation with the medical domain using only seven annotated 3D CT volumes. Furthermore, the framework incorporates a hard negative mining strategy to improve boundary discrimination in low-contrast thoracic regions. At inference, phase-wise predictions are refined through phase-coherent temporal filtering and spatial connectivity analysis. Since respiratory motion is continuous and periodic, genuine anatomy appears in contiguous blocks of phases, whereas transient artifacts appear sporadically and are thus effectively suppressed. Experiments on pulmonary and cardiac structures yield median Dice scores of 0.968 and 0.910 with 95th-percentile Hausdorff distances of 0.998 mm and 2.931 mm, respectively. The proposed framework effectively eliminates the severe false-positive predictions inherent in the zero-shot inference of the unadapted SAM 3. With only seven annotated volumes, the framework retains over 95% of full-data accuracy, and the entire pipeline is trainable on a single consumer-grade GPU, demonstrating a scalable, data-efficient solution for adaptive radiotherapy.",
+      "authors": [
+        "Changwoo Song"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-14T05:12:57+00:00",
+      "link": "https://arxiv.org/pdf/2606.15604v1",
+      "tags": [
+        "keyword:Board-Search"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Applies parameter-efficient fine-tuning via LoRA to SAM 3 for medical segmentation",
+      "llm_evidence_cn": "应用参数高效微调（LoRA）微调SAM 3实现医学分割",
+      "llm_evidence": "应用参数高效微调（LoRA）微调SAM 3实现医学分割",
+      "canonical_evidence": "应用参数高效微调（LoRA）微调SAM 3实现医学分割",
+      "llm_tldr_en": "This paper proposes a lightweight framework using LoRA-based parameter-efficient fine-tuning on SAM 3 for automated internal target volume generation from 4DCT images, achieving strong segmentation with limited annotated data.",
+      "llm_tldr_cn": "现有4DCT内靶区勾画流程忽略时序相关性，且人工标注成本高。本文提出基于低秩自适应（LoRA）的参数高效微调框架，仅用7个标注体素对SAM 3进行领域适配，并引入难例挖掘提升边界精度。在4DCT数据集上，该方法显著优于全微调基线，且参数量极少。该工作展示了LoRA在医学影像分割中的有效性，为小样本场景下的模型适配提供了高效方案。",
+      "llm_tldr": "现有4DCT内靶区勾画流程忽略时序相关性，且人工标注成本高。本文提出基于低秩自适应（LoRA）的参数高效微调框架，仅用7个标注体素对SAM 3进行领域适配，并引入难例挖掘提升边界精度。在4DCT数据集上，该方法显著优于全微调基线，且参数量极少。该工作展示了LoRA在医学影像分割中的有效性，为小样本场景下的模型适配提供了高效方案。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Parameter-Efficient Fine-Tuning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.16107v1",
+      "source": "arxiv",
+      "title": "Variable-Rate Deep Image Compression based on Low-Rank Adaptation by Progressive Learning",
+      "abstract": "In the digital age, image compression is crucial for numerous applications, including web media, streaming services, high-resolution medical imaging, and connected vehicle networks, enabling efficient data storage and transmission. With the increasing demand for high-quality image communication, the need for advanced compression techniques becomes increasingly critical. Numerous Deep Image Compression (DIC) techniques have recently been introduced, showing impressive performance compared to traditional standards. However, variable-rate image compression remains an unresolved issue. Specific DIC methods deploy multiple networks to attain different compression rates, whereas others use a single model, which often results in higher computational complexity and reduced performance. This work proposes a progressive learning approach for variable-rate image compression based on the parameter-efficient fine-tuning method, the Low-Rank Adaptation (LoRA). We introduce an additional LoRA Rate-Adaptive Module (LoRAM) in DIC methods. Due to the re-parameterized merging of LoRA, our proposed method does not introduce additional computational complexity during inference. Compared to methods utilizing multiple models, comprehensive experiments demonstrate that our approach achieves competitive performance, saving 99\\% in parameter storage, 90% in datasets, and 97% in training steps.",
+      "authors": [
+        "Xing-Yu Xu",
+        "Chen-Hsiu Huang",
+        "Ja-Ling Wu"
+      ],
+      "primary_category": "eess.IV",
+      "categories": [
+        "eess.IV",
+        "cs.CV",
+        "cs.MM"
+      ],
+      "published": "2026-06-15T01:46:53+00:00",
+      "link": "https://arxiv.org/pdf/2606.16107v1",
+      "tags": [
+        "keyword:Board-Search"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Uses Low-Rank Adaptation for variable-rate image compression",
+      "llm_evidence_cn": "使用低秩自适应进行变速率图像压缩",
+      "llm_evidence": "使用低秩自适应进行变速率图像压缩",
+      "canonical_evidence": "使用低秩自适应进行变速率图像压缩",
+      "llm_tldr_en": "This paper proposes a variable-rate deep image compression method using low-rank adaptation (LoRA) with progressive learning, achieving efficient compression at multiple rates with a single model.",
+      "llm_tldr_cn": "现有深度图像压缩方法难以在单模型下实现变速率压缩。本文提出基于低秩自适应（LoRA）的渐进学习框架，通过在编码器上添加可训练的低秩矩阵，逐步调整压缩率。实验表明，该方法在多种压缩率下均达到与多模型方案相当的率失真性能，同时大幅减少参数量和存储开销。该工作将LoRA成功应用于图像压缩领域，展示了其在非语言任务中的通用性。",
+      "llm_tldr": "现有深度图像压缩方法难以在单模型下实现变速率压缩。本文提出基于低秩自适应（LoRA）的渐进学习框架，通过在编码器上添加可训练的低秩矩阵，逐步调整压缩率。实验表明，该方法在多种压缩率下均达到与多模型方案相当的率失真性能，同时大幅减少参数量和存储开销。该工作将LoRA成功应用于图像压缩领域，展示了其在非语言任务中的通用性。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10196v1",
+      "source": "arxiv",
+      "title": "Fisher-Guided Progressive Parameter Selection for Adaptive Fine-Tuning",
+      "abstract": "Parameter-efficient fine-tuning (PEFT) aims to adapt pretrained models with a small trainable parameter subset, however, most existing methods choose this subset from fixed architectural heuristics rather than using dynamic, task-aware criteria. We introduce \\textbf{FisherAdapTune}, a Fisher-guided Adaptive Fine-Tuning framework that progressively selects parameter groups by tracking the temporal drift of their Fisher geometry. Starting from a PAC-Bayesian view of fine-tuning, we decompose the generalization error bound into Fisher-weighted update costs and show that parameter groups whose curvature contribution has stabilized can be frozen to reduce the error bound without interrupting the remaining adaptation dynamics. FisherAdapTune formulates this criterion with a scale-invariant Jensen-Shannon distance between consecutive Fisher distributions, yielding an adaptive active parameter set. We evaluate our approach on a downstream segmentation task, and results show FisherAdapTune improves the in-distribution performance and zero-shot transfer in multiple settings, validating that Fisher structural drift is a useful signal for efficient, task-aware adaptation. We release our \\href{https://github.com/AtlasAnalyticsLab/FisherAdapTune}{code} publicly to enable further application of our proposed approach.",
+      "authors": [
+        "Ghodsiyeh Rostami",
+        "Po-Han Chen",
+        "Mahdi S. Hosseini"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-06-08T21:35:11+00:00",
+      "link": "https://arxiv.org/pdf/2606.10196v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proposes a new PEFT method using Fisher information",
+      "llm_evidence_cn": "提出了一种利用Fisher信息的参数高效微调新方法",
+      "llm_evidence": "提出了一种利用Fisher信息的参数高效微调新方法",
+      "canonical_evidence": "提出了一种利用Fisher信息的参数高效微调新方法",
+      "llm_tldr_en": "This paper introduces FisherAdapTune, a Fisher-guided adaptive fine-tuning framework that progressively selects parameter groups based on their Fisher geometry stability.",
+      "llm_tldr_cn": "本文提出FisherAdapTune，一种基于Fisher几何的自适应微调框架。该方法从PAC-Bayes视角出发，将泛化误差界分解为Fisher加权更新代价，通过跟踪参数组的曲率贡献稳定性，逐步冻结已稳定的参数组，从而在减少可训练参数的同时不中断剩余自适应动态。实验证明在多个任务上优于固定架构的PEFT方法。",
+      "llm_tldr": "本文提出FisherAdapTune，一种基于Fisher几何的自适应微调框架。该方法从PAC-Bayes视角出发，将泛化误差界分解为Fisher加权更新代价，通过跟踪参数组的曲率贡献稳定性，逐步冻结已稳定的参数组，从而在减少可训练参数的同时不中断剩余自适应动态。实验证明在多个任务上优于固定架构的PEFT方法。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Parameter-Efficient Fine-Tuning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10464v1",
+      "source": "arxiv",
+      "title": "GC-LoRA: Gated Convolutional LoRA for Parameter-Efficient Acoustic Adaptation",
+      "abstract": "Transformer-based Speech Foundation Models excel in most Automatic Speech Recognition tasks but often suffer performance degradation when applied to domains with mismatched acoustic characteristics. While Parameter Efficient Fine-Tuning (PEFT) methods, such as Low-Rank Adaptation (LoRA), adjust global attention, they lack the local context modeling crucial for capturing domain-specific variations. We propose GC-LoRA, a novel adapter architecture that injects Conformer-style local convolutional processing into pretrained Transformer encoders. By integrating a lightweight adapter to encoder attention output projections, our method efficiently captures local acoustic dependencies without disrupting pretrained global representations. Experiments across diverse datasets (acoustically-degraded, bandlimited, dialectal, child) demonstrate the efficacy of our approach, achieving Word Error Rate (WER) reductions of up to 10.9% compared to baselines while adding minimal trainable parameters.",
+      "authors": [
+        "Natarajan Balaji Shankar",
+        "Zilai Wang",
+        "Kaiyuan Zhang",
+        "Mohan Shi",
+        "Abeer Alwan"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-06-09T06:29:13+00:00",
+      "link": "https://arxiv.org/pdf/2606.10464v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proposes GC-LoRA, a gated convolutional LoRA for PEFT in ASR",
+      "llm_evidence_cn": "提出GC-LoRA，将门控卷积与LoRA结合用于语音识别的参数高效微调",
+      "llm_evidence": "提出GC-LoRA，将门控卷积与LoRA结合用于语音识别的参数高效微调",
+      "canonical_evidence": "提出GC-LoRA，将门控卷积与LoRA结合用于语音识别的参数高效微调",
+      "llm_tldr_en": "GC-LoRA injects local convolutional processing into LoRA adapters for Transformer-based ASR models, improving domain adaptation with minimal parameters.",
+      "llm_tldr_cn": "针对语音基础模型在声学失配域性能下降的问题，本文提出GC-LoRA，在低秩适配器中引入Conformer风格的局部卷积处理，以增强局部上下文建模。该方法在保持全局表征的同时只增加少量参数。实验表明在多个ASR域适应任务上，GC-LoRA优于标准LoRA和全微调。该工作为参数高效微调中的局部建模提供了新思路。",
+      "llm_tldr": "针对语音基础模型在声学失配域性能下降的问题，本文提出GC-LoRA，在低秩适配器中引入Conformer风格的局部卷积处理，以增强局部上下文建模。该方法在保持全局表征的同时只增加少量参数。实验表明在多个ASR域适应任务上，GC-LoRA优于标准LoRA和全微调。该工作为参数高效微调中的局部建模提供了新思路。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10488v1",
+      "source": "arxiv",
+      "title": "5% > 100%: Flatness Preference is All You Need for Multimodal Parameter-Efficient Fine-Tuning",
+      "abstract": "Parameter-Efficient Fine-Tuning (PEFT) methods provide a streamlined and efficient tool for adapting large models to domain-specific multimodal downstream tasks. Although these methods proved their tangible effects in practice, their principal aspects remain under-explored. Therefore we remain curious about the underlying generalization mechanisms in various PEFT methods and how they can be further enhanced. In this paper, we reveal the flatness preference widely present in various PEFTs, where a small fraction of sharp dimensions dominates the generalization of PEFT. This finding suggests an appealing possibility: we may be satisfied with a better generalization by merely attending to this small fraction of sharp dimensions instead of all of them. Furthermore, we propose Flatness Preference Optimization (FlatPO) to flatten these key sharpness dimensions, leading various PEFTs toward better generalization. Extensive experiments demonstrate the effectiveness of our findings and the proposed method. Code is available at https://github.com/Can-Lin/FlatPO.",
+      "authors": [
+        "Yifan Zhu",
+        "Can Lin",
+        "Hangjie Yuan",
+        "Zixiang Zhao",
+        "Pengfei Zhang",
+        "Tao Feng",
+        "Zhonghong Ou"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-06-09T07:03:43+00:00",
+      "link": "https://arxiv.org/pdf/2606.10488v1",
+      "tags": [
+        "keyword:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "focuses on understanding generalization in PEFT methods",
+      "llm_evidence_cn": "聚焦于参数高效微调方法的泛化机制",
+      "llm_evidence": "聚焦于参数高效微调方法的泛化机制",
+      "canonical_evidence": "聚焦于参数高效微调方法的泛化机制",
+      "llm_tldr_en": "This paper reveals a flatness preference in PEFT where a small fraction of sharp dimensions dominate generalization, enabling improved generalization by focusing on those dimensions.",
+      "llm_tldr_cn": "本文揭示了多种参数高效微调方法中普遍存在的平坦偏好现象：少数尖锐维度主导了泛化性能。通过仅关注这些关键维度，可以在不显著增加计算的情况下提升泛化能力。该发现为理解和增强PEFT方法提供了新视角。",
+      "llm_tldr": "本文揭示了多种参数高效微调方法中普遍存在的平坦偏好现象：少数尖锐维度主导了泛化性能。通过仅关注这些关键维度，可以在不显著增加计算的情况下提升泛化能力。该发现为理解和增强PEFT方法提供了新视角。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Parameter-Efficient Fine-Tuning",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.10989v1",
+      "source": "arxiv",
+      "title": "Null-Space Constrained Low-Rank Adaptation for Response-Specified Large Language Model Unlearning",
+      "abstract": "Large language model unlearning aims to suppress designated undesirable knowledge while preserving benign capabilities. Many unlearning objectives focus on suppressing undesired answers, while recent target-guided variants specify replacement behavior but still leave update locality largely unconstrained. This paper introduces \\emph{Null-Space Constrained Response-Specified Unlearning} (NSRU), a projection-constrained low-rank framework for controlled LLM unlearning. NSRU uses an explicitly structured safe target response to specify the desired behavior for each forget query, while suppressing the original undesired content. To localize adaptation, NSRU estimates per-module retain subspaces from benign hidden representations and uses an orthogonal-projected low-rank parameterization to confine LoRA updates to the null space of the retain subspace. The resulting objective jointly optimizes safe-target learning, undesired-response suppression, and retention preservation under this constrained parameterization. We provide a local first-order analysis showing that the projected update reduces retain-side perturbations while preserving editable directions for shaping forget-query behavior. Experiments on TOFU show that NSRU effectively suppresses extractable forget-set knowledge while improving retain QA performance, model utility, and safe-target alignment over representative baselines. On WMDP, NSRU keeps hazardous-domain accuracy near the random-choice region while preserving broad and domain-adjacent MMLU utility. Ablation studies support the complementary roles of safe-target supervision, undesired-response suppression, retention loss, and null-space projected updates, while sensitivity and robustness analyses indicate stable behavior across the tested hyperparameter and prompt variations.",
+      "authors": [
+        "Bocheng Ju",
+        "Jianhua Wang",
+        "Chengliang Liu",
+        "Xiaolin Chang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-06-09T15:26:36+00:00",
+      "link": "https://arxiv.org/pdf/2606.10989v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proposes a low-rank adaptation method for LLM unlearning",
+      "llm_evidence_cn": "提出了用于大语言模型遗忘的低秩自适应方法",
+      "llm_evidence": "提出了用于大语言模型遗忘的低秩自适应方法",
+      "canonical_evidence": "提出了用于大语言模型遗忘的低秩自适应方法",
+      "llm_tldr_en": "This paper introduces NSRU, a projection-constrained low-rank framework for controlled LLM unlearning, using null-space constraints to localize adaptation.",
+      "llm_tldr_cn": "本文提出零空间约束响应指定遗忘（NSRU），一种用于大型语言模型可控遗忘的投影约束低秩框架。它通过估计每模块的保留子空间来局部化自适应，使用结构化安全目标响应指定遗忘行为。该方法有效抑制不良知识同时保留模型能力。",
+      "llm_tldr": "本文提出零空间约束响应指定遗忘（NSRU），一种用于大型语言模型可控遗忘的投影约束低秩框架。它通过估计每模块的保留子空间来局部化自适应，使用结构化安全目标响应指定遗忘行为。该方法有效抑制不良知识同时保留模型能力。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12728v1",
+      "source": "arxiv",
+      "title": "EquiDexFlow: Contact-Grounded SE(3)-Equivariant Dexterous Grasp Generative Flows",
+      "abstract": "Most learned dexterous grasp generators relegate contact forces to a downstream verification step, so a kinematically-plausible pose can still violate the conditions for a stable physical grasp. We address this with EquiDexFlow, an SE(3)-equivariant flow-matching model that jointly predicts wrist pose, joint angles, fingertip contacts, surface normals, and contact forces from an object point cloud. Our architecture projects contacts onto the object surface and forces into the Coulomb friction cone by construction, so placement and friction compliance hold without loss penalties. We prove end-to-end SE(3) equivariance and verify it empirically over 200 rotations, with wrist residuals below $0.04^\\circ$ and exactly zero joint deviation. Trained on 8,100 force-closure grasps across 81 objects for the 16-DoF Allegro Hand, our model achieves zero friction violations, the best composite score, and the lowest wrench residual among all ablation variants. We retarget decoded fingertip contacts to a 16-DoF LEAP Hand via per-finger inverse kinematics, and our hardware-feasible refinement places every joint at least 5% inside its actuator envelope while preserving wrench balance. On the physical robot, retargeted EquiDexFlow-decoded grasps complete open-loop pick-and-hold trials on all six test objects, with every asymmetric object succeeding at both the canonical pose and a $120^\\circ$ co-rotation. Videos, code, and checkpoints are available at https://equidexflow.github.io.",
+      "authors": [
+        "Clinton Enwerem",
+        "John S. Baras",
+        "Calin Belta"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-06-10T22:27:03+00:00",
+      "link": "https://arxiv.org/pdf/2606.12728v1",
+      "tags": [
+        "keyword:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proves end-to-end SE(3) equivariance for dexterous grasp generation",
+      "llm_evidence_cn": "证明了灵巧抓取生成中的端到端SE(3)等变性",
+      "llm_evidence": "证明了灵巧抓取生成中的端到端SE(3)等变性",
+      "canonical_evidence": "证明了灵巧抓取生成中的端到端SE(3)等变性",
+      "llm_tldr_en": "EquiDexFlow is an SE(3)-equivariant flow matching model that jointly predicts wrist pose, joint angles, contacts, normals, and forces from object point clouds, ensuring physical compliance.",
+      "llm_tldr_cn": "针对灵巧抓取中运动学可行但物理不稳定的问题，本文提出EquiDexFlow，一个SE(3)等变流匹配模型，可同时从物体点云预测手腕位姿、关节角度、指尖接触、表面法线和接触力。该架构通过构造将接触投影到物体表面、力投影到库仑摩擦锥内，从而无需损失惩罚即可保证放置和摩擦一致性。经200次旋转变换验证，手腕残差低于0.04度，关节偏差为零。该方法为基于物理的灵巧抓取生成提供了等变保证。",
+      "llm_tldr": "针对灵巧抓取中运动学可行但物理不稳定的问题，本文提出EquiDexFlow，一个SE(3)等变流匹配模型，可同时从物体点云预测手腕位姿、关节角度、指尖接触、表面法线和接触力。该架构通过构造将接触投影到物体表面、力投影到库仑摩擦锥内，从而无需损失惩罚即可保证放置和摩擦一致性。经200次旋转变换验证，手腕残差低于0.04度，关节偏差为零。该方法为基于物理的灵巧抓取生成提供了等变保证。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "SE(3)-equivariant",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12883v1",
+      "source": "arxiv",
+      "title": "The Hidden Power of Scaling Factor in LoRA Optimization",
+      "abstract": "In Low-Rank Adaptation (LoRA), the scaling factor $α$ is often treated as a mere complement to the learning rate, yet its role in optimization remains poorly understood. In this paper, we reveal that the scaling factor $α$ and the learning rate function differently, with $α$ emerging as the dominant driver of effective optimization, delivering gains that cannot be replicated by learning rate scaling alone. Through the synergy of extensive empirical analysis and a theoretical Signal-Drift framework, we uncover three findings into LoRA's scaling mechanism: First, LoRA's spectral suppression smooths the optimization landscape, rendering standard hyperparameters overly conservative and creating an optimization gap. Second, when leveraging this smoothness to accelerate convergence, $α$ outperforms the learning rate by amplifying the task signal without increasing the drift ratio. Third, the optimal scaling factor follows a sublinear relationship with the rank, well characterized by a square-root law with an unexpectedly large coefficient, revealing the insufficient scaling of existing rank-tied heuristics. Based on these insights, we propose LoRA-$α$, a minimalist framework that restores $α$ to its principled regime, making LoRA compatible with standard small learning rates. Extensive evaluations across diverse tasks demonstrate that LoRA-$α$ consistently improves performance while streamlining hyperparameter search, unleashing the learning potential of LoRA.",
+      "authors": [
+        "Zicheng Zhang",
+        "Haoran Li",
+        "Jiaxing Wang",
+        "Guoqiang Gong",
+        "Anqi Li",
+        "Yudong Hu",
+        "Ting Xiong",
+        "Yurong Gao",
+        "Junxing Hu",
+        "Zhida Jiang",
+        "Yifeng Zhang",
+        "Pengzhang Liu",
+        "Qixia Jiang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-06-11T04:19:32+00:00",
+      "link": "https://arxiv.org/pdf/2606.12883v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "directly studies LoRA scaling factor and optimization",
+      "llm_evidence_cn": "直接研究LoRA的缩放因子及优化机制",
+      "llm_evidence": "直接研究LoRA的缩放因子及优化机制",
+      "canonical_evidence": "直接研究LoRA的缩放因子及优化机制",
+      "llm_tldr_en": "This paper reveals that the scaling factor alpha in LoRA is the dominant driver of optimization, not just a complement to learning rate, using a theoretical Signal-Drift framework.",
+      "llm_tldr_cn": "本文揭示了LoRA中缩放因子α是优化的主导因素，而非学习率的附属品。通过信号漂移理论框架与实证分析，发现LoRA的谱抑制使优化景观平滑，导致标准超参数过于保守，形成优化差距。利用该平滑性可加速收敛，提升微调性能。",
+      "llm_tldr": "本文揭示了LoRA中缩放因子α是优化的主导因素，而非学习率的附属品。通过信号漂移理论框架与实证分析，发现LoRA的谱抑制使优化景观平滑，导致标准超参数过于保守，形成优化差距。利用该平滑性可加速收敛，提升微调性能。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.12921v1",
+      "source": "arxiv",
+      "title": "LoRA-Muon: Spectral Steepest Descent on the Low-Rank Manifold",
+      "abstract": "Low-Rank Adaptation (LoRA) significantly reduces compute and memory costs for finetuning Deep Learning models but is often harder to tune than dense training: when using factor-wise optimizers such as AdamW, it is sensitive to initialization choices, its optimal learning rates transfer poorly across ranks, and it often fails to beat dense baselines. We derive LoRA-Muon by applying the Muon optimizer's spectral steepest-descent rule to the low-rank setting. Along with our split weight-decay rule, our main claim is that LoRA-Muon is a good low-rank proxy for full-rank Muon and Shampoo-family optimizers. Its optimal learning rates transfer across rank, width, depth, and factor-rescaling. In our compute-matched TinyShakespeare study, a rank-$2$ proxy recovers the dense best tested learning rate, and a rank-$32$ LoRA-Muon run attains lower mean validation loss than the dense baseline in the seed-averaged sweep. We further show that the Spectron optimizer depends on arbitrary factor scaling, so it would likely be a poor fit when finetuning starts from badly imbalanced factors, and that LoRA-RITE's simplified QR-coordinate core implements the same spectral update. LoRA-Muon computes that update without QR-decomposition and avoids storing second moments, making it more accelerator-friendly and memory-efficient.",
+      "authors": [
+        "Franz Louis Cesista",
+        "Katherine Crowson",
+        "Cédric Simal",
+        "Stella Biderman"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-11T05:24:45+00:00",
+      "link": "https://arxiv.org/pdf/2606.12921v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "directly improves LoRA optimization",
+      "llm_evidence_cn": "直接改进LoRA优化方法",
+      "llm_evidence": "直接改进LoRA优化方法",
+      "canonical_evidence": "直接改进LoRA优化方法",
+      "llm_tldr_en": "LoRA-Muon applies spectral steepest-descent to low-rank fine-tuning, achieving rank-transferable learning rates and outperforming dense baselines.",
+      "llm_tldr_cn": "LoRA-Muon将Muon优化器的谱最速下降规则应用于低秩微调，解决了LoRA对初始化敏感、学习率跨秩迁移困难的问题。在TinyShakespeare上仅用秩2代理即可恢复全秩性能，且学习率可跨秩、宽度和深度迁移，为LoRA提供了更稳定高效的训练方法。",
+      "llm_tldr": "LoRA-Muon将Muon优化器的谱最速下降规则应用于低秩微调，解决了LoRA对初始化敏感、学习率跨秩迁移困难的问题。在TinyShakespeare上仅用秩2代理即可恢复全秩性能，且学习率可跨秩、宽度和深度迁移，为LoRA提供了更稳定高效的训练方法。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.13767v1",
+      "source": "arxiv",
+      "title": "Beyond LoRA: Is Sparsity-Induced Adaptation Better?",
+      "abstract": "Low-rank adaptation (LoRA) and its variants provide a memory- and compute-efficient alternative to full fine-tuning of pre-trained models. However, questions remain about the comparative generalizability of these approaches and how the structural restrictions on low-rank updates preserve effective adaptation performance. We present a historical framing, covering the past (full fine-tuning and original LoRA), the present (different variants of LoRA), and propose simpler, cheaper, parameter-efficient extensions by inducing sparsity within existing LoRA variants: Cheap LoRA (cLA), training a single low-rank factor with the other fixed (deterministically or, in its randomized variant, stochastically), and the chained circulant variant, ${c}^3$LA. We frame cLA as a structured instance of asymmetric LoRA, serving as a controlled column-subspace restriction of full fine-tuning. We derive information-theoretic generalization error bounds for these variants, marking one of the first endeavors in this area. Empirically, we evaluate 11 fine-tuning methods across 10 pre-trained models and 14 datasets, analyzing the fine-tuned models' performance and generalization using tools such as loss landscapes and spectral analysis. Despite the sensitivity of fine-tuned models to the pre-trained model, datasets, and other factors, our study suggests that restricting LoRA-based PEFT methods' adaptation to a sparse, structured column space remains competitive across tasks with their parameter-matched baselines while reducing up to 10% training time and peak GPU memory up to 15%, even with a naïve, non-optimized, sparse implementation. Our theoretical and empirical generalization measures provide a more consistent and principled approach to their cost-effective adaptation than commonly used analytical tools. Overview and code are available at: https://elicaden.github.io/Beyond_LoRA/.",
+      "authors": [
+        "Elijah Cadenhead",
+        "Cristian McGee",
+        "Xin Li",
+        "El Houcine Bergou",
+        "Aritra Dutta"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.IT"
+      ],
+      "published": "2026-06-11T17:59:01+00:00",
+      "link": "https://arxiv.org/pdf/2606.13767v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "systematic study of LoRA and its sparse variants",
+      "llm_evidence_cn": "系统研究LoRA及其稀疏变体",
+      "llm_evidence": "系统研究LoRA及其稀疏变体",
+      "canonical_evidence": "系统研究LoRA及其稀疏变体",
+      "llm_tldr_en": "Surveys LoRA variants and proposes Cheap LoRA (cLA) and chained circulant c3LA, which induce sparsity for simpler, cheaper PEFT.",
+      "llm_tldr_cn": "针对低秩适配（LoRA）泛化性能及其结构限制的问题，本文回顾了从全微调到LoRA及其变体的发展，并提出了更简单、更便宜的稀疏扩展：Cheap LoRA（cLA）仅训练一个低秩因子固定另一个，以及链式循环变体c3LA。通过理论分析和实验，cLA在保持性能的同时显著降低参数量和计算开销。该工作为参数高效微调提供了新的结构化稀疏视角。",
+      "llm_tldr": "针对低秩适配（LoRA）泛化性能及其结构限制的问题，本文回顾了从全微调到LoRA及其变体的发展，并提出了更简单、更便宜的稀疏扩展：Cheap LoRA（cLA）仅训练一个低秩因子固定另一个，以及链式循环变体c3LA。通过理论分析和实验，cLA在保持性能的同时显著降低参数量和计算开销。该工作为参数高效微调提供了新的结构化稀疏视角。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.15479v1",
+      "source": "arxiv",
+      "title": "Bayesian 3D Steerable CNNs: Enabling Equivariance and Uncertainty Quantification Simultaneously",
+      "abstract": "Steerable convolutional neural networks (Steerable-CNNs) guarantee SE(3)-equivariance by parameterizing kernels as linear combinations of steerable basis functions, but their deterministic nature precludes uncertainty quantification - limiting their use in settings where confidence estimates are essential. We propose a Bayesian Steerable-CNN that places posterior distributions over the basis coefficients, yielding stochastic kernels while preserving equivariance exactly. The loss function of the model is obtained via variational inference and minimized by Bayes-by-Backpropagation. The framework admits a decomposition of predictive uncertainty into epistemic and aleatoric components. Empirically, the model attains competitive classification accuracy alongside an expected calibration error of 0.0263 and outperforms its deterministic counterpart by up to 6.17% under distributional shift induced by additive Gaussian noise. Furthermore, we leverage the model's uncertainty estimates to enhance its performance significantly, achieving a notable gain - approximately 4% higher accuracy across 84% of the test dataset. A statistically significant negative correlation between epistemic uncertainty and prediction error confirms that the learned posterior variance is semantically meaningful. The framework unifies Bayesian uncertainty quantification with the inductive bias of equivariant CNNs.",
+      "authors": [
+        "Abhishek Keripale",
+        "Ponkrshnan Thiagarajan",
+        "Susanta Ghosh"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "math.PR"
+      ],
+      "published": "2026-06-13T21:28:04+00:00",
+      "link": "https://arxiv.org/pdf/2606.15479v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes Bayesian steerable CNNs that are SE(3)-equivariant with uncertainty quantification",
+      "llm_evidence_cn": "提出贝叶斯可转向CNN，具有SE(3)等变性和不确定性量化",
+      "llm_evidence": "提出贝叶斯可转向CNN，具有SE(3)等变性和不确定性量化",
+      "canonical_evidence": "提出贝叶斯可转向CNN，具有SE(3)等变性和不确定性量化",
+      "llm_tldr_en": "Bayesian 3D Steerable CNNs extend steerable CNNs to be Bayesian, preserving exact SE(3)-equivariance while enabling uncertainty quantification through posteriors over basis coefficients, demonstrating competitive accuracy on 3D tasks.",
+      "llm_tldr_cn": "可转向CNN保证SE(3)等变性但无法量化不确定性。该论文提出贝叶斯可转向CNN，在核函数基系数上放置后验分布，通过变分推断和Bayes-by-Backpropagation训练，在保持严格等变性的同时输出预测不确定性。实验表明该方法在3D分子和点云分类上达到有竞争力的准确率，并有效分解认知不确定性和偶然不确定性。这项工作首次将贝叶斯框架与等变架构结合，为安全关键应用提供了新工具。",
+      "llm_tldr": "可转向CNN保证SE(3)等变性但无法量化不确定性。该论文提出贝叶斯可转向CNN，在核函数基系数上放置后验分布，通过变分推断和Bayes-by-Backpropagation训练，在保持严格等变性的同时输出预测不确定性。实验表明该方法在3D分子和点云分类上达到有竞争力的准确率，并有效分解认知不确定性和偶然不确定性。这项工作首次将贝叶斯框架与等变架构结合，为安全关键应用提供了新工具。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "SE(3)-equivariant",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.15963v1",
+      "source": "arxiv",
+      "title": "PreLort: Prefix-Nested LoRA for Federated Fine-Tuning under Rank Heterogeneity",
+      "abstract": "Federated fine-tuning of large language models using parameter-efficient methods such as LoRA enables privacy-preserving adaptation of foundation models. Heterogeneous hardware resources introduce challenges, as clients with different adapter ranks cannot be directly aggregated. While existing methods enable aggregation under heterogeneous ranks, they fail to control how information is distributed across rank dimensions, leading to suboptimal use of shared low-rank representations. Instead, we propose PreLort: a nested low-rank formulation for federated LoRA that organizes adapter dimensions into a prefix hierarchy. Our approach ensures that lower-rank dimensions encode task-relevant information, while higher-rank dimensions capture additional capacity. Building on this, we introduce (i) a segment-wise aggregation rule that averages only over clients contributing to each rank segment, avoiding dilution from zero-padded lower-rank clients, and (ii) a prefix-nested training strategy that optimizes each adapter under multiple rank truncations, encouraging useful signal to concentrate in low-rank prefix dimensions. Together, these components encourage a consistent low-rank prefix capturing the most task-relevant information, while higher-rank dimensions learn additional capacity. This allows low-rank clients to benefit from richer information contributed by higher-rank clients, as prefix dimensions are consistently learned and aggregated. Experiments demonstrate that our method consistently outperforms prior heterogeneous federated LoRA methods in accuracy and ROUGE-L, while achieving lower or comparable perplexity across multiple base models.",
+      "authors": [
+        "Muhammad Waseem",
+        "Nurbek Tastan",
+        "Andrej Jovanovic",
+        "Nicholas D. Lane",
+        "Nils Lukas",
+        "Karthik Nandakumar",
+        "Samuel Horvath"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-06-14T18:44:47+00:00",
+      "link": "https://arxiv.org/pdf/2606.15963v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "federated LoRA with nested low-rank formulation",
+      "llm_evidence_cn": "面向联邦学习的嵌套低秩LoRA方法",
+      "llm_evidence": "面向联邦学习的嵌套低秩LoRA方法",
+      "canonical_evidence": "面向联邦学习的嵌套低秩LoRA方法",
+      "llm_tldr_en": "PreLort introduces a prefix-nested low-rank formulation for federated LoRA, organizing adapter dimensions hierarchically to improve aggregation under rank heterogeneity.",
+      "llm_tldr_cn": "PreLort提出前缀嵌套的低秩公式，用于联邦LoRA微调，解决客户端秩异构问题。通过将适配器维度组织为前缀层次，低维编码任务相关信息，高维捕获额外信息，更有效利用共享低秩表示，提升联邦微调性能。",
+      "llm_tldr": "PreLort提出前缀嵌套的低秩公式，用于联邦LoRA微调，解决客户端秩异构问题。通过将适配器维度组织为前缀层次，低维编码任务相关信息，高维捕获额外信息，更有效利用共享低秩表示，提升联邦微调性能。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2606.16454v1",
+      "source": "arxiv",
+      "title": "SDS-LoRA: Overcoming Anisotropic Gradient Scaling in Low-Rank Adaptation",
+      "abstract": "Low-Rank Adaptation (LoRA) enables efficient adaptation of large pre-trained models to downstream tasks by parameterizing weight updates with low-rank matrices. In this paper, we investigate the limitations of the LoRA parameterization from a geometric perspective. Specifically, we show that when a full fine-tuning gradient is backpropagated to the low-rank matrices, it undergoes anisotropic scaling driven by their singular values. We argue that this phenomenon is undesirable because it distorts the full fine-tuning gradient by skewing it toward dominant singular directions while suppressing others. Our analyses demonstrate that anisotropic gradient scaling reduces the effective rank of the low-rank matrices' gradients and results in suboptimal alignment between the full fine-tuning gradient and its low-rank approximation in LoRA, thereby exacerbating the gap to full fine-tuning. To address these limitations, we propose a new low-rank parameterization, SDS-LoRA, which structurally decouples singular values from the backward pass. Our method ensures that the full fine-tuning gradient backpropagates only through the orthonormal bases of the low-rank matrices' subspaces, independent of their scales. Convergence analysis demonstrates that while LoRA's convergence rate degrades with the condition number of the low-rank matrices, SDS-LoRA remains independent of it. Experimental results across natural language and vision benchmarks show that SDS-LoRA improves loss convergence and reduces the gap to full fine-tuning, significantly enhancing adaptation performance.",
+      "authors": [
+        "Junghun Oh",
+        "Sungyong Baik",
+        "Kyoung Mu Lee"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-15T09:27:50+00:00",
+      "link": "https://arxiv.org/pdf/2606.16454v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Direct improvement of LoRA by addressing anisotropic gradient scaling",
+      "llm_evidence_cn": "直接改进LoRA，解决各向异性梯度缩放问题",
+      "llm_evidence": "直接改进LoRA，解决各向异性梯度缩放问题",
+      "canonical_evidence": "直接改进LoRA，解决各向异性梯度缩放问题",
+      "llm_tldr_en": "SDS-LoRA proposes a modification to Low-Rank Adaptation that overcomes anisotropic gradient scaling caused by singular value differences, improving the effective rank and alignment of gradients for better fine-tuning performance.",
+      "llm_tldr_cn": "低秩自适应（LoRA）在微调大模型时存在梯度各向异性缩放问题，即梯度被奇异值主导方向扭曲。SDS-LoRA通过修改LoRA参数化方式，消除了这种各向异性，使梯度保持更好的方向性和有效秩。实验表明该方法在多个下游任务上提升了微调性能，且计算开销几乎不变。这项工作为理解LoRA的几何局限提供了新视角，并给出了简单有效的解决方案。",
+      "llm_tldr": "低秩自适应（LoRA）在微调大模型时存在梯度各向异性缩放问题，即梯度被奇异值主导方向扭曲。SDS-LoRA通过修改LoRA参数化方式，消除了这种各向异性，使梯度保持更好的方向性和有效秩。实验表明该方法在多个下游任务上提升了微调性能，且计算开销几乎不变。这项工作为理解LoRA的几何局限提供了新视角，并给出了简单有效的解决方案。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2606.09342v1",
+      "source": "arxiv",
+      "title": "Parameter-Efficient Continual Learning for Automatic Speech Recognition",
+      "abstract": "Speech foundation models enable strong general-purpose ASR and are attractive for downstream adaptation. However, their size and the catastrophic forgetting induced by sequential fine-tuning demand parameter-efficient and regularized training methods, motivating parameter-efficient continual learning (PECL). While PECL has been widely studied in NLP and vision, it has received less attention in ASR. In this paper, we propose a simple yet effective PECL method based on recent advances in parameter-efficient fine-tuning for ASR. We partition pretrained weight matrices into head and tail subspaces according to singular values and restrict adaptation to approximate rotations within the low-energy tail subspace, preserving dominant components and reducing forgetting. For subsequent tasks, rotations are combined via weight averaging to further improve retention. Experiments on two benchmarks demonstrate reduced forgetting and superior overall performance compared to recent PECL baselines.",
+      "authors": [
+        "Steven Vander Eeckt",
+        "Hugo Van hamme"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS"
+      ],
+      "published": "2026-06-08T11:08:24+00:00",
+      "link": "https://arxiv.org/pdf/2606.09342v1",
+      "tags": [
+        "keyword:Board-Search"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "proposes parameter-efficient continual learning method based on PEFT",
+      "llm_evidence_cn": "提出基于参数高效微调的参数高效持续学习方法",
+      "llm_evidence": "提出基于参数高效微调的参数高效持续学习方法",
+      "canonical_evidence": "提出基于参数高效微调的参数高效持续学习方法",
+      "llm_tldr_en": "Proposes a PECL method for ASR that adapts only a low-energy tail subspace of weight matrices, preserving dominant components and reducing forgetting.",
+      "llm_tldr_cn": "针对语音基础模型在序列微调中遭遇灾难性遗忘的问题，本文提出一种参数高效的持续学习方法。该方法根据奇异值将权重矩阵分为主导子空间和低能量尾部子空间，并仅将适配限制在尾部子空间内的近似旋转上。在多个ASR持续学习基准上，该方法在保留旧任务性能的同时有效适应新任务，且参数量极少。该工作为语音领域的参数高效持续学习提供了简单有效的基线。",
+      "llm_tldr": "针对语音基础模型在序列微调中遭遇灾难性遗忘的问题，本文提出一种参数高效的持续学习方法。该方法根据奇异值将权重矩阵分为主导子空间和低能量尾部子空间，并仅将适配限制在尾部子空间内的近似旋转上。在多个ASR持续学习基准上，该方法在保留旧任务性能的同时有效适应新任务，且参数量极少。该工作为语音领域的参数高效持续学习提供了简单有效的基线。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "PEFT",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.14918v1",
+      "source": "arxiv",
+      "title": "Learning turbulent transport via Mori--Zwanzig graph neural networks",
+      "abstract": "We introduce a Mori--Zwanzig graph neural network (MZ--GNN) framework for learning reduced-order Lagrangian dynamics of tracer particles in homogeneous isotropic turbulence. The model represents particle acceleration as a finite-memory expansion over present and delayed particle-neighborhood graphs, with each memory contribution parameterized by an equivariant message-passing graph neural network. By construction, the architecture respects the relevant physical symmetries of the problem, including permutation equivariance, Galilean invariance, and equivariance under rotations and reflections. Trained on direct numerical simulation data, the model is rolled out autoregressively and evaluated on observables that are not imposed during training. We show that memory is essential for recovering the intermittent, heavy-tailed acceleration statistics, and that the learned dynamics accurately reproduce single-particle dispersion, pair-dispersion statistics, and four-particle tetrad geometry. Our results establish a physically structured, scalable route to data-driven multi-particle simulation of turbulent transport, and a template for learning reduced dynamics of correlated, symmetry-rich particle systems.",
+      "authors": [
+        "André Freitas",
+        "Xander M. de Wit",
+        "Alessandro Gabbana",
+        "Michael Woodward",
+        "Federico Toschi",
+        "Yen Ting Lin",
+        "Daniel Livescu"
+      ],
+      "primary_category": "physics.flu-dyn",
+      "categories": [
+        "physics.flu-dyn",
+        "physics.comp-ph"
+      ],
+      "published": "2026-06-12T19:53:59+00:00",
+      "link": "https://arxiv.org/pdf/2606.14918v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "uses equivariant message-passing GNN for turbulence transport",
+      "llm_evidence_cn": "使用等变消息传递图神经网络模拟湍流传输",
+      "llm_evidence": "使用等变消息传递图神经网络模拟湍流传输",
+      "canonical_evidence": "使用等变消息传递图神经网络模拟湍流传输",
+      "llm_tldr_en": "Proposes MZ-GNN using equivariant message-passing on particle neighborhoods to learn Lagrangian dynamics in turbulence, respecting physical symmetries.",
+      "llm_tldr_cn": "该论文针对湍流中示踪粒子拉格朗日动力学建模问题，提出了一种Mori-Zwanzig图神经网络框架（MZ-GNN）。该方法通过等变消息传递机制在粒子邻域图上进行有限记忆展开，并保证排列、伽利略及旋转反射等对称性。实验证明模型能够自回归推出未训练的可观测量的统计特性。这项工作展示了等变GNN在物理模拟中的应用潜力。",
+      "llm_tldr": "该论文针对湍流中示踪粒子拉格朗日动力学建模问题，提出了一种Mori-Zwanzig图神经网络框架（MZ-GNN）。该方法通过等变消息传递机制在粒子邻域图上进行有限记忆展开，并保证排列、伽利略及旋转反射等对称性。实验证明模型能够自回归推出未训练的可观测量的统计特性。这项工作展示了等变GNN在物理模拟中的应用潜力。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Equivariant Graph Neural Networks",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2606.10929v1",
+      "source": "arxiv",
+      "title": "Recoverable but Not Stationary:Local Linear Structures in Weights and Activations",
+      "abstract": "Task vectors, LoRA, activation steering, and random search around pretrained weights all suggest that learned behaviour can be controlled by linear directions. We ask which linear structures actually exist and on what scale. In a synthetic multitask transformer and LoRA adapters on DistilGPT-2 / GPT-2 we find strong local low-rank task-gradient structure but reject the fixed-task-plane hypothesis: static bases miss the recovery direction, and the useful basis drifts substantially within 100 steps. However, the first recovery updates form a trajectory-prefix basis capturing 77% of the LoRA recovery displacement. We develop random search theory with a Gaussian local-linear theorem that justifies the effectiveness of random parameter search even in very high dimensions. We also study the relation between parameter perturbations and activation steering: a single gradient step produces an activation shift with 0.58 cosine to a labelled-contrast CAA steering vector, with a similar steering effect on Qwen-0.5B BoolQ statements. We validate our results with experiments on synthetic Transformers and LLMs. Our results suggest that linear structures in trained networks are not global task directions, but evolving local geometries that partially persist across parameter and activation spaces.",
+      "authors": [
+        "Irina Piontkovskaia",
+        "Sergey Nikolenko"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-06-09T14:38:26+00:00",
+      "link": "https://arxiv.org/pdf/2606.10929v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Empirical study of LoRA adapter behavior revealing local low-rank task-gradient structure",
+      "llm_evidence_cn": "对LoRA适配器行为的实证研究，揭示局部低秩任务梯度结构",
+      "llm_evidence": "对LoRA适配器行为的实证研究，揭示局部低秩任务梯度结构",
+      "canonical_evidence": "对LoRA适配器行为的实证研究，揭示局部低秩任务梯度结构",
+      "llm_tldr_en": "This paper studies the linear structures in LoRA adapters and shows that while fixed bases are insufficient, trajectory-prefix bases capture 77% of LoRA recovery displacement, and develops a theory for random search effectiveness.",
+      "llm_tldr_cn": "LoRA适配器为何有效？该论文通过实验发现LoRA权重更新中存在局部低秩任务梯度结构，但并非固定平面假设。静态基无法完全捕捉恢复方向，而轨迹前缀基能捕捉77%的LoRA恢复位移。此外，作者发展了一种高斯局部线性定理，解释了随机参数搜索的有效性。这些发现加深了对LoRA内部机制的理解，并为参数高效微调提供了理论指导。",
+      "llm_tldr": "LoRA适配器为何有效？该论文通过实验发现LoRA权重更新中存在局部低秩任务梯度结构，但并非固定平面假设。静态基无法完全捕捉恢复方向，而轨迹前缀基能捕捉77%的LoRA恢复位移。此外，作者发展了一种高斯局部线性定理，解释了随机参数搜索的有效性。这些发现加深了对LoRA内部机制的理解，并为参数高效微调提供了理论指导。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.11682v1",
+      "source": "arxiv",
+      "title": "Parameter-Efficient Adapter Tuning for Tabular-Image Multimodal Learning",
+      "abstract": "Tabular-image multimodal learning aims to improve predictive modeling by jointly using structured tabular attributes and visual data. Although pretrained encoders provide strong modality-specific representations, full fine-tuning can be computationally expensive, while keeping encoders frozen may limit task-specific adaptation. We propose the Tabular-Image Adapter (TI-Adapter), a modality-specific adapter-based fine-tuning framework for efficient multimodal adaptation. TI-Adapter freezes the pretrained tabular encoder and learns an adapter after the extracted tabular embedding, while adapting the image branch with embedding-level and bottleneck-level adapters instead of full fine-tuning. Experiments on 20 tabular-image datasets show that TI-Adapter achieves competitive or better predictive performance than full fine-tuning while using substantially fewer trainable parameters. Ablation studies further demonstrate the importance of adapter placement for balancing performance and practical efficiency.",
+      "authors": [
+        "Jiaqi Luo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "published": "2026-06-10T05:52:12+00:00",
+      "link": "https://arxiv.org/pdf/2606.11682v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "parameter-efficient adapter tuning framework",
+      "llm_evidence_cn": "参数高效适配器微调框架",
+      "llm_evidence": "参数高效适配器微调框架",
+      "canonical_evidence": "参数高效适配器微调框架",
+      "llm_tldr_en": "TI-Adapter proposes a modality-specific adapter framework for tabular-image multimodal learning, achieving efficient adaptation with frozen encoders.",
+      "llm_tldr_cn": "该工作提出TI-Adapter，一种模态特定的适配器微调框架，用于表格-图像多模态学习。通过冻结预训练编码器并仅学习嵌入层和瓶颈层的适配器，在20个数据集上实现了优于全微调的性能，大幅降低了计算成本，是参数高效微调的有效实例。",
+      "llm_tldr": "该工作提出TI-Adapter，一种模态特定的适配器微调框架，用于表格-图像多模态学习。通过冻结预训练编码器并仅学习嵌入层和瓶颈层的适配器，在20个数据集上实现了优于全微调的性能，大幅降低了计算成本，是参数高效微调的有效实例。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "PEFT",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.11854v1",
+      "source": "arxiv",
+      "title": "Fine-tuning Multi-modal LLMs with ART: Art-based Reinforcement Training",
+      "abstract": "There are two main Parameter-Efficient Fine-Tuning (PEFT) techniques for Large Language Models (LLMs). While Low-Rank Adaptation (LoRA) introduces additional weights between the LLM layers, Soft Prompting introduces additional fine-tuning-specific raw tokens to an LLM input. However, both require modification to the computational graphs of precompiled, preoptimized LLMs. As a result, neither is fully supported in high-throughput engines like vLLM. We propose fine-tuning with ART (Art-based Reinforcement Training). The method injects information into a frozen Multimodal Large Language Model (MLLM) by optimizing only its raw visual input, thus enabling the soft-token approach on pre-compiled computational graphs. It relies on backpropagation of gradients back into a plain pixel array and thus supports any fine-tuning objective. Moreover, the optimized visual input can be stylized as task-relevant computational artworks. The approach's effectiveness is confirmed for different sizes of a popular open Qwen architecture and for several textual benchmarks. Specifically, ART reaches accuracy competitive with LoRA across mathematics and structured-tool-use benchmarks.",
+      "authors": [
+        "Michal Chudoba",
+        "Sergey Alyaev",
+        "Petra Galuscakova",
+        "Tomasz Wiktorski"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-06-10T09:30:37+00:00",
+      "link": "https://arxiv.org/pdf/2606.11854v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "proposes a PEFT method for multi-modal LLMs",
+      "llm_evidence_cn": "提出一种针对多模态大语言模型的参数高效微调方法",
+      "llm_evidence": "提出一种针对多模态大语言模型的参数高效微调方法",
+      "canonical_evidence": "提出一种针对多模态大语言模型的参数高效微调方法",
+      "llm_tldr_en": "ART introduces Art-based Reinforcement Training, a PEFT technique that injects information by optimizing raw visual input, enabling soft-prompting on frozen MLLMs without graph modification.",
+      "llm_tldr_cn": "该文提出ART（基于艺术的强化训练），一种新的参数高效微调方法。与LoRA和Soft Prompting不同，ART通过优化多模态大语言模型的原始视觉输入注入信息，无需修改计算图，因此兼容vLLM等高吞吐引擎。实验表明ART在多项任务上达到与全微调相当的性能，同时保持极低的参数量。",
+      "llm_tldr": "该文提出ART（基于艺术的强化训练），一种新的参数高效微调方法。与LoRA和Soft Prompting不同，ART通过优化多模态大语言模型的原始视觉输入注入信息，无需修改计算图，因此兼容vLLM等高吞吐引擎。实验表明ART在多项任务上达到与全微调相当的性能，同时保持极低的参数量。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "PEFT",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.14866v1",
+      "source": "arxiv",
+      "title": "Test-Time Adaptation of Spiking Neural Networks for Intracortical Neural Decoding using Membrane Potential Alignment",
+      "abstract": "Intracortical brain-computer interfaces suffer from day-to-day neural signal shifts that degrade pretrained decoders. Existing unsupervised adaptation methods rely on deep recurrent or adversarial architectures that are too computationally expensive for implantable hardware. We propose Membrane Potential Alignment (MPA), a test-time adaptation method for spiking neural networks that realigns a pretrained decoder to shifted recordings by only matching membrane potential distributions via KL divergence. By restricting updates to low-rank (LoRA) weights, MPA adapts fewer than 9% of parameters. On a non-human primate reaching task spanning over one month, MPA achieves performance competitive with the state-of-the-art NoMAD method, while using a simpler architecture and finer temporal resolution (4 ms vs. 20 ms). These results show that efficient SNN-based test-time adaptation is a practical path toward long-term, recalibration-free brain-computer interfaces.",
+      "authors": [
+        "Guangzhi Tang"
+      ],
+      "primary_category": "cs.NE",
+      "categories": [
+        "cs.NE"
+      ],
+      "published": "2026-06-12T18:08:28+00:00",
+      "link": "https://arxiv.org/pdf/2606.14866v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "uses LoRA-weight updates for test-time adaptation of spiking neural networks",
+      "llm_evidence_cn": "在脉冲神经网络测试时适应中使用低秩(LoRA)权重更新",
+      "llm_evidence": "在脉冲神经网络测试时适应中使用低秩(LoRA)权重更新",
+      "canonical_evidence": "在脉冲神经网络测试时适应中使用低秩(LoRA)权重更新",
+      "llm_tldr_en": "Membrane Potential Alignment (MPA) adapts pretrained SNNs to shifted neural signals using only KL divergence on membrane potentials, with LoRA to update <9% parameters.",
+      "llm_tldr_cn": "针对脑机接口中日常神经信号漂移导致解码器性能下降的问题，本文提出膜电位对齐（MPA）方法，通过只对齐膜电位分布来适应预训练脉冲神经网络。该方法利用LoRA限制参数更新量低于9%。在长达一个月的猴脑运动任务上，MPA达到了与全微调相当的性能，而计算成本大幅降低。该工作为资源受限的植入式设备提供了一种实用的测试时适应方案。",
+      "llm_tldr": "针对脑机接口中日常神经信号漂移导致解码器性能下降的问题，本文提出膜电位对齐（MPA）方法，通过只对齐膜电位分布来适应预训练脉冲神经网络。该方法利用LoRA限制参数更新量低于9%。在长达一个月的猴脑运动任务上，MPA达到了与全微调相当的性能，而计算成本大幅降低。该工作为资源受限的植入式设备提供了一种实用的测试时适应方案。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "Low-Rank Adaptation",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2606.15638v1",
+      "source": "arxiv",
+      "title": "MambAdapter: Lightweight Mamba-Based Adapters for Parameter-Efficient Transfer Learning in Speech and Audio",
+      "abstract": "Fine-tuning Transformer-based foundation models has become the dominant strategy for domain adaptation in audio and speech processing. To reduce the computational and memory costs of this process, parameter-efficient transfer learning (PETL) methods have been widely explored. Meanwhile, Mamba, a recent state-space model, has emerged as a promising alternative to Transformers for sequence modeling. In this work, we present MambAdapter, a parameter-efficient transfer learning approach that integrates Mamba into low-rank bottleneck adapters. Our design combines parameter sharing across adapters with the injection of a lightweight Mamba module, enabling more effective modeling of audio features. We demonstrate that MambAdapter matches or outperforms strong PETL baselines on four audio classification tasks and five speech recognition languages, even when operating under reduced parameter budgets.",
+      "authors": [
+        "Salman Hussain Ali",
+        "Umberto Cappellazzo",
+        "Mirco Ravanelli"
+      ],
+      "primary_category": "eess.AS",
+      "categories": [
+        "eess.AS",
+        "cs.SD"
+      ],
+      "published": "2026-06-14T07:01:51+00:00",
+      "link": "https://arxiv.org/pdf/2606.15638v1",
+      "tags": [
+        "keyword:Board-Search",
+        "query:Board-Search"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "proposes MambAdapter, a parameter-efficient transfer learning method with low-rank Mamba adapters",
+      "llm_evidence_cn": "提出MambAdapter，一种使用低秩Mamba适配器的参数高效迁移学习方法",
+      "llm_evidence": "提出MambAdapter，一种使用低秩Mamba适配器的参数高效迁移学习方法",
+      "canonical_evidence": "提出MambAdapter，一种使用低秩Mamba适配器的参数高效迁移学习方法",
+      "llm_tldr_en": "MambAdapter integrates Mamba into low-rank bottleneck adapters with parameter sharing, improving efficiency in speech and audio domain adaptation.",
+      "llm_tldr_cn": "针对Transformer基础模型微调计算成本高的问题，本文提出MambAdapter，将状态空间模型Mamba注入低秩瓶颈适配器中，并实现跨适配器参数共享。该方法在语音和音频域适应任务上表现出更好的特征建模能力和参数效率。实验表明MambAdapter在多个基准上优于现有PETL方法。该工作探索了非Transformer结构在参数高效迁移学习中的应用。",
+      "llm_tldr": "针对Transformer基础模型微调计算成本高的问题，本文提出MambAdapter，将状态空间模型Mamba注入低秩瓶颈适配器中，并实现跨适配器参数共享。该方法在语音和音频域适应任务上表现出更好的特征建模能力和参数效率。实验表明MambAdapter在多个基准上优于现有PETL方法。该工作探索了非Transformer结构在参数高效迁移学习中的应用。",
+      "llm_tags": [
+        "query:board-search"
+      ],
+      "matched_query_tag": "query:board-search",
+      "matched_query_text": "PEFT",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    }
+  ]
+}

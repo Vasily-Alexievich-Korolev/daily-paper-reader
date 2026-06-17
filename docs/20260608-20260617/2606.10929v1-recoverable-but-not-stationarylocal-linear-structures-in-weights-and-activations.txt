@@ -1,0 +1,629 @@
+Title: Recoverable but Not Stationary:Local Linear Structures in Weights and Activations
+
+URL Source: https://arxiv.org/pdf/2606.10929v1
+
+Published Time: Wed, 10 Jun 2026 01:08:47 GMT
+
+Number of Pages: 23
+
+Markdown Content:
+# Recoverable but Not Stationary: Local Linear Structures in Weights and Activations 
+
+Irina Piontkovskaia and Sergey Nikolenko 1,2 1St. Petersburg Department of the Steklov Institute of Mathematics, St. Petersburg, Russia, 
+
+sergey@logic.pdmi.ras.ru 
+
+> 2
+
+St. Petersburg State University June 10, 2026 
+
+Abstract 
+
+Task vectors, LoRA, activation steering, and random search around pretrained weights all suggest that learned behaviour can be controlled by linear directions. We ask which linear structures actually exist and on what scale. In a synthetic multitask transformer and LoRA adapters on DistilGPT-2 / GPT-2 we find strong local low-rank task-gradient structure but reject the fixed-task-plane hypothesis: static bases miss the recovery direction, and the useful basis drifts substantially within 100 steps. However, the first recovery updates form a trajectory-prefix 
+
+basis capturing 77% of the LoRA recovery displacement. We develop random search theory with a Gaussian local-linear theorem that justifies the effectiveness of random parameter search even in very high dimensions. We also study the relation between parameter perturbations and activation steering: a single gradient step produces an activation shift with 0.58 cosine to a labelled-contrast CAA steering vector, with a similar steering effect on Qwen-0.5B BoolQ statements. We validate our results with experiments on synthetic Transformers and LLMs. Our results suggest that linear structures in trained networks are not global task directions, but evolving local geometries that partially persist across parameter and activation spaces. 
+
+# 1 Introduction 
+
+Much of recent work on editing models after training rests on one geometric assumption: that the behaviour a network has learned for a task can be pinned to a single linear direction, either in weight space or in activation space, and that moving along that direction lets us add, remove, or amplify the behaviour without retraining. Approaches such as task vectors [ 9], model soups [ 20 ], and TIES-merging [ 22 ] treat fine-tuning updates as vectors that can be added and subtracted in parameter space. LoRA [ 8] restricts adaptation to a low-rank slice of the weight matrices. Activation addition [ 19 ], function vectors [ 18 ], representation engineering [ 24 ], and ReFT [ 21 ] move along linear directions in hidden-state space instead. These methods look different on the surface, but they share the same underlying claim: the relevant structure is low-dimensional and locally linear. A natural question arises: what kind of linear structure actually exists in a trained network? Where do they live, and how far one can move along before they stop being linear? A more provocative version of the same question comes from recent work on random search around pretrained weights . Gan et al. [5] argue that a sufficiently pretrained model is surrounded by a dense “thicket” of task-improving directions that can be found simply by sampling random 1  
+
+> arXiv:2606.10929v1 [cs.LG] 9 Jun 2026 task-A plane task-B plane
+> θ?A
+> θ?B
+> θmt
+> θ?B
+> θ?A
+> θpostB
+> θmid
+> θrec
+> θ?A
+> θpostB
+> θrec (a) Static-plane hypothesis (b) Observed: the local plane drifts (c) Proposed: a moving trajectory bundle
+
+Figure 1: From a static task plane to a moving trajectory: (a) the natural hypothesis is that each task corresponds to a fixed subspace through θmt and recovery moves inside it; (b) we observe that the local task plane drifts substantially along the recovery path; (c) we propose a low-dimensional bundle that follows the trajectory whose tangent at each point lies in the local Krylov subspace. parameter perturbations, keeping the ones that help, and combining them. This is a counterintuitive result: if useful directions were rare needles in a 10 9-dimensional haystack, random sampling should never find them. The starting point for this work was that random search apparently does find useful directions. Naturally, random search is not an optimizer competing with gradient descent, gradient descent always wins on raw accuracy. But we can use it as a measuring tool: if random perturbations drawn inside one subspace reliably beat perturbations drawn inside another, at the same step size, that can tell us which subspace is better aligned with the task. To study these subspaces in practice, we first run experiments on synthetic models in a recovery after forgetting regime. To study local geometry, we need a known, working displacement to compare candidate subspaces against. We obtain one as follows: first train a small network on a mixture of tasks, reaching a multitask checkpoint θmt , and then deliberately overfitting it to a single task, running single-task training long enough that one of the other tasks degrades; we call the result the forgotten checkpoint θforg . Finally, we retrain briefly on the original mixture, which brings the lost task back; call this θrec . As a result, the vector ∆GD = θrec − θforg becomes a task-specific adaptation that gradient descent has produced, and we can then study small subspaces in terms of how much of ∆GD they contain. In this work, “recovery” always refers to this loop. Note that nothing in our theoretical results is specific to forgetting, and the same results could apply to any small gradient-based adaptation around a checkpoint, but the forgetting setup has a clean target 
+
+∆GD to measure against. We use three ways to score random search results in this setup. We draw N candidate pertur-bations, evaluate them on a held-out split, and keep the best. Best-of-N reports the single best candidate’s gain, and this is the quantity used in our theoretical results. Ensemble-k-of-N combines the outputs of the top k candidates by majority vote and reports the ensemble’s gain. Pass@ N
+
+reports the fraction of test items solved by at least one kept candidate, which shows an upper bound that a perfect selector could reach. We find that the recovery direction is real, low-dimensional, and useful, but it is not contained 2in any fixed task plane. The task-gradient subspace measured at the forgotten checkpoint captures only a modest fraction of the recovery displacement, and the subspace measured before forgetting captures almost none; moreover, the subspace itself drifts as recovery proceeds. What does work is the trajectory itself: a basis built from the first several recovery steps captures most of the displacement and is the best subspace to search inside. So the right object is not a static plane through a checkpoint but a short, moving segment of the optimization path: low-dimensional but not stationary. At LLM scale, we find the same qualitative pattern with important caveats: the low-rank reading remains clean on our small controlled models and on LoRA adapters but is only partially confirmed on billion-parameter models, where naive rank estimates are hard to separate from sampling noise. Figure 1 illustrates this main idea. The most counterintuitive result is that random search works at all in a 10 9-dimensional space, and we explain it with a theoretical result. When we sample an isotropic Gaussian perturbation, the amount of a fixed useful direction a that it picks up has variance σ2 ∥a∥2, which does not depend on the number of parameters at all. Best-of-N then amplifies this by a √log N factor, so the target signal grows with the search budget and is independent of dimension, while damage to an unrelated, orthogonal direction stays flat in N . Thus, a budgeted random search helps the targeted task much more than it hurts the others; below, we formalize this result in a theorem. Note that this only holds when the loss is roughly linear in the perturbation, and we locate that regime empirically (e.g., around a perturbation scale of 10 −4 on Qwen2.5-0.5B). Weight edits and activation steering are usually treated as separate tools. There is a connection between them: a weight perturbation δθ shifts each layer’s activations by Dθhℓ δθ , the pushforward of the weight move into activation space. If δθ helped the task, its activation counterpart (“shadow”) is a candidate steering vector. We have tested δθ on a single gradient step on Qwen2.5-0.5B, and the resulting activation shift has cosine similarity around 0.58 to a contrastive (true-vs-false) steering vector built independently, peaks at late decoder layers, and recovers accuracy when injected back. These results are still preliminary, but they show that the formal connection can be made empirical. Finally, we note some limitations of our results. Although random search can, in some of our experiments, even outperform gradient descent on the target task, it is unstable and its behaviour on the other tasks is hard to guarantee, so it is in no way a replacement for gradient descent. We see our results instead as a starting point for a serious analysis of this phenomenon, one that may eventually yield a sound methodology and a clearer understanding of when it applies. The same holds for activation steering, where our results vary across layers and across the direction of the perturbation. Even so, our random search theory applies just as well to the search for steering directions, so unifying the two into a single account may be an interesting direction for future work. The remainder of the paper is organized as follows. Section 2 reviews related work, and Section 3 fixes notation and defines the geometric objects we use. Section 4 proves the three results the paper rests on: the best-of-N theorem, a norm-matched companion explaining why padding a subspace hurts, and a short lemma showing that the recovery displacement lives in a Krylov subspace rather than along any fixed direction; it closes with the pushforward identity. Section 5.1 runs the controlled synthetic Transformer; Section 5.2 repeats the probes on LoRA adapters over DistilGPT-2 and GPT-2. Section 5.3 scales up to Qwen and OLMo: it asks whether the low-rank picture survives, shows that budgeted random search finds improvements in the regime the theorem predicts, and connects weight perturbations to activation steering. Section 6 discusses limitations and Section 7 concludes the paper. Detailed per-run tables and the more diagnostic experiments are collected in the Appendix. 32 Related Work 
+
+Intrinsic dimension and weight-space connectivity. Li et al. [11] train neural networks in low-dimensional random subspaces and find that many objectives can be solved with far fewer dimensions than the parameter count suggests. Mode connectivity work [ 6, 3] shows that independently trained networks can be connected by simple low-loss curves, exposing further low-dimensional structure in weight space. Loss landscape and ensemble studies [ 4, 12 ] extend the picture. We add a temporal axis to this story: the relevant low-dimensional structure for recovery after forgetting is not the static intrinsic basis but a moving trajectory-aligned bundle. 
+
+Low-rank adaptation. LoRA [ 8] freezes pretrained weights and learns rank-deficient adapter updates, motivated by the conjecture that adaptation has low intrinsic rank. Adapter-tuning and parameter-efficient methods [ 1, 7] relate. Our LoRA experiments place the trajectory-bundle / Krylov-prefix story inside this standard framework: the LoRA recovery displacement is low-rank, but its low-rank object is empirical Krylov, not the static task subspace at any single checkpoint. 
+
+Task vectors and model merging. Task arithmetic [ 9] treats fine-tuning deltas as composable vectors. Model souping [ 20 ] averages fine-tuned weights to improve accuracy and robustness. TIES-merging [ 22 ] resolves interference between task-specific deltas. These methods presuppose that fine-tuning deltas behave additively, but our results qualify this picture. 
+
+Activation-space linear structures. Activation Addition [ 19 ] constructs steering vectors from contrastive activation differences. Function vectors [ 18 ] find compact hidden-state representations of in-context functions. Representation engineering [ 24 ] frames activation-space directions as a general approach to monitoring and controlling high-level behaviour. ReFT/LoReFT [ 21 ] learns low-rank interventions in representation space rather than adapting weights. We provide a partial bridge: weight-space perturbations sometimes have reusable activation-space counterparts. 
+
+Multitask gradient geometry. PCGrad [ 23 ], MGDA-style methods [ 17 ], GradNorm [ 2], CA-Grad [ 13 ] explicitly reason about per-task gradient interactions. Catastrophic forgetting and continual learning regularizers [ 10 , 14 ] bound how much a current update may move along old task subspaces. Instead, we do temporal diagnostics, asking how task-gradient subspaces evolve through pretraining, single-task continuation, forgetting, and recovery. 
+
+Random search and neural thickets. Gan et al. [5] argue that sufficiently pretrained large models are surrounded by dense and diverse task-improving specialists, recoverable by random parameter perturbation, top-K selection, and ensembling. Earlier evolutionary strategy and zeroth-order optimization work [ 15 , 16 ] established that random search at the right scale can move LLMs in useful directions. We treat random search not as an optimizer to compete with gradients but as a probe of local geometry: the order of proposal-family curves at matched budget is informative about the underlying anisotropy. All these prior directions have the same linear structure story: low-dimensional directions exist and are relatively easy to find. Our contribution is to ask which of those structures are local vs. global, static vs. moving, weight-space vs. activation-space, and to show empirically that the answer depends on coordinate system and intervention scale. 43 Notation and definitions 
+
+In this section, we introduce the definitions and notation that the rest of the paper relies on. A few of these objects are not standard, so we define all of them here and use throughout the paper. 
+
+Parameter space and loss. Let θ ∈ RD be the (possibly adapter-restricted) parameters of a network, and let a task τ have loss Lτ (θ). We write gτ (θ) = ∇θLτ (θ) and drop τ when the task is clear. Near a checkpoint θ we consider the first order approximation 
+
+L(θ + δ) − L(θ) ≈ a⊤δ, 
+
+where a = −∇ θL(θ) is the direction that most improves the task; we call a the useful direction .Empirically a lives in a low-dimensional subspace, but the algorithms we study never know that subspace. 
+
+Recovery after forgetting. Our experimental loop has three phases: (1) multitask training to a checkpoint θmt on an equal mixture of T tasks; (2) single-task continuation (forgetting): continue training on one task only, reaching θforg , at which one or more of the other tasks has degraded; (3) recovery: from θforg , take a small number of gradient steps on the original mixture (we use 100 
+
+for the synthetic model, 50 for LoRA), reaching θrec .The recovery displacement is defined as 
+
+∆GD = θrec − θforg ,
+
+i.e., the ground-truth gradient-based adaptation against which candidate subspaces are compared. 
+
+Candidate subspaces. We distinguish the useful direction a (a property of the loss, which the sampler does not know) from a candidate subspace U ⊆ RD of dimension r that we choose, in order to test how well it aligns with a or with ∆GD . We use three families of candidate subspaces: 
+
+• local task subspace U (r) 
+
+> τ
+
+(θ): the span of the top-r eigenvectors of the per-task gradient covariance 
+
+> 1
+> m
+
+P 
+
+> i
+
+gτ (θ; bi)gτ (θ; bi)⊤ estimated from m minibatches at checkpoint θ; we write Task (local) 
+
+for θ = θforg and Task (pre-int.) (before interference) for θ = θmt ; this is the natural “task plane”; 
+
+• trajectory prefix U (k)traj : the span of the first k recovery step vectors θ1 − θ0, . . . , θ k − θk−1 along the recovery path; by construction, ∆GD lies in the full trajectory span, and a short prefix may capture most of it; 
+
+• explicit Krylov span {g, Hg, H 2g, H 3g} at θforg , built from finite-difference Hessian-vector products; we use Krylov subspaces as a curvature diagnostic, not as a working basis. 5Random search and its three scores. At a checkpoint θ with task score S = −Lτ , we sample 
+
+N perturbations, evaluate S(θ + δi) on a selection split, and keep the top k. The native sampler is isotropic Gaussian, δ ∼ N (0 , σ 2I). As a diagnostic we also restrict sampling to a candidate subspace 
+
+U , either Gaussian in U , δ ∼ N (0 , σ 2PU ), or norm-matched on the sphere of U . By comparing scores across choices of U we can rank the subspaces. We score the result in three ways, defined here: 
+
+• best-of-N : the gain of the single best candidate; this is the quantity Theorem 1 describes; 
+
+• ens-k-of-N : the gain of the majority-vote ensemble of the top k candidates; 
+
+• pass@ N : the fraction of report-split items solved by at least one kept candidate (an upper envelope). 
+
+Activation steering and CAA. Write hℓ(x; θ) ∈ Rd for the residual-stream activation at layer ℓ.
+
+Activation steering replaces hℓ by hℓ + αv ℓ for a steering vector vℓ and strength α. The classical construction is centroid-based activation addition (CAA): take labelled paired prompts (e.g. true vs. false statements) and let vℓ be the mean activation difference between the two classes. The pushforward identity of Section 4.4 gives an alternative: vℓ = Ex[Dθhℓ(x; θ) δθ ], the example-averaged activation shift induced by a weight perturbation δθ (a gradient step, or a selected random perturbation). 
+
+# 4 Theory: Local Linear Structure 
+
+In this section, we prove theoretical results that the experiments then validate and use. First, a best-of-N theorem that explains why isotropic random search picks up useful signal regardless of dimension (Theorem 1). Second, a norm-matched companion that explains why, when comparing candidate subspaces at a fixed step size, a smaller well-aligned subspace beats a larger one that merely contains the answer (Proposition 1). Third, a short lemma showing the recovery displacement lies in a Krylov subspace, so no single fixed direction can capture it (Lemma 1). We close with the parameter-to-activation pushforward (Section 4.4). There is one important notational remark to keep in mind throughout, because it might be the source of confusion: a is the useful direction , a fixed property of the loss that the sampler does not know; U is a candidate subspace that we ourselves choose in order to test it. The native search samples isotropically and never references U ; the diagnostic search samples inside a chosen U . The theorem is about the native sampler and a fixed a; the proposition is about the diagnostic sampler and a chosen U .
+
+4.1 Best-of-N random search picks up dimension-independent signal 
+
+Theorem 1 (Gaussian best-of-N in a local-linear neighbourhood) . Consider a checkpoint θ and its neighborhood where the score S = −Lτ satisfies S(θ + δ) − S(θ) = a⊤δ + O(∥δ∥2) for a fixed useful direction a ∈ RD. Sample δ1, . . . , δ N ∼ N (0 , σ 2I) and select δn⋆ = arg max n a⊤δn. Then: (1) each projection a⊤δn is centred Gaussian with variance σ2 ∥a∥2, independent of the ambient dimension D;(2) the expected best-of-N gain is E[max n≤N a⊤δn] = σ ∥a∥ √2 log N (1 + o(1)) , growing in the budget but not in D;
+
+6(3) for any b ⊥ a (an unrelated side-task direction), the selected sample has E[b⊤δn⋆ ] = 0 and typical magnitude |b⊤δn⋆ | = O(σ ∥b∥), independent of N .Proof. For δ ∼ N (0 , σ 2I), a⊤δ is centred Gaussian with Var (a⊤δ) = σ2 ∥a∥2, giving part 1. Writing 
+
+Xn = a⊤δn/(σ ∥a∥) ∼ N (0 , 1) i.i.d., the classical extreme-value result E max n≤N Xn = √2 log N (1 + 
+
+o(1)) gives part 2. For part 3, (a⊤δ, b ⊤δ) is jointly Gaussian with covariance σ2 ⟨a, b ⟩; if ⟨a, b ⟩ = 0 
+
+the two are independent, so conditioning on the selection event (a function of a⊤δ only) leaves 
+
+b⊤δn⋆ ∼ N (0 , σ 2 ∥b∥2). Sub-Gaussian concentration gives |b⊤δn⋆ | = Θ( σ ∥b∥), independent of N .(For weakly correlated a, b with ρ = ⟨a, b ⟩ /(∥a∥ ∥ b∥) the side movement gains a |ρ|√log N term, still flat once |ρ|√log N ≪ 1.) The first part of Theorem 1 is the main result: even though the sampler spreads its variance over all D coordinates, the amount of the useful direction a in a single draw has variance σ2 ∥a∥2,which does not shrink with D. This means that random search is not hopeless at LLM scale: the per-sample signal is the same for all values of D, even very large ones. The second part says that best-of-N amplifies that signal by the usual Gaussian √2 log N . The third part is the asymmetry we care about: selecting for a does not, on average, move an orthogonal direction b at all, and even the typical accidental movement stays flat as the budget grows. Target gains grow with N , while collateral damage does not. This is somewhat counterintuitive since a random vector is nearly orthogonal to a in high dimensions, so it naively looks like finding an aligned one should take exponentially many tries. That is indeed true of the angle, which concentrates near 90 ◦. But the angle is the wrong quantity: the projection a⊤δ is the product of a vanishing cosine and a √D-growing length, and the two cancel to leave a D-independent Θ( σ ∥a∥). Best-of-N then extracts Θ( σ ∥a∥ √log N ) regardless of D.If the useful directions span a subspace of dimension r⋆ > 1 rather than a single a, the same statement holds coordinate-by-coordinate: the per-sample signal is governed by ∥P⋆a∥ where P⋆
+
+projects onto the useful subspace, and again does not involve D. We state the theorem for a single a
+
+for clarity; the experiments measure effective ranks r⋆ between 2 and ∼12 in models from ∼5·10 5 to 
+
+∼5·10 8 parameters. 
+
+4.2 Why a smaller, well-aligned subspace beats a larger one 
+
+Theorem 1 might suggest that, when comparing candidate subspaces, the one that contains the most of a should win. However, it turns out to be wrong at fixed step size: padding a candidate subspace 
+
+U with directions orthogonal to a leaves the contained signal unchanged but dilutes it across more dimensions. 
+
+Proposition 1 (Matched-norm search prefers density, not mass) . Restrict sampling to a candidate subspace U of dimension r by drawing δ = ρu with u uniform on the unit sphere of U (fixed ρ). Then 
+
+E[a⊤δ] = 0 and Var( a⊤δ) = ρ2 ∥PU a∥2 /r. 
+
+Therefore, the per-dimension search signal scales as ∥PU a∥ /√r: adding to U directions orthogonal to a raises r without raising ∥PU a∥, and so lowers the signal. Proof. For u uniform on the unit sphere of U , rotational invariance inside U gives E[uu ⊤] = (1 /r )PU ,so E[( a⊤u)2] = a⊤E[uu ⊤]a = ∥PU a∥2 /r . With δ = ρu , Var (a⊤δ) = ρ2 ∥PU a∥2 /r . Adding directions orthogonal to a leaves ∥PU a∥2 fixed and increases r, lowering ∥PU a∥ /√r.7Proposition 1 means that at fixed step size, the relevant quantity is signal density ∥PU a∥ /√r
+
+rather than signal mass ∥PU a∥2. A rank-32 subspace that contains a entirely has density ∥a∥ /√32 ,which is worse than a rank-10 subspace containing 77% of a. This is exactly the ordering we will see in the experiments, and, importantly, it is a prediction for best-of-N , the metric the theorem describes; ensembling behaves slightly differently, as we discuss in Section 5.2. 
+
+4.3 The recovery displacement is Krylov, not a fixed direction 
+
+Theorem 1 and Proposition 1 deal with the properties of searching once we know which way to look. The next lemma describes what the recovery direction actually is. 
+
+Lemma 1 (Krylov recovery) . Suppose Lτ is quadratic with constant Hessian H over the recovery window, and let θt+1 = θt − η∇Lτ (θt). Then gt = ( I − ηH )tg0 and 
+
+θT − θ0 = −η 
+
+> T−1
+
+X
+
+> t=0
+
+gt ∈ K T (H, g 0) := span {g0, Hg 0, . . . , H T −1g0}.
+
+A fixed direction u is invariant under one step iff Hu ∥ u, and a subspace U is invariant iff HU ⊆ U .Proof. With Lτ (θ) = 12 (θ − θ⋆)⊤H(θ − θ⋆), gt = H(θt − θ⋆) and θt+1 − θ⋆ = ( I − ηH )( θt − θ⋆), so 
+
+gt+1 = ( I − ηH )gt and gt = ( I − ηH )tg0. The displacement −η P 
+
+> t<T
+
+gt lies in span {g0, . . . , H T −1g0}.Invariance of u under u 7 → (I − ηH )u requires Hu ∥ u; for a subspace, HU ⊆ U .Lemma 1 means that recovery displacement lives in a Krylov subspace of dimension at most 
+
+T (low-dimensional), but a single fixed direction captures it only in the degenerate case where the gradient is an eigenvector of the Hessian, and a fixed subspace captures it only if the Hessian maps it into itself. Neither holds for a deep network at a forgotten checkpoint. So the recovery object is low-dimensional but moving : higher-order terms Hkg keep introducing new components as the trajectory unrolls. Note also that the clean statement assumes a constant Hessian. For a nonlinear loss the Hessian Ht at successive iterates differs, and the displacement lies in a generalized Krylov span 
+
+span {g0, H 0g0, H 1H0g0, . . . } rather than the powers of a single H. The single-H lemma is therefore exact for a quadratic and holds to leading order only when the update is small enough that Ht ≈ H
+
+across the window, which is the correct regime in our short, small-norm recovery with T ≤ 100 steps. We use the lemma to explain why a fixed direction is too rigid, but it does not let us reconstruct the path. Instead, we rely on the directly observed trajectory prefix, which reliably captures most of the recovery displacement (about 77% on the LoRA adapters; Figure 2 and Table 8), and use it as our working proxy for the right Krylov subspace. The explicit finite-difference Krylov basis 
+
+{g, Hg, H 2g, H 3g} enters only as a curvature diagnostic (Appendix D). 
+
+4.4 Parameter-to-activation pushforward 
+
+To connect weight perturbations to activation steering we need one identity. For an activation 
+
+hℓ(x; θ) and a weight perturbation δθ ,
+
+hℓ(x; θ + δθ ) − hℓ(x; θ) ≈ Dθhℓ(x; θ) δθ, (1) the pushforward of the weight move into activation space. If δθ improves the task, then its example-averaged activation shadow vℓ = Ex[Dθhℓ(x; θ) δθ ] is a candidate steering vector with the same first-order effect on the loss. 8Table 1: Synthetic Transformer: local geometry, for-getting, recovery; n = 3 seeds, copy →sort recovery.                    
+
+> Quantity Value
+> Per-task gradient eff. rank r90 2–8
+> Cross-task overlap (top-r,6pairs) 0.11 [0.08 ,0.13 ]random-subspace baseline ∼6·10 −5
+> Worst other-task EM drop, forgetting 0.56 –0.95
+> Recovery EM, full descent 0.30
+> projected, local task plane 0.10
+> projected, pre-int. plane 0.07
+> Local-plane drift, step 0→100 1.0→0.12 –0.17
+
+Table 2: Synthetic random search on the for-gotten sort task: best-of-N exact-match and gain over the forgotten checkpoint ( n = 3 
+
+seeds).             
+
+> Subspace EM gain Trajectory prefix 0.152 0.090
+> Task plane (local) 0.120 0.059
+> Task plane (pre-int.) 0.106 0.032
+> Isotropic 0.055 0.003
+> Random rank-matched 0.045 0.002
+
+Whether that shadow still helps when reinjected into the clean model on independent examples is an empirical question; we answer it for one gradient-step case (tight match) and one random-search case (partial transport) in Section 5.3, where the effect is concentrated at the late decoder layers (around ℓ = 19 –20 on Qwen2.5-0.5B). 
+
+# 5 Experiments 
+
+In this section, we present our experimental evaluation on three scales: a controlled synthetic Transformer, where we can see the whole geometry directly (§5.1), LoRA adapters on two real pretrained backbones (§5.2), and billion-parameter LLMs (§5.3). 
+
+5.1 Synthetic Transformer: local structure, but no fixed plane 
+
+We begin with a setting we can fully control: a 4-layer, 128 -dimensional, 2-head causal Transformer (∼5 · 10 5 parameters) trained on four procedurally generated digit-sequence tasks, namely copy ,
+
+reverse , sort , and mod-add . Multitask pretraining runs for 20 000 steps; single-task continuation runs for an additional 10 000 steps to induce forgetting; recovery runs up to 100 steps on the original mixture. We use three seeds throughout. Table 1 shows the geometry and recovery numbers and Table 2 the random-search ordering. We can draw the following conclusions. 
+
+Task gradients are low-rank, and the tasks are not orthogonal. At the multitask checkpoint, each task’s gradient covariance is low-rank, with effective rank between 2 and 8, a tiny fraction of the parameters (Table 1, row 1). The tasks are also not randomly oriented relative to each other: the weighted overlap between their top-r subspaces averages 0.11 across the six task pairs, four orders of magnitude above the random-subspace baseline. So there is genuine low-dimensional task structure, and it is shared across tasks more than chance would predict. 
+
+Low-rank structure does not prevent forgetting. Low-rank, nearly-orthogonal task subspaces might suggest that the tasks should not interfere. In practice, we see that they do anyway: after single-task continuation, the worst other-task accuracy drops by between 0.56 and 0.95 (Table 1), even for pairs whose subspaces overlap below 0.10 . Even if two tasks live in nearly orthogonal subspaces, this fact does not protect one from catastrophic interference by the other. 
+
+The recovery subspace moves, and a static plane cannot recover the task. This is the central negative result. We compare three ways of running recovery at matched step size: full 9Table 3: Per-layer activation pushforward of trajectory-family parameter deltas on the synthetic Transformer, averaged across seeds at recovery step T = 100 . Cosine and projection mass are measured against the gradient-recovery shift at the same layer; the participation ratio (PR) and rank-8 explained variance measure how concentrated the per-example shift is.                                 
+
+> Layer cos( δh evol
+> ℓ, δh GD
+> ℓ)∥PGD δh evol
+> ℓ∥2/∥δh evol
+> ℓ∥2Shift PR Rank-8 EV (%) Embedding 0.941 0.886 1.7 98.4 Block 0 0.970 0.941 2.9 94.3 Block 1 0.962 0.925 7.2 82.2 Block 2 0.975 0.951 9.6 76.1 Block 3 0.985 0.970 2.4 88.3 Final norm 0.877 0.769 11.4 72.4
+
+gradient descent, descent with the gradient re-projected at every step onto the local task subspace at the forgotten checkpoint, and the same projected onto the pre-forgetting (clean) task subspace. Table 1 shows that full recovery roughly quadruples the exact-match accuracy that either static-plane projection reaches: the task plane measured at the very checkpoint where the task was learned captures less than a third of what unconstrained recovery achieves. Note that in this experiment, “projected recovery” re-projects the gradient at every step; this is not the same as projecting the final unconstrained displacement, because constraining the path changes the path. Moreover, the task plane itself moves: the top-r subspace at step t has principal-angle overlap with the step-0 subspace that falls from 1.0 to about 0.12 –0.17 over 100 steps, while staying well above random sampling. Here both subspaces are top-r subspaces for the same fixed r
+
+(by construction), so this is a drift in orientation — where the r-dimensional plane points — not a change in its dimension. The two facts are consistent: the static plane misses recovery (performance) precisely because the relevant plane is moving (geometry). 
+
+Random search prefers the trajectory, exactly as the theory predicts. Finally, we use random search as a probe. Drawing norm-matched perturbations inside each candidate subspace on the forgotten sort task, the ordering is clean and reproduces across seeds (Table 2): searching inside the first ∼10 recovery steps beats searching inside the local task plane, which is better than the pre-forgetting plane, and all of them are far better than isotropic and random controls. There are two details here that follow from Proposition 1. First, the trajectory prefix wins even though its rank is smaller than the task planes’. Second, concatenating the task plane onto the trajectory (rank 48 ) does not help despite containing it, because the extra directions are mostly orthogonal to the recovery signal and dilute it. The ensemble and pass@ N variants follow the same ordering (Appendix A). 
+
+The activation shadow of the right perturbation aligns with the gradient. As a foreshad-owing of the LLM-scale steering results, we check the pushforward identity here. For trajectory-family weight perturbations, we push each one forward to activation space by equation (1) and compare the per-layer activation shift to the shift produced by full gradient recovery (Table 3). The two are closely aligned at every layer — cosine ≥ 0.94 from the embedding through the last block — and the shift is concentrated in a low-dimensional subspace at each layer. For non-trajectory perturbations the same cosine is significantly lower. In other words, the activation shadow of a useful weight move already points where the gradient points, and we will exploit this property below for steering. 10 0.0 0.2 0.4 0.6 0.8 1.0           
+
+> Traj. (full) (r=16)
+> Task + Traj. (r=32)
+> Prefix-20 (r=16)
+> Prefix-10 (r=10)
+> Prefix-5 (r=5)
+> Task (local) (r=16)
+> Task (pre-int.) (r=16)
+> 1.00 1.00 0.90 0.77 0.66 0.15 0.02
+> 0.00.10.20.30.4(a) Projection mass ∥PU∆GD ∥2/∥∆GD ∥2(b) Predicted (bar) and observed (dot) signal density
+> ∥PU∆GD ∥/√r
+
+Figure 2: Trajectory prefixes capture most of the LoRA recovery displacement, and that predicts search quality: (a) how much of ∆GD each candidate subspace contains; (b) the per-dimension signal density predicted by Proposition 1 (bars) against observed best-of-N gain (dots). 
+
+5.2 LoRA validation on DistilGPT-2 and GPT-2 
+
+The synthetic picture is clean and conforms to our expectations, but it is only one architecture with toy tasks. In this part, we repeat the probes on LoRA adapters fine-tuned over two real pretrained backbones: DistilGPT-2 with rank-16 adapters on the sort →mod-add pair, and GPT-2 with rank-8
+
+adapters on reverse →sort , three seeds each, six runs in total. The recovery loop is the same. We will see that the qualitative conclusions transfer successfully, and one of them becomes our cleanest quantitative statement. 
+
+Low-rank geometry. Across the six runs, LoRA task-gradient covariances have effective rank between 3 and 8, and cross-task overlaps of a few percent, which is three to four orders of magnitude above random subspaces. A parameter-scope ablation (attention-only, MLP-only, or both) leaves this unchanged. The real backbone adapters reproduce the synthetic geometry faithfully. 
+
+The trajectory prefix captures the recovery, and that predicts search quality. Here we get a clean empirical result about projection mass: how much of the recovery displacement 
+
+∆GD each candidate subspace contains (Figure 2a). A basis built from the first 10 recovery steps captures about 77% of ∆GD ; the first 20 steps capture ∼90% ; the full trajectory captures all of it by construction. The static task planes capture far less, only about 15% for the local plane and under 
+
+2% for the pre-forgetting plane. This supports our hypothesis that the recoverable object follows the trajectory rather than stays on a fixed plane, and it holds on both backbones. Importantly, projection mass combined with Proposition 1 can predict how well random search will do inside each subspace. The per-dimension signal a matched-norm search extracts is ∥PU ∆GD ∥ /√r,so a subspace’s mass and rank together predict its search ranking (Figure 2b); next, we verify that forecast. 
+
+Random search confirms the ordering, and the three scores disagree informatively. We now search inside each candidate subspace at matched step size on all six runs, and report all three scores (Table 4). The ordering predicted by projection mass and density holds: the trajectory prefix wins, the full trajectory is close behind, and the static planes are far worse. Interestingly, the three scores that we measure tell slightly different stories, and the differences are exactly what the theory would predict. The Best-of-N metric (used in Theorem 1) follows the 11 Table 4: LoRA random search inside each candidate subspace at matched step size ( n = 6 runs). All numbers are mean target gains except pass@ N .                             
+
+> Candidate subspace rank rbest-of-Nbest-of-N/ √rens-k-of-Npass@ N
+> Trajectory prefix ( 10 steps) 10 0.165 0.052 0.191 0.552
+> Trajectory (full) 16 0.134 0.034 0.182 0.496
+> Task plane +trajectory 32 0.055 0.010 0.091 0.396
+> Task plane (local) 16 0.023 0.006 0.039 0.270
+
+density prediction closely: the rank-10 prefix ( 0.165 ) beats the rank-16 full trajectory ( 0.134 ) by about the p16 /10 factor the proposition predicts, and dividing each gain by √r makes the ordering cleanly monotone. Ensemble-k-of-N is more forgiving to the larger subspace (prefix 0.191 vs. full trajectory 0.182 , nearly tied): pooling many candidates dilutes the per-dimension density penalty, plausibly because the extra trajectory directions are correlated rather than independent, so the full trajectory’s effective rank is below its nominal 16 . Pass@ N simply tracks how much of ∆GD each subspace contains. We draw our main conclusion from best-of-N , where the theory applies most directly, and report the other two as informative context. The conclusion we can draw from this is mostly about where good weight moves live. Across these adapters, the directions that recover a forgotten task concentrate in a small subspace aligned with the early recovery trajectory, and not in the static task plane. A random search confirms this by finding usable moves far more often inside the former than the latter. This is consistent with the moving-trajectory picture of Section 4.3. We are cautious, however, about over-generalizing from two task pairs (see the “Limitations” section). 
+
+A closer look: successful perturbations mostly point where the gradient does. It helps to look below the family averages at individual candidates (Figure 3). Two things are visible. First, perturbations that improve the task are largely the ones aligned with the gradient descent recovery direction: a candidate’s cosine with ∆GD correlates with its observed gain ( r ≈ 0.52 ), and the search occasionally does a little better than a single gradient step by finding a more effective scale along roughly the same direction. This means that descent and search are mostly consistent. Second, a candidate’s overlap with the static local task plane does not predict its success; if anything it anti-correlates ( r ≈ − 0.40 ), because that plane has the recovery signal projected mostly out of it. Again, we see that useful moves live along the moving trajectory, and reading them off the static plane would be misleading. A separate, more artificial probe—forcing gradient descent to stay inside each candidate subspace—is reported in Appendix C; we do not draw geometric conclusions from it, since constraining descent to a subspace the gradient has already left is expected to behave erratically. 
+
+A practical aside. The moving plane hypothesis makes a specific prediction about multitask fine-tuning. If you train one task to convergence and only then add another, the first task’s local plane will have drifted by the time you come back, and re-recovering it has to traverse directions the original plane no longer contains, so sequential specialisation should be brittle. Our experiments, shown in Figure 4 and Table 5, confirm that it is: on both backbones, schedules that update the tasks together —simple gradient-sum, alternating, or PCGrad-lite [ 23 ]—keep worst-task accuracy an order of magnitude higher than schedules that finish one task before starting the next. We are not proposing a new optimizer, and in our experiments simultaneous schedules cluster within a couple of points of each other with no systematic winner. But it is clear that sequential specialization should 12 −0.50 −0.25 0.00 0.25 0.50 0.75 
+
+cos(∆ rand , ∆GD )
+
+−0.1
+
+0.0
+
+0.1
+
+0.2
+
+0.3
+
+> Target gain vs. start
+
+r = 0 .52 
+
+0.0 0.2 0.4 0.6 0.8 1.0
+
+‖PV ∆rand ‖2/‖∆rand ‖2 (local task V )
+
+−0.1
+
+0.0
+
+0.1
+
+0.2
+
+0.3
+
+> Target gain vs. start
+
+r = −0.40 Prefix-10 Traj. (full) Task + Traj. Task (local) Figure 3: Per-candidate view ( ∼1.2k candidates pooled over 6 runs): (a) alignment with the gradient recovery direction predicts gain ( r ≈ 0.52 ); (b) overlap with the static local task plane does not predict gain ( r ≈ − 0.40 ). Alternating 
+
+> Raw grad-sum
+> Norm. grad-sum
+> PCGrad-lite
+> Equal-loss-dec.
+> Loss-balanced
+> Joint mixed
+> Seq. A →B
+> Seq. B →A
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Mean worst-task EM
+> Alternating
+> Raw grad-sum
+> Norm. grad-sum
+> PCGrad-lite
+> Equal-loss-dec.
+> Loss-balanced
+> Joint mixed
+> Seq. A →B
+> Seq. B →A
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Mean worst-task EM
+
+(a) DistilGPT-2 sort →mod-add (b) GPT-2 reverse →sort 
+
+Figure 4: Sequential specialization is brittle, simultaneous schedules are robust: mean worst-task exact-match across three seeds per backbone for nine multitask schedules. Table 5: Mean worst-task EM, n = 3 seeds. 
+
+Schedule 
+
+D-GPT2 
+
+sort /m-add 
+
+GPT2 
+
+rev /sort 
+
+Raw grad-sum 0.656 0.938 
+
+Alternating 0.677 0.779 
+
+PCGrad-lite 0.583 0.922 
+
+Equal-loss-dec. 0.565 0.904 
+
+Norm. grad-sum 0.586 0.841 
+
+Loss-balanced 0.531 0.891 
+
+Joint mixed 0.406 0.836 
+
+Seq. A →B 0.000 0.068 
+
+Seq. B →A 0.208 0.018 
+
+not be. 13 math500 gsm8k math500 gsm8k math500 gsm8k        
+
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> Effective rank
+> 4.3 6.2 6.7 9.0 2.0 2.0 4.6 4.8 1.8 1.8 4.1 4.3 Qwen-3B / MLP Qwen-7B / MLP Qwen-7B / attn Measured grad. eff. rank Random-sketch control
+
+Figure 5: Measured gradient rank vs. a random-sketch control on Qwen. 
+
+5.3 LLM scale 
+
+The synthetic and LoRA results establish the picture up to ∼10 6 trainable parameters. Scaling to billion-parameter models, we ask three questions in turn: does the low-rank gradient geometry survive; does budgeted random search actually find improvements, and in what regime; and does the weight-to-activation bridge produce usable steering vectors? Below, we give answers to these questions 
+
+The low-rank picture survives only partly. On Qwen2.5-0.5B we estimate per-task gradient covariances through a random sketch and read off effective ranks; they come out small (single digits to low teens) and task-dependent. But a small effective rank from only a few dozen minibatches in a D ≫ n space can be a sampling artifact rather than a property of the task, so we run a control experiment: replace each gradient by a same-norm Gaussian vector and re-estimate the rank under the same pipeline. The result is mixed, and we report it in Figure 5. On Qwen-3B with the MLP scope, the measured rank is clearly below the random-sketch control, but on Qwen-7B the measured and control ranks essentially coincide, and the apparent low rank is indistinguishable from sampling noise at this sample size. So the clean low-rank result is established on the small and LoRA models, but only partially survives at billion-parameter scale. 
+
+Gaussian search finds improvements, in the regime the theorem predicts. Theorem 1 only applies where the loss is roughly linear in the perturbation. We locate that regime directly with a symmetric finite-difference probe that separates the first-order part of a perturbation’s effect from the curvature part. We define 
+
+F1 = 12 [L(θ + σδ ) − L(θ − σδ )] (antisymmetric, linear part), 
+
+F2 = 12 [L(θ + σδ ) + L(θ − σδ ) − 2L(θ)] (symmetric, curvature part), and sweep the scale σ. On Qwen2.5-0.5B the linear part dominates around σ ≈ 10 −4, and above it curvature takes over and random moves become destructive (Figure 6). The same sweep shows the regime is task-dependent: BoolQ and HellaSwag have a healthy band of linear and convex directions, while ARC-Easy is dominated by concave directions at every scale, which is the case where no fixed direction is preferred and random search degenerates into noise. Inside the predicted window the theorem’s result is confirmed: best-of-N random parameter search at σ ≈ 10 −4 produces task-improving perturbations whose ensembled accuracy on a held-out BoolQ evaluation reaches roughly +10 points, with damage to the other tasks staying small. When the regime assumption fails (too small scale, or a curvature-dominated task like ARC-Easy), the 14 BoolQ 
+
+> F2
+> ±5·10 −3
+
+σ = 10 −6
+
+> ±2·10 −2
+
+σ = 10 −5
+
+> ±3·10 −1
+
+σ = 10 −4
+
+> ±2·10 0
+
+σ = 10 −3
+
+> ±2·10 1
+
+σ = 10 −2
+
+F1
+
+> ARC-Easy
+> F2
+> ±2·10 −3
+
+F1
+
+> ±5·10 −3
+
+F1
+
+> ±3·10 −2
+
+F1
+
+> ±2·10 −1
+
+F1
+
+> ±2·10 1
+
+Figure 6: Locating the linear regime on Qwen2.5-0.5B. Each panel shows the first-order ( F1) vs. curvature ( F2) decomposition of random perturbations at a given scale. The linear part dominates around σ ≈ 10 −4; at larger scales curvature dominates and every direction degrades the loss. 16 17 18 19 20 21 22 23            
+
+> decoder layer `
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> cos
+> (∆hgrad
+> ` , v CAA
+> `
+> ) η= 10 −5
+> η= 10 −4
+> η= 10 −3
+> −1.0−0.50.00.51.01.5
+> steering strength α
+> −10
+> −5
+> 0
+> 5
+> 10
+> mean margin  sT −sF grad ( η= 10 −4)CAA (statement) CAA (answer) random
+
+Figure 7: A single gradient step yields a CAA-like steering vector at late layers (Qwen2.5-0.5B): (a) cosine between the gradient-induced activation shift and the contrastive CAA vector across layers; (b) steering response. same procedure yields nothing useful. The theorem and the scale window together indicate when random search around a large model should work, and the experiment agrees. 
+
+From a useful weight perturbation to a steering vector. The pushforward identity (1) says that a useful weight perturbation has an activation-space shadow that should itself steer behaviour. We test this with two experiments. 
+
+The clean version: one gradient step is a steering vector. First, we use the gradient itself. On Qwen2.5-0.5B with a true/false statement format, we take one gradient step, push the resulting weight change forward to each decoder layer’s activations, and compare it to a contrastive (true-minus-false) CAA steering vector built independently from labelled prompts (the two routes are sketched in 15 Gradient step 
+
+δθ = −η∇L
+
+Pushforward 
+
+vgrad  
+
+> ℓ
+
+= Ex[Dθ hℓ δθ ]
+
+Labelled true/false prompts 
+
+CAA vector 
+
+vCAA  
+
+> ℓ
+
+= ¯h+ − ¯h−
+
+Compare & inject 
+
+cosine of vgrad  
+
+> ℓ
+
+, v CAA  
+
+> ℓ
+
+;inject αv ℓ at layer ℓ;measure response & accuracy 
+
+Figure 8: The clean (deterministic) route to a steering vector. Two independent constructions — a single gradient step pushed forward to activations, and a labelled-contrast CAA vector ¯h+ − ¯h− —are compared by cosine and injected into the unperturbed model. They agree at the late decoder layers; the resulting alignment and steering response are reported in Figure 7. Compare with Fig. 9. 
+
+Search split 
+
+Ssel 
+
+Hidden-state split 
+
+Svec 
+
+Report split 
+
+Srep (held out) 
+
+Candidate perturbations 
+
+sample δ ∼ N (0 , σ 2I);keep best-of-N on Ssel 
+
+Steering vector 
+
+average activation shift 
+
+vℓ = ∆ hℓ of kept δ
+
+Operating-point selection 
+
+sweep ℓ, α ;score on Ssel 
+
+Final report 
+
+inject α⋆v⋆ at ℓ⋆;score on Srep 
+
+> (ℓ⋆, α ⋆, v ⋆)
+
+Figure 9: The perturbation-to-steering pipeline (random-search version). The three splits are disjoint subsets of the evaluation examples: on the search split Ssel we keep the best-of-N random weight perturbations; on the hidden-state split Svec we average their activation shadow into a steering vector; the operating point (layer, scale) is chosen on Ssel ; and the held-out report split Srep is used only for the final numbers. Compare with Fig. 8. Figure 8). The two align well at late layers: the cosine rises through the mid-decoder block and peaks around 0.58 at layers 19 –20 , which are the same layers steering vectors are usually drawn from, and only at the intermediate learning rate 10 −4 that the F1/F 2 probe flagged as linear. At 
+
+10 −3, the step leaves the linear regime and the alignment collapses. Reinjecting the gradient-induced shift into a clean model produces a steering response curve that closely tracks the CAA vector’s and improves held-out accuracy by up to +10 points (Figure 7). The model behaves nearly the same whether the steering vector came from 80 labelled contrast pairs or from a single gradient step with no labels at all. This is one model and one task, and we do not claim the two vectors are identical (though they are linked by our identity), but the match is strong. 
+
+The noisy version: selected random perturbations, across models. The random-search counterpart replaces the gradient step with a best-of-N selected Gaussian weight perturbation. The pipeline (Figure 9) uses three disjoint subsets of the evaluation examples: on the search split Ssel we sample weight perturbations δ ∼ N (0 , σ 2I) and keep the best-of-N that improve the target; on the hidden-state split Svec we average the activation shifts those kept perturbations induce into a steering vector 16 Table 6: Multimodel perturbation-to-steering ( n = 14 lanes). Base is the unperturbed report-split accuracy; all other columns are accuracy deltas (points) on the held-out report split. Param best 
+
+is the best target gain from a kept weight perturbation itself (the candidate, before transport to a steering vector); Steer best is the best gain from the steering vector built from those perturbations, at the operating point chosen on the selection split; Side mean / worst are the average and worst side-task deltas there; Random best is the best gain from a random hidden-state direction injected at the same layer and matched to the same norm (a like-for-like control).                                                                                                                       
+
+> Model Task Base Param best Steer best Side mean / worst Random best Qwen2.5-0.5B BoolQ 59 .0+4 .7+10 .7−4.7/−8.4+5 .7
+> Qwen2.5-0.5B ARC-Easy 69 .3+1 .6+4 .1−2.0/−8.6+0 .6
+> Qwen2.5-0.5B HellaSwag 42 .0+2 .3+2 .7−2.6/−15 .8−6.6
+> Qwen2.5-3B BoolQ (str.) 72 .3+3 .1+6.2−0.2/−0.4+0 .0
+> Qwen2.5-3B BoolQ (lite) 72 .7+0 .0+5 .5−0.1/−0.4+0 .8
+> Qwen2.5-3B ARC-Easy 92 .6+0 .0+0 .8+0 .9/−0.4−1.2
+> Qwen2.5-3B HellaSwag 68 .8+0 .0+1 .6+0 .1/+0 .0+0 .4
+> Qwen2.5-7B BoolQ (lite) 84 .8+0 .0+3 .1−1.0/−1.2+0 .0
+> Qwen2.5-7B BoolQ (med.) 84 .9+0 .0+2 .1−0.4/−0.5+0 .3
+> Qwen2.5-7B ARC-Easy 96 .9+1 .6+0 .0+0 .6/−0.4−0.8
+> Qwen2.5-7B HellaSwag 73 .0+1 .6+3.1−0.2/−0.8−0.8
+> OLMo-7B BoolQ 77 .0+2 .1+1 .2−17 .0/−21 .1−3.9
+> OLMo-7B ARC-Easy 79 .3+0 .0+2 .3+0 .4/−0.4+0 .0
+> OLMo-7B HellaSwag 53 .1+2 .1+0 .4+0 .0/+0 .0+0 .0
+
+vℓ; we then choose the operating point — the decoder layer (swept over the mid-to-late layers, around ℓ ∈ { 15 , . . . , 20 }) and the injection scale α — on Ssel ; and we report on the held-out report split Srep . We run this across 14 (model, task) variants spanning Qwen2.5 at 0.5B / 3B / 7B and OLMo-7B (full numbers in Table 6). As a control we compare against matched random steering :a random hidden-state direction injected at the same layer and rescaled to the same norm as the structured vector — a like-for-like steering baseline, not a test of the theorem (which concerns weight-space search rather than activation injection). Structured transport beats this control on 9 of the 14 variants, and the Qwen BoolQ effect survives at all three scales. It is not free or universal; in particular, the OLMo BoolQ lane buys a +1 .2-point target gain at the cost of −17 points on the other tasks. In summary, the bridge is real and often useful, but task- and architecture-dependent. 
+
+# 6 Discussion and Limitations 
+
+Empirical conclusions. Our final conclusion is neither “there is no linear structure” nor “there is a single global task vector”. Trained tasks induce local low-dimensional structure whose meaning depends on where and how you look. At a single checkpoint, task gradients concentrate in a small subspace that is a good basis for a single descent step. Along a trajectory, the recovery displacement lives in a Krylov subspace well approximated by the early trajectory, and that is where a finite random search should look. Under random search, useful directions live in a scale window between too-small (signal below noise) and too-large (curvature dominates), and inside that window the gains are dimension-independent and focused on the target. In activation space, the shadow of a single gradient step closely tracks a contrastive steering vector at late layers, at least in the cases we tested. The unifying statement is that linear structure in trained networks is real but local: it moves as training proceeds, it is scale-dependent, and it looks different in weight space and activation space. 17 Limitations. The most important limitations of our study as as follows. 1. Scale of the evidence : the cleanest results are on a ∼5·10 5-parameter synthetic Transformer and on small LoRA adapters. 2. The LLM low-rank claim is partial : at billion-parameter scale, a low effective rank separates from a sampling-noise control only in some settings (Qwen-3B / MLP), not in all; a larger, better controlled replication is a natural future work direction. 3. Few task pairs : the trajectory-vs-plane comparison rests on one synthetic family and two LoRA task pairs; the ordering is consistent across them, but we are cautious about generalizing the exact magnitudes. 4. The trajectory prefix needs a trajectory : while it shows where good moves live, we cannot turn it into an algorithm that would help in practice because building it requires already running the recovery. 
+
+# 7 Conclusion 
+
+Modern language models exhibit many interesting phenomena tied to the internal geometry of their representations and their optimization dynamics. Understanding these structures matters for model safety, controllable adaptation, interpretability, and efficient training. Recent work has highlighted the surprising effectiveness of linear methods acting either in weight space or in activation space, and several explanations for these phenomena have been proposed, from mechanistic feature circuits to overcomplete latent representations motivating sparse autoencoders. In this work, we instead adopt a differential-geometric perspective that, in retrospect, appears natural: we treat small weight perturbations as infinitesimal displacements on the parameter manifold and study the local tangent structure induced by optimization dynamics. From this viewpoint, many observed linear phenomena arise naturally. Neural networks are differentiable functions, and gradient-based training follows trajectories constrained by local geometry. Our results show that these trajectories are genuinely low-dimensional but not static: adaptation proceeds through evolving Krylov-like subspaces rather than fixed global task directions. This explains why local low-rank structure is simultaneously real, useful, and unstable under continued training. At a checkpoint, linear structures appear as local task-gradient subspaces; along training they form Krylov-like trajectory bundles; under random search they are scale-windowed Gaussian neighbourhoods; in activations they are the parameter-to-activation pushforward of those same gradient directions, exposed cleanly by a single gradient step at the linear-regime learning rate and noisily by best-of-N random search. The same perspective explains why random perturbation methods can work remarkably well even at LLM scale. In a locally linear regime, Gaussian random search efficiently identifies task-improving directions while producing diffuse side effects on orthogonal tasks. Our experiments further show that these local regimes do exist in practice, although their structure depends strongly on the task and the perturbation scale. We leave for future work a deeper question that this work raises but does not answer: why do fully trained checkpoints contain nearby perturbations capable of dramatically improving specific tasks at all? Understanding the origin of these highly task-selective local directions and when they emerge—during pretraining, instruction tuning, or as a property of the loss landscape itself—is an important direction. Another contribution of this work is a unified view of several apparently different local adaptation methods: gradient updates, random parameter perturbations, and activation steering are connected 18 through the local differential structure of the network. Successful parameter perturbations can induce reusable activation-space directions, and gradient-induced activation shifts can closely track contrastive activation-steering vectors in the locally linear regime, as we observed for Qwen-0.5Bon BoolQ. A natural next step is to move beyond local tangent geometry towards a Lie-theoretic description of adaptation dynamics, with the geometry of local updates constrained by an underlying transformation group. We believe that connecting optimization, representation geometry, and local symmetry structure may yield a more unified theory of adaptation in large neural networks. 
+
+# References 
+
+[1] Armen Aghajanyan, Sonal Gupta, and Luke Zettlemoyer. Intrinsic dimensionality explains the effectiveness of language model fine-tuning. In Annual Meeting of the Association for Computational Linguistics (ACL) , 2021. [2] Zhao Chen, Vijay Badrinarayanan, Chen-Yu Lee, and Andrew Rabinovich. GradNorm: Gradient normalization for adaptive loss balancing in deep multitask networks. In International Conference on Machine Learning (ICML) , 2018. [3] Felix Draxler, Kambis Veschgini, Manfred Salmhofer, and Fred A. Hamprecht. Essentially no barriers in neural network energy landscape. In International Conference on Machine Learning (ICML) , 2018. URL https://arxiv.org/abs/1803.00885 .[4] Stanislav Fort, Huiyi Hu, and Balaji Lakshminarayanan. Deep ensembles: A loss landscape perspective. arXiv preprint arXiv:1912.02757 , 2019. [5] Gan et al. Neural thickets: Diverse task experts are dense around pretrained weights. arXiv preprint arXiv:2603.12228 , 2026. URL https://arxiv.org/abs/2603.12228 .[6] Timur Garipov, Pavel Izmailov, Dmitrii Podoprikhin, Dmitry Vetrov, and Andrew Gordon Wilson. Loss surfaces, mode connectivity, and fast ensembling of DNNs. In Advances in Neural Information Processing Systems (NeurIPS) , 2018. URL https://arxiv.org/abs/1802.10026 .[7] Neil Houlsby, Andrei Giurgiu, Stanisław Jastrzębski, Bruna Morrone, Quentin de Laroussilhe, Andrea Gesmundo, Mona Attariyan, and Sylvain Gelly. Parameter-efficient transfer learning for NLP. In International Conference on Machine Learning (ICML) , 2019. [8] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. LoRA: Low-rank adaptation of large language models. In International Conference on Learning Representations (ICLR) , 2022. URL https://arxiv.org/abs/2106. 09685 .[9] Gabriel Ilharco, Marco Tulio Ribeiro, Mitchell Wortsman, Ludwig Schmidt, Hannaneh Hajishirzi, and Ali Farhadi. Editing models with task arithmetic. In International Conference on Learning Representations (ICLR) , 2023. URL https://arxiv.org/abs/2212.04089 .[10] James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins, Andrei A Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, et al. Overcoming catastrophic forgetting in neural networks. Proceedings of the National Academy of Sciences , 114(13):3521–3526, 2017. 19 [11] Chunyuan Li, Heerad Farkhoor, Rosanne Liu, and Jason Yosinski. Measuring the intrinsic dimension of objective landscapes. In International Conference on Learning Representations (ICLR) , 2018. URL https://arxiv.org/abs/1804.08838 .[12] Hao Li, Zheng Xu, Gavin Taylor, Christoph Studer, and Tom Goldstein. Visualizing the loss landscape of neural nets. In Advances in Neural Information Processing Systems (NeurIPS) ,2018. [13] Bo Liu, Xingchao Liu, Xiaojie Jin, Peter Stone, and Qiang Liu. Conflict-averse gradient descent for multi-task learning. In Advances in Neural Information Processing Systems (NeurIPS) , 2021. [14] David Lopez-Paz and Marc’Aurelio Ranzato. Gradient episodic memory for continual learning. In Advances in Neural Information Processing Systems (NeurIPS) , 2017. [15] Sadhika Malladi, Tianyu Gao, Eshaan Nichani, Alex Damian, Jason D Lee, Danqi Chen, and Sanjeev Arora. Fine-tuning language models with just forward passes. In Advances in Neural Information Processing Systems (NeurIPS) , 2023. [16] Tim Salimans, Jonathan Ho, Xi Chen, Szymon Sidor, and Ilya Sutskever. Evolution strategies as a scalable alternative to reinforcement learning. arXiv preprint arXiv:1703.03864 , 2017. [17] Ozan Sener and Vladlen Koltun. Multi-task learning as multi-objective optimization. In 
+
+Advances in Neural Information Processing Systems (NeurIPS) , 2018. [18] Eric Todd, Millicent L. Li, Arnab Sen Sharma, Aaron Mueller, Byron C. Wallace, and David Bau. Function vectors in large language models. In International Conference on Learning Representations (ICLR) , 2024. URL https://arxiv.org/abs/2310.15213 .[19] Alexander Matt Turner, Lisa Thiergart, Gavin Leech, David Udell, Juan J Vazquez, Ulisse Mini, and Monte MacDiarmid. Steering language models with activation engineering. arXiv preprint arXiv:2308.10248 , 2023. URL https://arxiv.org/abs/2308.10248 .[20] Mitchell Wortsman, Gabriel Ilharco, Samir Yitzhak Gadre, Rebecca Roelofs, Raphael Gontijo-Lopes, Ari S Morcos, Hongseok Namkoong, Ali Farhadi, Yair Carmon, Simon Kornblith, and Ludwig Schmidt. Model soups: Averaging weights of multiple fine-tuned models improves accuracy without increasing inference time. In International Conference on Machine Learning (ICML) , 2022. URL https://arxiv.org/abs/2203.05482 .[21] Zhengxuan Wu, Aryaman Arora, Zheng Wang, Atticus Geiger, Dan Jurafsky, Christopher D. Manning, and Christopher Potts. ReFT: Representation finetuning for language models. In 
+
+Advances in Neural Information Processing Systems (NeurIPS) , 2024. URL https://arxiv. org/abs/2404.03592 .[22] Prateek Yadav, Derek Tam, Leshem Choshen, Colin Raffel, and Mohit Bansal. TIES-merging: Resolving interference when merging models. In Advances in Neural Information Processing Systems (NeurIPS) , 2023. URL https://arxiv.org/abs/2306.01708 .[23] Tianhe Yu, Saurabh Kumar, Abhishek Gupta, Sergey Levine, Karol Hausman, and Chelsea Finn. Gradient surgery for multi-task learning. In Advances in Neural Information Processing Systems (NeurIPS) , 2020. URL https://arxiv.org/abs/2001.06782 .20 [24] Andy Zou, Long Phan, Sarah Chen, James Campbell, Phillip Guo, Richard Ren, Alexander Pan, Xuwang Yin, Mantas Mazeika, Ann-Kathrin Dombrowski, et al. Representation engineering: A top-down approach to AI transparency. arXiv preprint arXiv:2310.01405 , 2023. URL 
+
+https://arxiv.org/abs/2310.01405 .21 Table 7: Per-run LoRA random search, ens-k-of-N and pass@ N at K = 256 , k = 50 .                                            
+
+> Run Subspace ens-k-of-NEM pass@ N
+> DistilGPT-2 sort →mod-add , s7 Trajectory prefix 0.328 0.781
+> DistilGPT-2 sort →mod-add , s7 Trajectory (full) 0.297 0.688
+> DistilGPT-2 sort →mod-add , s7 Task plane (local) 0.156 0.383
+> DistilGPT-2 sort →mod-add , s17 Trajectory (full) 0.172 0.414
+> DistilGPT-2 sort →mod-add , s17 Trajectory prefix 0.094 0.398
+> DistilGPT-2 sort →mod-add , s27 Trajectory (full) 0.195 0.523
+> DistilGPT-2 sort →mod-add , s27 Trajectory prefix 0.148 0.531
+> GPT-2 reverse →sort , s7 Trajectory prefix 0.258 0.531
+> GPT-2 reverse →sort , s17 Trajectory prefix 0.305 0.516
+> GPT-2 reverse →sort , s27 Trajectory (full) 0.422 0.555
+
+# A Synthetic transformer: additional results 
+
+The per-layer activation pushforward (Table 3 in the main text) is the basis for the activation-shadow result. Here we note that the two alternative scorings of the synthetic random search reproduce the best-of-N ordering of Table 2. Scoring by the best iterative (multi-step) recovery rather than the best single one-shot perturbation gives mean gains of 0.083 (trajectory prefix), 0.046 (local task plane), 0.022 (pre-interference plane), and ≤ 0.001 for the isotropic and random controls — the same ordering, with the trajectory prefix on top. The ensemble scoring behaves identically. 
+
+# B LoRA: full search table and per-run breakdown 
+
+Table 7 gives the per-run ensemble and pass@ N numbers behind the aggregates of Table 4. The family ordering (trajectory prefix or full trajectory on top, static planes at the bottom) reproduces in every one of the six runs; per run, the prefix and the full trajectory trade the top spot, which is why the aggregate “prefix is best” statement comes from averaging rather than from a clean sweep. 
+
+# C Projected gradient descent inside candidate subspaces 
+
+For completeness we report the more artificial probe alluded to in Section 5.2: forcing gradient descent to stay inside each candidate subspace for 50 steps (Table 8). The result is the mirror image of random search: the local task plane nearly matches unconstrained Full LoRA, while every trajectory prefix is weak — and, notably, the different prefix lengths ( 5, 10 , 20 , full) are all about equally weak ( ∼0.012 ), so there is no systematic “more steps is worse” effect, just a uniformly low value. We include this table only to document that constraining descent to a subspace the gradient has already drifted out of behaves erratically; we do not use it to make geometric claims, since projected gradient descent is not a method anyone deploys and the constrained dynamics are not informative about where good finite moves live. 
+
+# D Explicit Krylov basis as a curvature diagnostic 
+
+We computed the explicit Krylov basis span {g, Hg, H 2g, H 3g} at θforg via symmetric finite-difference Hessian-vector products. Across the six runs it captures only ∼11% of the recovery displacement in projection mass, against ∼77% for the empirical 10 -step trajectory prefix. Its random-search ranking is above the gradient-alone and random controls but well below the trajectory prefix. Consistent 22 Table 8: Projected gradient recovery for 50 steps inside each candidate subspace ( n = 6 ). Mean gain over the forgotten-checkpoint baseline.                             
+
+> Subspace / method mean gain mean final EM mass on ∆GD
+> Full LoRA (unconstrained) 0.060 0.098 1.000
+> Task plane (local) 0.052 0.090 0.147
+> Trajectory prefix ( 20 )0.012 0.049 0.872
+> Trajectory prefix ( 10 )0.012 0.049 0.753
+> Trajectory (full) 0.012 0.049 1.000
+> Trajectory prefix ( 5)0.010 0.048 0.622
+> Task plane (pre-int.) 0.009 0.047 0.023
+> Random rank-matched 0.000 0.038 0.000
+
+with our remark to Lemma 1, the single-Hessian basis is a useful curvature diagnostic but not a reconstruction of the recovery path, which the directly observed trajectory captures far better. We therefore use the trajectory prefix, not the explicit Krylov basis, as our working proxy throughout. 23

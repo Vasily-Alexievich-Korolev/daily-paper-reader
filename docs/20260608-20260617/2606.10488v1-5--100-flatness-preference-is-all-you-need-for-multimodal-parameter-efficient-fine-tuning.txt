@@ -1,0 +1,520 @@
+Title: 5
+
+URL Source: https://arxiv.org/pdf/2606.10488v1
+
+Published Time: Wed, 10 Jun 2026 00:38:03 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+> IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 1
+
+# 5% > 100%: Flatness Preference is All You Need for Multimodal Parameter-Efficient Fine-Tuning 
+
+Yifan Zhu ID , Senior Member, IEEE, Can Lin ID , Hangjie Yuan ID , Zixiang Zhao ID , Pengfei Zhang ID ,Tao Feng ID , Zhonghong Ou ID 
+
+Abstract —Parameter-Efficient Fine-Tuning (PEFT) methods provide a streamlined and efficient tool for adapting large models to domain-specific multimodal downstream tasks. Although these methods proved their tangible effects in practice, their principal aspects remain under-explored. Therefore we remain curious about the underlying generalization mechanisms in various PEFT methods and how they can be further enhanced. In this paper, we reveal the flatness preference widely present in various PEFTs, where a small fraction of sharp dimensions dominates the generalization of PEFT. This finding suggests an appealing possibility: we may be satisfied with a better generalization by merely attending to this small fraction of sharp dimensions instead of all of them. Furthermore, we propose Flatness Preference Optimization (FlatPO) to flatten these key sharpness dimensions, leading various PEFTs toward better gen-eralization. Extensive experiments demonstrate the effectiveness of our findings and the proposed method. Code is available at https://github.com/Can-Lin/FlatPO. 
+
+Index Terms —Parameter-Efficient Fine-Tuning, Flatness Pref-erence Optimization, Generalization Study. 
+
+I. I NTRODUCTION 
+
+# PARAMETER-Efficient Fine-Tuning (PEFT) offers apromising solution for adapting large models to various multimodal downstream tasks [1], [2]. This technique focuses on updating a few parameters to achieve comparable per-formance to full fine-tuning at a significantly low cost [3]. Common methods include Low-Rank Adaptation (LoRA) [4], prompt tuning [5], adapter tuning [6], etc . These methods encompass a range of fine-tuning strategies [1], such as reparameterization and additive adaptation and have also been actively explored in multimedia scenarios [7]–[9]. 
+
+This work is supported by the National Key Research and Development Program of China under Grant 2024YFC3308500, Beijing Municipal Nat-ural Science Foundation under Grant L251042, National Natural Science Foundation of China under Grant 62406036, and also sponsored by the State Key Laboratory of Networking and Switching Technology under Grant NST20250110. (Corresponding author: Tao Feng.) Yifan Zhu and Can Lin are with the School of Computer Sciences, Beijing University of Posts and Telecommunications, Beijing 100876, China (e-mail: yifan zhu@bupt.edu.cn; lincan@bupt.edu.cn). Hangjie Yuan is with the College of Computer Science and Technology, Zhejiang University, Zhejiang 310027, China (e-mail: hj.yuan@zju.edu.cn). Zixiang Zhao is with ETH Z¨ urich, Switzerland (e-mail: zixiang.zhao@hotmail.com). Pengfei Zhang is with Anhui University of Science and Technology, Anhui 232001, China (e-mail: zpf.bupt@bupt.cn). Tao Feng is with the Department of Computer Science and Technology, Tsinghua University, Beijing 100084, China (e-mail: fengtao.hi@gmail.com). Zhonghong Ou is with State Key Laboratory of Networking and Switching Technology, Beijing University of Posts and Telecommunications, Beijing 100876, China, and also with the School of Computer Sciences, Bei-jing University of Posts and Telecommunications, Beijing, China (e-mail: zhonghong.ou@bupt.edu.cn). Frozen      
+
+> Forward
+> Backward
+> Trainable
+> Prompt / Prefix Tuning
+> Output
+> QKV
+> Input Tunable Prompt
+> 𝑷 𝒌 𝑷 𝒗
+> Pre -trained Weights
+> LoRA
+> Pre -trained Weights
+> Input
+> Output
+> 𝑩
+> 𝑨
+> (a) Gradient Distribution (b) Our Scheme
+
+0
+
+> (c) Gradient paths in different PEFT methods
+> FlatPO
+> 𝒓
+
+x% 
+
+0.2 0.4−0.2 −0.4 
+
+1e−3 
+
+1e5
+
+7.5 
+
+5
+
+2.5 
+
+Fig. 1. Sharp dimensions in parameter gradients are the critical minority affecting fine-tuning generalization (a) The parameter gradient distributions (total) on LoRA and prefix tuning, indicating flat dimensions dominate the loss landscape while sharp dimensions occupy a minor portion. (b) Our FlatPO assumes that focusing on the top x% of sharp values may lead to better generalization, as these high-magnitude gradients typically contribute the most significant updates. (c) Various PEFTs feature different backward gradient flows (red dotted lines), which implies the diversity and randomness of flat solutions in PEFTs. 
+
+Although different PEFTs vary in their trainable sets ( i.e. ,the structure, modules, and position of trainable parame-ters) [1], they fundamentally share the principle of fine-tuning a small fraction of parameters to steer the pre-trained model loss toward a relatively optimal minimum in the downstream domain. Thus, the success of PEFTs can be summarized as a result of generalization [2], [10], [11]. More specifically, pre-training initialization offers a favorable starting point, reflected as a prominent initial position in the loss landscape [12], [13]. Subsequently, the optimizer focuses on reducing the loss to guide the model toward improved generalization [14], [15], which reveals the significance of using PEFT tools. However, current PEFTs do not explicitly incorporate generalization as a guiding principle during optimization. This often causes the optimization to converge to sharp minima, undermining downstream generalization performance. A new trend highlights that flat solution bootstraps better generalization in fine-tuning [12], [15], [16]. Specifically, Pre-trained models can easily identify flat minima, ensuring robust generalization even with a few trainable parameters [12], [16].  
+
+> arXiv:2606.10488v1 [cs.CV] 9 Jun 2026 IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 2
+
+They reveal a pattern of sparsity in parameter gradients for downstream tasks, where 1% of the components dominate 99% of the gradient norm [12], [17]. As Figure 1(a) shows, this finding also appears in PEFT. It indicates that flat dimensions dominate the loss landscape during fine-tuning, while sharp dimensions occupy a minor portion [12], [18]. Consequently, uniformly flattening all dimensions for fine-tuning may be unnecessary and may not even be optimal, which is transferred to two key insights: (i) the flat solution is equally important in fine-tuning; (ii) the flat solution may exhibit a preference in fine-tuning. Therefore, we only need to focus on a few sharp dimensions, as shown in Figure 1(b), which is enough to derive better generalization. Sharp values still plague various PEFT methods [19], partic-ularly within local regions of the low-dimensional optimization space [3], [16]. In particular, due to the updates to the limited parameters, the PEFT optimization trajectories are typically short [20]. This limited search space often results in solutions concentrated within local regions that are prone to sharp minima [18]. Furthermore, the diversity of PEFT strategies amplifies the randomness of sharp value occurrences. The differences in trainable sets across various PEFTs make the position of sharp values unpredictable [18], [19] and Fig-ure 1(c) illustrates this diversity through the distinct backward gradient flows in different PEFTs, which means that uniformly flattening a particular layer or component across PEFTs is a challenging task. Although general flatness optimization methods, like Sharpness-Aware Minimization (SAM) [21], aim to achieve flat solutions, they merely unlock the potential for flat solutions in PEFT without accommodating the diverse optimization demands of different PEFTs. For instance, these methods struggle to adapt to varying flatness preferences and the distinct paradigms of PEFT. To this end, in this paper, we propose Flat ness Preference 
+
+Optimization (FlatPO) to enhance the generalization capa-bilities of various PEFTs. First, we evaluate the gradient distribution of the trainable parameters, thereby obtaining their flatness preferences. Next, we prioritize optimization based on the impact of each dimension on the loss landscape, selec-tively smoothing sharp dimensions while retaining the parts that are vital for generalization. Then, FlatPO is seamlessly integrated into various PEFTs to satisfy their unique flatness requirements. Overall, FlatPO places a preference on the 5% sharpness dimensions and offers solid gains. To summarize, our contributions are listed below:  
+
+> •
+
+We reveal a prevalent flatness preference across various PEFTs, i.e. , 5% of the gradient parameters more urgently desire flatness for seeking minima.  
+
+> •
+
+We propose a flatness preference optimization (FlatPO) that senses and flattens the dominant sharpness in PEFTs to efficiently find flat minima.  
+
+> •
+
+Extensive results prove the versatility of FlatPO, which guides various PEFTs to reach better generalization. This paves the way for more streamlined multimodal fine-tuning. The remainder of this paper is organized as follows. Section II reviews the related work on PEFTs and flat minima. Section III presents the preliminaries of our study, including the problem definition and the SAM strategy. Section IV analyzes the flatness preference phenomenon in PEFT and introduces the proposed FlatPO method in detail. Section V provides extensive experimental results, ablation studies, and discussions. Finally, Section VI concludes our work. II. R ELATED WORK 
+
+In this section, we first review recent advances in PEFT. Then, we introduce representative studies on flat minima and generalization in fine-tuning. 
+
+A. Parameter Efficient Fine-Tuning 
+
+In general, PEFT methods are typically categorized into four main categories: selective PEFT, additive PEFT, reparameter-ized PEFT, and hybrid one [1]. Among them, additive PEFT and reparameterized PEFT are the two prevalent groups. Ad-ditive PEFT introduces a small number of additional trainable parameters into the transformer blocks or input layer while freezing the backbone parameters. In this category, adapter-based and prompt-based methods are the most commonly used. Representative approaches include Serial Adapter [22], AdaMix [23], Ctrl-Adapter [24], Adapter-X [25], Prompt Tuning [5], Prefix-Tuning [26], Visual Prompt Tuning [27], and CP-Prompt Tuning [28], etc . Reparameterized PEFT typ-ically reformulates parameter updates into low-rank or other structured forms. A representative line of work in this direction is based on LoRA, including LoRA [4], AdaLoRA [29], LoRA+ [30], MOELoRA [31], and MoLE [32], etc . These methods have been applied to a wide range of models and tasks, including LLMs, VLMs, MLLMs, language and image understanding, as well as text-to-image generation. 
+
+B. Flat Minima and Generalization in Fine-tuning 
+
+Advanced generalization improvements are vital for fine-tuning techniques. PromptSRC [33] and CoPrompt [34] mit-igate overfitting by preserving the knowledge of the pre-trained model or enforcing prediction consistency. C-Flat [35] promotes better generalization by shaping a flatter loss land-scape. PACE [36] connects smaller gradient norms with im-proved generalization in PEFT and introduces consistency regularization to align fine-tuned models with their pre-trained counterparts. GLAD [37] enhances generalization by applying gradient regularization to LoRA-based tuning. These efforts highlight the need to focus on generalization in fine-tuning. Another line of work aims to improve generalization by explicitly seeking flat minima. Sharpness-Aware Minimization (SAM) [38] provides a general framework by minimizing the worst-case loss in a local neighborhood, while Gradient norm Aware Minimization (GAM) [39] further characterizes flatness through the maximum gradient norm and connects first-order flatness with the Hessian spectrum. Recent studies extend these ideas to LoRA. Flat-LoRA [16] points out that flatness in the LoRA optimization space does not necessarily imply flatness in the original full-parameter space, and therefore seeks low-rank adaptations located in flat regions of the full parameter landscape. EFlat-LoRA [15] improves the efficiency IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 3
+
+of this idea and empirically verifies the connection between sharpness and LoRA generalization on both LLMs and VLMs. Bi-LoRA [11] revisits SAM under LoRA fine-tuning and introduces an auxiliary adversarial LoRA branch to model broader sharpness while avoiding the doubled cost of standard SAM. Currently, attention to flat minima in PEFT is still in its infancy [12], [40]. Nevertheless, when generalizing flat minima to PEFTs, we must be mindful of the relationship between the fine-tuning optimization space and the original full-parameter space across various PEFTs. III. P RELIMINARIES 
+
+In this section, we introduce the preliminary knowledge of our study. We begin with the problem definition of PEFTs, and then present the SAM strategy that motivates our method. 
+
+A. Problem Definition 
+
+Parameter-Efficient Fine-Tuning (PEFT) refers to a family of methods designed to adapt pre-trained models to down-stream tasks with minimal updates to the model parameters. Given a pre-trained model M , PEFT aims to adapt it to a downstream task T with minimal modifications to the model parameters. Let the original model parameters be W0, and the input to the model be xin . The goal of PEFT is to find a set of task-specific parameters WT , where WT ⊂ W0 or is an auxiliary set of parameters that are much smaller than 
+
+W0, i.e. , |WT | ≪ | W0| while keeping the performance in the downstream task T is maximized. In our framework, we examine three widely used methods for PEFT: LoRA [4], 
+
+Prefix Tuning [26], and Prompt Tuning [5] to evaluate the effectiveness of our approach. In LoRA, WT corresponds to the low-rank matrices Wup and Wdown . In Prefix / Prompt Tuning, 
+
+WT refers to the learned embeddings P .
+
+LoRA. LoRA introduces low-rank trainable matrices Wup 
+
+and Wdown to pre-trained weights W0, keeping the original weights frozen. The output with LoRA is denoted as: 
+
+xout = W0xin + αr Wup Wdown xin , (1) where α is a scaling factor and r is the rank of the matrices. 
+
+Prefix Tuning. Prefix Tuning adds task-specific prefix em-beddings P to the input sequence xin . The input becomes: 
+
+xaug = [ P ; xin ], (2) where P ∈ RLprefix ×d and xin is the original input. 
+
+Prompt Tuning. The prompt consists of continuous embed-ding vectors P ∈ RLprompt ×d. The prompt is prepended to the original input sequence xin and passed through the model. It is important to note that Prefix Tuning and Prompt Tuning differ significantly in their implementation. The former adds learnable continuous vectors before the key/value sequences in every layer of the Transformer, while the latter only incorporates tunable prompt vectors at the input layer. 
+
+B. Sharpness-Aware Minimization (SAM) 
+
+Instead of simply minimizing the training loss LS , SAM [38] aims to guide the training process towards convergence in a flatter region. To achieve this, SAM introduces a train-ing scheme that solves the following Min-Max Optimization Problem: 
+
+min  
+
+> w
+
+max  
+
+> ∥ε∥2≤ρ
+
+LS (fw+ε), (3) where ρ is a predefined neighborhood radius, and ε is the weight perturbation vector that maximizes the training loss within the ρ-constrained neighborhood. The idea of applying a uniform perturbation to all param-eters does not seem entirely consistent with the concept of PEFT. PEFT emphasizes that adjusting only a small subset of key parameters can achieve effective fine-tuning while significantly reducing computational and storage costs. In the context of PEFT, many parameters are actually located in a relatively flat minimum and do not require additional perturbation. Building on this insight, we can make a targeted modification to the SAM by applying perturbations solely to those parameters most relevant to the fine-tuning objective. This approach not only aligns more closely with the core principles of PEFT, but also maintains efficiency and further enhances the generalization performance of the model. IV. U NDERSTANDING FLATNESS PREFERENCE IN PEFT In this section, we focus on the characteristics of gradient distributions and the trends in optimization paths, and then introduce the formulation of flatness preference together with the proposed optimization strategy. 
+
+A. A Thorough Exploration of Gradient Distribution 
+
+As shown in Figure 2 (left), we plot the distribution of the parameters’ gradients from LoRA and Prefix Tuning at the same layer, with emphasis on the parameter matrices that they respectively affect, Query (Q) and Value (V) from LoRA, Key (K) and Value (V) from Prefix Tuning. Overall, the parameter gradients of both LoRA and prefix tuning show a clear sparse pattern: most gradient values are concentrated around 0, with only a small fraction having larger magnitudes. LoRA introduces trainable low-rank matrices in the Q and V parts of the attention layer. Consequently, LoRA’s gradients tend to be more concentrated within certain intervals. This indicates that LoRA tends to apply more significant updates in a few dimensions. Prefix tuning guides the model to focus on specific task-related information during the context construction phase of the attention layer by inserting prefix vectors, primarily in the K and V parts. Unlike LoRA, the gradient distribution of Prefix tuning is more diffuse, with moderately large gradient values scattered more randomly across different dimensions. In summary, both PEFTs show that flat dimensions domi-nate the gradient norm during fine-tuning, while sharp dimen-sions occupy a minor portion. This observation makes a strong statement about our motivation about gradient preferences. IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 4Key (K)  Value (V)  Key (K)  Value (V) 
+
+> Prefix
+
+Value (V) 
+
+> 𝑩 𝑨
+
+Query (Q)   
+
+> LoRA
+> 00
+> 00
+
+Query (Q) Value (V)        
+
+> Fig. 2. Left shows the gradient distribution of the parameters in the same layer for LoRA and prefix tuning. In LoRA, Ais the down-projection matrix and
+> Bis the up-projection matrix. The gradient values for each method in this layer are primarily concentrated around zero, indicating the presence of many flat dimensions in the loss landscape. Right illustrates the variation trends of the average gradient across different layers. Between layers, the mean gradients exhibit varying degrees of random fluctuations, reflecting the differences in optimization paths for different PEFT methods.
+
+B. Diversity of the Optimization Path in PEFTs 
+
+Various PEFTs feature different optimization paths, which trigger different sparsity patterns. Here, we draw plots of how the mean of each layer’s gradients varies with the layer increases, revealing the dynamic changes of gradients values in the optimization paths of LoRA and Prefix Tuning across all 24 layers of the transformer. As shown in Figure 2 (right), as the layer increases, the mean gradients of Q and V in LoRA are generally small and relatively smooth. However, in certain layers closer to the output, the mean gradients of Q and V exhibit more pronounced fluctuations, corroborating the concentrated up-date characteristic observed in the histograms. In contrast to LoRA’s concentrated fluctuations, prefix tuning shows a more random fluctuation of mean gradients in K and V across the layers, without any notable surge near the output layers. In other words, Prefix Tuning updates K and V more randomly across different layers, and any layer could experience a sizable gradient update. Nevertheless, the magnitude of these updates is generally less extreme than LoRA’s specific spikes. Overall, this observation exemplifies the diversity of the sparse patterns resulting from different optimization paths in various PEFTs, making a strong statement about another motivation we mentioned above. 
+
+C. Inherent Flatness Preference 
+
+In previous analysis, we identified a general trend in various PEFTs, i.e. , flat dimensions dominate the gradient norm, while only a tiny fraction of parameter dimensions exhibit sharpness. Here, we hypothesize that these sharp dimensions constitute 
+
+α% of all dimensions. In detail, this trend means that most flat dimensions remain stable during fine-tuning, and these dimensions make finding a flat minimum less difficult. In contrast, other sharp dimensions ( α%) are assumed to be crucial to enhancing the generalization capabilities. 
+
+D. Rethinking the Gradient Contribution 
+
+To quantify how much optimization-relevant information is preserved under different sparsity levels ( α%), we analyze gra-dient contribution from an information-theoretic perspective. Following the observation that gradient distributions in PEFT exhibit similar quasi-sparse properties [12], we use the 3 σ
+
+rule only as a heuristic initializer for identifying statistically significant gradient outliers, rather than as a probabilistic guarantee under an exact Gaussian assumption. In practice, we observe that approximately the top 5% of parameters often correspond to gradient values exceeding roughly 2σ away from the mean, indicating that a small subset of dimensions may dominate the optimization dynamics. The final choice of α% is further validated by the gradient contribution curve (Figure 6) and the performance ablations (Table IV). We refer to this phenomenon as Flatness Preference , i.e. ,a small subset of sensitive dimensions exhibits a stronger need for flatness-oriented optimization in order to facilitate the search for flatter minima. Moreover, our preliminary study shows that different PEFT methods follow diverse optimiza-tion paths, which implies that simply flattening specific layers or modules is insufficient. This diversity also makes the exact value of α% task- and method-dependent. 
+
+E. Quantitative Measurement of Flatness Preference 
+
+In our framework, the notion of Flatness Preference is intended to characterize how “flat” the local region around a parameter is in the loss landscape. Intuitively, flatness IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 5
+
+reflects how sensitive the loss is to small perturbations of model parameters: if a small change in a parameter does not significantly increase the loss, the corresponding local region is regarded as flat; otherwise, it is sharp. To quantify this flatness preference , we need a practical way to assess such flatness in a local neighborhood of the current parameters. The most rigorous characterization of local curvature emerges from the spectral properties of the Hessian matrix: 
+
+Ht = ∇2Loracle (θt) ∈ Rd×d. (4) The diagonal entries of the matrix can be formulated as: 
+
+Hdiag  
+
+> t
+
+[i] = ∂2Loracle (θt)
+
+∂θ 2
+
+> t,i
+
+(5) which represents the curvature along each parameter dimen-sion. In practice, computing per-parameter curvature (e.g., Hessian diagonal) is expensive for large-scale models. In practice, first-order methods often provide a good balance between computational tractability and flatness estimation. If a small perturbation to parameter θt,i significantly changes the loss Loracle (θt), that parameter lies in a relatively sharp region. 
+
+θ refers to the PEFT parameters that are to be optimized, while the original LLM parameters remain frozen. To measure this preference, we rely on a first-order sensitivity proxy. A larger gradient magnitude indicates higher local sensitivity to small perturbations (i.e., a sharper direction), while a smaller value suggests a flatter neighborhood. We denote this gradient-based measure as the Flatness Preference :
+
+Sgrad (θt,i ) = ∂L oracle (θt)
+
+∂θ t,i 
+
+(6) where θt is the current parameter vector at iteration t,
+
+Loracle refers to the standard cross-entropy loss. Throughout this work, we adopt Sgrad (θt,i ) as our primary metric for quantifying flatness preference in the parameter space. 
+
+F. Flatness Preference Optimization for PEFT 
+
+We extend the PAC-Bayesian generalization bound analysis to PEFT scenarios. The key insight is that pre-training shifts the prior distribution, leading to quasi-sparse gradient patterns where effective fine-tuning can be achieved by updating only a subset of critical parameters. Consequently, after estimating the flatness preference of each parameter, we focus on a small subset of critical parameters for the targeted perturbation and update. This procedure is designed to align naturally with PEFT, thereby preserving their parameter-efficiency charac-teristics while encouraging flatter minima. At iteration t, let 
+
+gt = ∇Loracle (θt) (7) denote the gradient with respect to the trainable PEFT param-eters. We first define a sensitivity vector M whose i-th entry is the gradient magnitude: 
+
+M[i] = Sgrad (θt,i ) = |gt[i]|. (8) We then rank these scores in descending order and select the indices corresponding to the top α% entries: 
+
+Iselected = TopIndex α%
+
+
+
+{M [i]}di=1 
+
+
+
+. (9) 
+
+Algorithm 1 Flatness Preference Optimization (FlatPO)  
+
+> 1:
+
+Input: Training data, batch size b, learning rate ηt, per-turbation radius ρt, selection ratio α% 
+
+> 2:
+
+Initialize: θ0, iteration t ← 0 
+
+> 3:
+
+while not converged do  
+
+> 4:
+
+Sample mini-batch Wt of size b 
+
+> 5:
+
+Compute gradient: gt ← ∇ Loracle (θt) 
+
+> 6:
+
+Compute sensitivity scores: M[i] ← | gt[i]| 
+
+> 7:
+
+Select top-α% indices: 
+
+Iselected ← TopIndex α%
+
+ {M [i]}di=1 
+
+ 
+
+> 8:
+
+Construct sparse perturbation: 
+
+∆θt ← ρt
+
+gt ⊙ IIselected 
+
+∥gt ⊙ IIselected ∥2 
+
+> 9:
+
+if ∥gt ⊙ IIselected ∥2 = 0 then ∆θt ← 0 
+
+> 10:
+
+Perturb parameters: θperturbed  
+
+> t
+
+← θt + ∆ θt 
+
+> 11:
+
+Compute perturbed gradient: 
+
+gperturbed  
+
+> t
+
+← ∇ Loracle (θperturbed  
+
+> t
+
+) 
+
+> 12:
+
+Update parameters: 
+
+θt+1 ← θt − ηt · gperturbed  
+
+> t
+> 13:
+
+t ← t + 1  
+
+> 14:
+
+end while  
+
+> 15:
+
+Return: θt
+
+By focusing on the top α% of parameters with the highest sensitivity, we follow the sparsity phenomenon observed in PEFT, where most parameters remain unchanged or only mildly updated. Let IIselected ∈ { 0, 1}d denote the binary mask correspond-ing to the selected indices. Inspired by SAM, we construct a perturbation only on the selected sensitive dimensions: 
+
+∆θt = ρt
+
+gt ⊙ IIselected 
+
+∥gt ⊙ IIselected ∥2
+
+, (10) where ρt is the perturbation radius and ⊙ denotes element-wise multiplication. When ∥gt ⊙ IIselected ∥2 = 0 , we simply set ∆θt = 0 .We then perturb the current parameters: 
+
+θperturbed  
+
+> t
+
+= θt + ∆ θt, (11) and compute the gradient at the perturbed point: 
+
+gperturbed  
+
+> t
+
+= ∇Loracle 
+
+ θperturbed 
+
+> t
+
+. (12) Finally, the PEFT parameters are updated by 
+
+θt+1 = θt − ηtgperturbed  
+
+> t
+
+, (13) where ηt is the learning rate. Since the perturbation is applied only to a small subset of sensitive parameters, the additional training overhead can be reduced compared with perturbing all trainable parameters IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 6
+
+indiscriminately. Meanwhile, the proposed FlatPO framework is plug-and-play for different PEFT methods, with the goal of stabilizing training dynamics and improving generalization performance. We summarize the pseudo code of FlatPO in Algorithm 1. V. A NALYSIS AND DISCUSSION 
+
+A. Implementation of FlatPO 
+
+Implementation Details. We evaluate three LLMs widely used for large-scale tasks, including OPT-1.3B [41], LLaMA-7B and LLaMA-13B [42]. In this work, all experiments are conducted on the GLUE and SuperGLUE benchmarks [43]. For simplicity, we use SST-2, WSC, BoolQ, WIC to evaluate FlatPO. In addition, to further validate the generality of FlatPO in multimodal scenarios, we extend our experiments to the vision-language setting using Qwen2.5-VL-3B. For the VLM experiments, we group the benchmarks into out-of-domain evaluation datasets and commonly used datasets. The out-of-domain benchmarks including i) ScienceQA [44]; ii) VizWiz [45]; iii) IconQA [46], and iv) Flickr30k [47]. The commonly used benchmarks including i) OKVQA [48]; ii) OCRVQA [49]; and iii) VQAv2 [50]. Since OCRVQA and VQAv2 are very large, we randomly extract 20k samples from their training sets as the new training sets and another 5k samples from the test sets to create the new test sets. For the LLM experiments, we set the training steps to 20,000, use a batch size of 16, and enable a cosine learning rate scheduler. For the VLM, all experiments were conducted with a global batch size of 128 and each PEFT method is trained for 3 epochs on the fine-tuning dataset. All experiments are conducted on 4 × NVIDIA A100-40G GPUs. 
+
+Compared Baselines. To thoroughly evaluate the effective-ness of FlatPO, we use three typical PEFT methods: LoRA, Prefix Tuning, and Prompt Tuning. Next, we compare the performance of the following optimization algorithms on OPT-1.3B, LLaMA-7B and LLaMA-13B across various PEFTs: i) Base : Adam serves as a baseline to compare performance under a standard training paradigm. ii) SAM [38]: Sharpness-Aware Minimization, which enhances generalization by impos-ing a smoothing penalty. iii) GAM [39]: Gradient norm Aware Minimization, an extension of SAM that seeks minima with uniformly small curvature across all directions. iv) FlatPO :Our method leverages flatness preference optimization to guide the model convergence process for flat minima. 
+
+Evaluation Metrics. For language tasks, we evaluate the FlatPO using two metrics: Acc. and SPS. Acc. measures the fine-tuned performance on specific tasks. SPS is measured by the number of training samples processed per second, pro-viding insight into the computational overhead of fine-tuning. For vision-language tasks, we follow the standard evaluation protocol of each benchmark: CIDEr for Flickr30K, Accuracy for IconQA-blank, IconQA-txt, OCRVQA, and ScienceQA, and VQA-Score for OKVQA and VizWiz. 
+
+B. Main Results 
+
+Ability to Capture Flatness Preferences. We first exam-ine the performance comparison between FlatPO and other methods under various PEFTs. As shown in Table I, FlatPO achieves superior accuracy than baseline optimizers across nearly all experiments, indicating that selectively perturbing only key dimensions can indeed capture the inherent flatness                                                                                                                                                                         
+
+> TABLE I Fine-tuning performance of LLM with typical PEFT methods (LoRA, Prefix Tuning, and Prompt Tuning) on the GLUE (SST2) and SuperGLUE (WIC, WSC and BoolQ) benchmarks. The best results are highlighted in bold .
+> MODEL METHOD SST2 WSC
+> Base SAM GAM FlatPO Base SAM GAM FlatPO OPT-1.3B LoRA 92.6 93.2 93.2 94.4 62.8 63.4 63.6 64.4
+> Prefix 92.7 92.7 93.2 94.0 63.4 64.0 64.4 65.3
+> Prompt 92.6 93.0 93.1 93.9 62.5 63.4 63.5 64.5
+> LLaMA-7B LoRA 93.4 93.6 93.8 94.7 65.3 65.9 65.8 66.5
+> Prefix 92.8 93.4 93.6 94.8 64.4 65.2 65.5 66.2
+> Prompt 93.2 93.6 93.8 94.6 64.5 65.2 65.5 65.9
+> LLaMA-13B LoRA 95.5 95.8 95.8 96.1 65.5 67.3 68.6 69.2
+> Prefix 94.5 94.8 95.0 95.4 66.0 67.3 68.4 69.2
+> Prompt 94.3 95.1 95.1 95.8 65.3 67.0 68.0 68.6 MODEL METHOD WIC BoolQ
+> Base SAM GAM FlatPO Base SAM GAM FlatPO OPT-1.3B LoRA 65.0 65.5 66.2 67.2 73.7 75.0 74.9 75.9
+> Prefix 64.4 65.2 65.3 66.2 73.1 74.1 74.4 75.2
+> Prompt 63.6 64.4 64.5 65.3 66.2 67.5 67.5 68.0
+> LLaMA-7B LoRA 70.5 70.8 71.0 72.0 84.2 84.9 85.0 86.0
+> Prefix 70.8 71.2 71.6 72.5 83.8 84.8 84.6 85.4
+> Prompt 69.2 69.5 69.8 70.5 77.3 78.6 78.8 79.3
+> LLaMA-13B LoRA 72.5 73.0 73.3 74.0 87.0 87.5 87.6 88.5
+> Prefix 72.8 73.3 73.6 74.2 86.5 87.2 87.4 88.2
+> Prompt 71.5 72.0 72.3 73.0 80.5 81.2 81.7 82.3 IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 7
+
+TABLE II Fine-tuning performance of VLM with typical PEFT methods (LoRA and Prefix Tuning) on various vision-language benchmarks (ScienceQA, VizWiz, IconQA, Flickr30k, OKVQA, OCRVQA and VQAv2). The best results are highlighted in bold .
+
+MODEL METHOD ScienceQA VizWiz 
+
+Base SAM GAM FlatPO Base SAM GAM FlatPO Qwen2.5-VL-3B LoRA 90.6 91.7 91.8 92.4 68.7 69.8 70.6 71.2 
+
+Prefix 86.2 87.8 89.8 90.9 66.3 67.3 68.8 70.4 MODEL METHOD IconQA-txt IconQA-blank 
+
+Base SAM GAM FlatPO Base SAM GAM FlatPO Qwen2.5-VL-3B LoRA 91.5 92.7 92.9 93.7 78.9 79.7 80.8 81.6 
+
+Prefix 89.5 91.0 91.2 91.5 75.5 76.5 77.8 78.0 MODEL METHOD Flickr30k OKVQA 
+
+Base SAM GAM FlatPO Base SAM GAM FlatPO Qwen2.5-VL-3B LoRA 101.4 104.8 105.2 108.6 51.1 52.2 52.0 53.8 
+
+Prefix 100.5 102.5 103.6 106.8 50.4 51.6 50.9 52.0 MODEL METHOD OCRVQA VQAv2 
+
+Base SAM GAM FlatPO Base SAM GAM FlatPO Qwen2.5-VL-3B LoRA 68.6 70.8 70.5 71.4 73.6 74.4 74.5 76.7 
+
+Prefix 67.2 68.2 68.3 69.3 70.7 72.1 72.4 73.6 
+
+preference in PEFTs. Notably, FlatPO provides stable perfor-mance gains across different models and sizes, highlighting its broad applicability. Overall, these findings align with our hypothesis that limiting a few critical sharpness values in fine-tuning can lead to tangible performance improvements. FlatPO accomplishes this by focusing on the critical subset of parameters that truly drive the sharp directions, thereby promoting convergence toward more generalizable minima. To further assess the versatility of FlatPO beyond pure lan-guage tasks, we extend our evaluation to VLM. As shown in Table II, FlatPO consistently outperforms conventional opti-mizers across all evaluated datasets. These results underscore that the principle of targeted sharpness reduction is modality-agnostic. FlatPO effectively guides the VLM toward flatter minima without being distracted by the high-dimensional noise inherent in multimodal representations. Consequently, FlatPO emerges as a robust optimization strategy not only for text-based PEFTs but also for adapting large pre-trained vision-language systems. Moreover, we perform 3 runs to evaluate the significance of FlatPO. As shown in Figure 3, FlatPO achieves higher accuracy while exhibiting less variance across multiple runs. These results confirm the superior and stable performance of FlatPO in PEFTs. 5k 2.5k  7.5k  10k  12.5k  15k  17.5k  20k  5k 2.5k  7.5k  10k  12.5k  15k  17.5k  20k   
+
+> (a) LoRA (b) Prefix
+
+Fig. 3. The significance analysis of LoRA and prefix tuning. Perform 3 runs using different random number seeds. 
+
+Intuition from Loss Landscape. For a more intuitive un-derstanding of the optimization process, we visualize the loss landscapes. As shown in Figure 4, our observations indicate that, in PEFT, only a small subset of sensitive dimensions are significantly affected by perturbations, while the majority remain relatively flat. Notably, different PEFTs exhibit unique basin shapes and peak distributions in these low-dimensional subspaces, suggesting variations in their convergence paths and gradient stochasticity. Further comparison reveals that FlatPO tends to converge in flatter regions. This finding implies that intervening in only a few sensitive dimensions can guide the model toward a smoother area of convergence. LoRA Prefix Prompt       
+
+> Base SAM FlatPO
+> Base SAM FlatPO
+> Base SAM FlatPO
+
+Fig. 4. Loss landscapes of LoRA, Prefix Tuning, and Prompt Tuning using Base, SAM, and FlatPO optimization. IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 8
+
+C. Ablation Study                               
+
+> TABLE III Fine-tuning performance with LoRA and Prefix Tuning under different perturbation strategies. The best results are highlighted in bold .METHOD TYPE FlatPO Random LoRA Weight Q,V QVQ,V QVAcc. 94.4 94.0 94.2 93.2 93.0 93.0 Prefix Weight K,V KVK,V KVAcc. 94.0 93.6 93.8 92.8 92.7 92.7
+
+Comparative Analysis of Targeted vs. Random Pertur-bation in QKV Components. We selectively adjusted specific QKV combinations and compared the effects of targeted perturbation ( FlatPO ) versus random perturbation ( Random ). As shown in Table III, our experiments demonstrate that: In all settings, FlatPO consistently outperformed Random, indi-cating that the directionality of the perturbation is crucial for model optimization. Furthermore, adjusting the combinations of components yielded better results than adjusting individ-ual components, suggesting that the interaction relationships among the QKV components are vital, rather than simply the difference in the quantity of the parameters.                                                                     
+
+> TABLE IV Fine-tuning performance with LoRA under different preference ratios. The best results are highlighted in bold .MODEL TYPE FlatPO SAM GAM OPT-1.3B ratio 1% 5% 10% 20% 60% 100% 100% Acc. 93.8 94.4 93.8 93.4 93.4 93.2 93.2 SPS. 13.06 12.97 12.80 12.21 11.56 10.62 5.35 LLaMA-7B ratio 1% 5% 10% 20% 60% 100% 100% Acc. 94.3 94.7 94.6 94.6 94.3 93.6 93.8 SPS. 3.22 3.21 3.10 2.83 2.66 2.41 1.33 LLaMA-13B ratio 1% 5% 10% 20% 60% 100% 100% Acc. 95.8 96.1 96.1 95.8 95.8 95.8 95.8 SPS. 1.59 1.52 1.50 1.42 1.38 1.22 0.65
+
+Preference Rate Analysis. We ablate perturbation ratios to investigate the effect of different proportions of perturbations on the flatness preference of the model. In detail, we select the top {1% , 5% , 10% , 20% , 60% , 100% } of the gradient parame-ters for perturbation. As shown in Table IV, perturbing the top 5% of parameters achieves the best balance between model ac-curacy and training cost. Although a smaller ratio ( e.g. , 1%) is more efficient, slightly compromise performance. Meanwhile, a larger ratio ( e.g. , 20%) yields limited performance gains but incurs increased overhead. 
+
+Efficiency Analysis. We analyze the efficiency of FlatPO here. In Table IV, a clear trend is consistent efficiency improvement across all ratios. Next, another trend is the consequent improvement in efficiency as the perturbation ratio decreases. Although perturbing only a small percentage of the dimensions should theoretically yield a more significant speedup, this is not entirely the case. While the pre-trained model does not participate in gradient computation, it is still involved in backpropagation in some PEFTs. As a result, the actual speedup does not perfectly correlate with the reduc-tion in perturbation ratio in this case. Still, FlatPO achieves speedups of around 30% at the optimal 5% ratio, significantly less than 100% case. Additionally, while GAM focus on first-order information and offers some benefits in improving the generalization of PEFT, this is not effective in capturing the flatness preference. In addition, GAM is not a favorable candidate due to its inherently high computational overhead.                               
+
+> TABLE V Fine-tuning performance with LoRA under different perturbation radius. The best results are highlighted in bold .MODEL TYPE VALUE OPT-1.3B ρ0.01 0.05 0.1 0.2 Acc. 93.6 94.0 94.4 93.4 LLaMA-7B ρ0.01 0.05 0.1 0.2 Acc. 93.8 94.6 94.7 93.6 LLaMA-13B ρ0.01 0.05 0.1 0.2 Acc. 95.8 96.0 96.1 95.8
+
+Influence of Perturbation Radius. The perturbation radius controls the magnitude of the perturbation applied to the model parameters. To verify its effect, we evaluate the effect of different radius values ( ρ ∈ { 0.01 , 0.05 , 0.1, 0.2}) on FlatPO. As shown in Table V, a moderate ρ (e.g. , 0.05 or 0.1) can guide FlatPO to converge toward flatter minima, effectively alleviating overfitting without causing substantial training in-stability. In contrast, an excessively large ρ (e.g. , 0.2) may lead to optimization instability, as overly strong perturbations obscure effective gradient information.                               
+
+> TABLE VI Fine-tuning performance with LoRA across different LoRA ranks. The best results are highlighted in bold .MODEL TYPE VALUE OPT-1.3B Rank 4816 32 Acc. 93.6 94.4 94.5 94.3 LLaMA-7B Rank 4816 32 Acc. 93.8 94.7 95.0 94.7 LLaMA-13B Rank 4816 32 Acc. 95.4 96.1 96.2 96.1
+
+Influence of Hyperparameters from PEFTs. We inves-tigate the influence of different PEFT hyperparameters on FlatPO. Taking LoRA as our example, the rank of the trainable matrices directly determines the performance of fine-tuning. Thus, we evaluate the effect of different ranks ( {4, 8, 16, 32 }) on FlatPO. As shown in Table VI, as rank increases, the benefits of preference perturbation become more pronounced. A higher rank provides LoRA with a larger representational space, allowing it to make fuller use of the flatter minima discovered by FlatPO. 
+
+D. Discussion 
+
+Further Gradient Analysis. To better understand the role of the 5% perturbation ratio, we further analyzed the gradient IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 91                                                   
+
+> Prompt: Which of these states is farthest west?
+> A. Illinois B. Georgia C. Maryland D. Ohio
+> Target: A
+> Qwen2.5 -VL -3B -Base: B
+> Qwen2.5 -VL -3B -SAM: A
+> Qwen2.5 -VL -3B -GAM: A
+> Qwen2.5 -VL -3B -FlatPO: A
+> Qwen2.5 -VL -3B -Base: E
+> Qwen2.5 -VL -3B -SAM: E
+> Qwen2.5 -VL -3B -GAM: E
+> Qwen2.5 -VL -3B -FlatPO: D
+> Prompt: How many squares are there?
+> A. 2 B. 4 C. 6 D. 9 E. 10
+> Target: D
+> 2
+> 3
+> Qwen2.5 -VL -3B -Base: C
+> Qwen2.5 -VL -3B -SAM: C
+> Qwen2.5 -VL -3B -GAM: C
+> Qwen2.5 -VL -3B -FlatPO: B
+> Prompt: The diagram below is a model of two solutions.
+> Each yellow ball represents one particle of solute ?
+> A. Solution A B. Solution B C. neither; their
+> concentrations are the same
+> Target: B
+> 4Prompt: Which object is shaped like a sphere
+> and is above the desk?
+> A. B.
+> Qwen2.5 -VL -3B -Base: A
+> Qwen2.5 -VL -3B -SAM: A
+> Qwen2.5 -VL -3B -GAM: A
+> Qwen2.5 -VL -3B -FlatPO: B
+> Target: B
+> 56
+> Qwen2.5 -VL -3B -Base: 10
+> Qwen2.5 -VL -3B -SAM: 8
+> Qwen2.5 -VL -3B -GAM: 8
+> Qwen2.5 -VL -3B -FlatPO: 8
+> Prompt: There are 7 balls in the top ten frame.
+> How many balls are in the bottom ten frame?
+> Target: 8
+> Qwen2.5 -VL -3B -Base: A
+> Qwen2.5 -VL -3B -SAM: B
+> Qwen2.5 -VL -3B -GAM: B
+> Qwen2.5 -VL -3B -FlatPO: A
+> Prompt: Figure: Mount Rainier National Park.
+> A. It has long, cold winters. It also has soil that is poor in
+> nutrients.
+> B. It has short, cool summers. It also has soil that is rich in
+> nutrients.
+> Target: A
+
+Fig. 5. Qualitative comparison on VQA tasks with LoRA using different optimizers: Base, SAM, GAM, and our FlatPO. The examples are selected as representative cases to qualitatively illustrate the differences among these optimization strategies. 
+
+contribution during optimization. Figure 6 illustrates the con-tribution proportions of the top 5% and 1% to the total gradient magnitude. This dynamic analysis reveals two key findings: The top 5% of parameters consistently contribute over 60% of the total gradient, demonstrating that PEFT optimization is driven by a sparse subset of critical parameters. The top 1% parameters show a sharp decline (40%) in contribution compared to the top 5%, indicating that excessive sparsity degrades the effective gradient information and 5% serves as the inflection point for information density. (b) Prefix 
+
+5k 2.5k  7.5k  10k  12.5k  15k  17.5k  20k 
+
+(a) LoRA 
+
+5k 2.5k  7.5k  10k  12.5k  15k  17.5k  20k 
+
+Fig. 6. Gradient Contribution of LoRA and Prefix Tuning. At each step, we record the sum of the top 5% and 1% gradient norms, then compute their ratios relative to the total gradient norm sum. 
+
+Qualitative Examples on VQA Tasks. We present several qualitative examples in Figure 5. The examples are drawn from the evaluated VQA benchmarks. The representative improve-ments in answer accuracy confirm that FlatPO not only boosts quantitative metrics but also yields more reliable responses in practical VQA scenarios. VI. C ONCLUSION 
+
+This paper reveals a prevalent flatness preference in various PEFTs. This finding suggests that focusing on flattening a few sharp dimensions (5%) is a powerful strategy for improving the generalization of PEFTs rather than attempting to flatten all uniformly (100%). Based on this, we propose a FlatPO method that guides various PEFTs to converge to a flat area during fine-tuning. Extensive results highlight the practical benefits of FlatPO and underscore the importance of rethinking gradient distribution in PEFTs. REFERENCES [1] Z. Han, C. Gao, J. Liu, J. Zhang, and S. Q. Zhang, “Parameter-efficient fine-tuning for large models: A comprehensive survey,” arXiv preprint arXiv:2403.14608 , 2024. [2] L. Wang, S. Chen, L. Jiang, S. Pan, R. Cai, S. Yang, and F. Yang, “Parameter-efficient fine-tuning in large language models: a survey of methodologies,” Artificial Intelligence Review , vol. 58, no. 8, p. 227, 2025. [3] L. Xu, H. Xie, S. J. Qin, X. Tao, and F. L. Wang, “Parameter-efficient fine-tuning methods for pretrained language models: A critical review and assessment,” IEEE Transactions on Pattern Analysis and Machine Intelligence , 2026. [4] E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, and W. Chen, “Lora: Low-rank adaptation of large language models,” 
+
+arXiv preprint arXiv:2106.09685 , 2021. [5] B. Lester, R. Al-Rfou, and N. Constant, “The power of scale for parameter-efficient prompt tuning,” arXiv preprint arXiv:2104.08691 ,2021. [6] Z. Hu, L. Wang, Y. Lan, W. Xu, E.-P. Lim, L. Bing, X. Xu, S. Poria, and R. Lee, “Llm-adapters: An adapter family for parameter-efficient fine-tuning of large language models,” in Proceedings of the 2023 conference on empirical methods in natural language processing , 2023, pp. 5254– 5276. IEEE TRANSACTIONS ON MULTIMEDIA, VOL. XX, NO. XX, XX 2026 10 
+
+[7] Y. Xing, Q. Wu, D. Cheng, S. Zhang, G. Liang, P. Wang, and Y. Zhang, “Dual modality prompt tuning for vision-language pre-trained model,” 
+
+IEEE Transactions on Multimedia , vol. 26, pp. 2056–2068, 2024. [8] W. Zhang, L. Wu, Z. Zhang, T. Yu, C. Ma, X. Jin, X. Yang, and W. Zeng, “Unleash the power of vision-language models by visual attention prompt and multimodal interaction,” IEEE Transactions on Multimedia , vol. 27, pp. 2399–2411, 2024. [9] C. Sun, J. Wei, Y. Wu, Y. Shi, S. He, Z. Ma, N. Xie, and Y. Yang, “Unleashing the power of singular values for parameter-efficient fine-tuning of large pre-trained models,” IEEE Transactions on Multimedia ,2026. [10] D. Oikonomou and N. Loizou, “Sharpness-aware minimization: General analysis and improved rates,” arXiv preprint arXiv:2503.02225 , 2025. [11] Y. Liu, T. Li, Z. Huang, Z. Yang, and X. Huang, “Bi-lora: Efficient sharpness-aware minimization for fine-tuning large-scale models,” arXiv preprint arXiv:2508.19564 , 2025. [12] W. Song, Z. Li, L. Zhang, H. Zhao, and B. Du, “Sparse is enough in fine-tuning pre-trained large language model,” International Conference on Machine Learning , 2024. [13] H. Chen, Y. Dong, Z. Wei, Y. Huang, Y. Zhang, H. Su, and J. Zhu, “Understanding pre-training and fine-tuning from loss landscape per-spectives,” arXiv e-prints , pp. arXiv–2505, 2025. [14] P. Zhou, X. Xie, Z. Lin, and S. Yan, “Towards understanding con-vergence and generalization of adamw,” IEEE Transactions on Pattern Analysis and Machine Intelligence , 2024. [15] J. Deng, Q. Zhu, J. Pang, L. Yang, Z. Fu, and B. Zhang, “Eflat-lora: Efficiently seeking flat minima for better generalization in fine-tuning large language models and beyond,” arXiv e-prints , pp. arXiv–2508, 2025. [16] T. Li, Z. He, Y. Li, Y. Wang, L. Shang, and X. Huang, “Flat-lora: Low-rank adaption over a flat loss landscape,” arXiv preprint arXiv:2409.14396 , 2024. [17] M. Wang, J. Wang, H. He, Z. Wang, G. Huang, F. Xiong, Z. Li, L. Wu 
+
+et al. , “Improving generalization and convergence by enhancing implicit regularization,” Advances in Neural Information Processing Systems ,vol. 37, pp. 118 701–118 744, 2024. [18] G. Lee, W. Jang, J. H. Kim, J. Jung, and S. Kim, “Domain generalization using large pretrained models with mixture-of-adapters,” arXiv preprint arXiv:2310.11031 , 2023. [19] L. Chen, H. Huang, and M. Cheng, “Ptp: Boosting stability and per-formance of prompt tuning with perturbation-based regularizer,” arXiv preprint arXiv:2305.02423 , 2023. [20] P. Saha, C. Rajbangshi, R. Goyal, M. Goyal, A. Deo, B. Roy, N. D. Singh, R. Goswami, and A. Das, “Grit–geometry-aware peft with k-facpreconditioning, fisher-guided reprojection, anddynamic rank adapta-tion,” arXiv preprint arXiv:2601.00231 , 2026. [21] Z. Zhou, M. Wang, Y. Mao, B. Li, and J. Yan, “Sharpness-aware minimization efficiently selects flatter minima late in training,” in 
+
+International Conference on Learning Representations , vol. 2025, 2025, pp. 20 949–20 980. [22] N. Houlsby, A. Giurgiu, S. Jastrzebski, B. Morrone, Q. De Laroussilhe, A. Gesmundo, M. Attariyan, and S. Gelly, “Parameter-efficient transfer learning for nlp,” in International conference on machine learning .PMLR, 2019, pp. 2790–2799. [23] Y. Wang, S. Mukherjee, X. Liu, J. Gao, A. H. Awadallah, and J. Gao, “Adamix: Mixture-of-adapter for parameter-efficient tuning of large language models,” arXiv preprint arXiv:2205.12410 , vol. 1, no. 2, p. 4, 2022. [24] H. Lin, J. Cho, A. Zala, and M. Bansal, “Ctrl-adapter: An efficient and versatile framework for adapting diverse controls to any diffusion model,” arXiv preprint arXiv:2404.09967 , 2024. [25] M. Li, P. Ye, Y. Huang, L. Zhang, T. Chen, T. He, J. Fan, and W. Ouyang, “Adapter-x: A novel general parameter-efficient fine-tuning framework for vision,” arXiv preprint arXiv:2406.03051 , 2024. [26] X. L. Li and P. Liang, “Prefix-tuning: Optimizing continuous prompts for generation,” arXiv preprint arXiv:2101.00190 , 2021. [27] M. Jia, L. Tang, B.-C. Chen, C. Cardie, S. Belongie, B. Hariharan, and S.-N. Lim, “Visual prompt tuning,” in European Conference on Computer Vision . Springer, 2022, pp. 709–727. [28] Y. Feng, Z. Tian, Y. Zhu, Z. Han, H. Luo, G. Zhang, and M. Song, “Cp-prompt: Composition-based cross-modal prompting for domain-incremental continual learning,” in Proceedings of the 32nd ACM International Conference on Multimedia, MM 2024, Melbourne, VIC, Australia, 28 October 2024 - 1 November 2024 . ACM, 2024, pp. 2729–2738. [29] Q. Zhang, M. Chen, A. Bukharin, N. Karampatziakis, P. He, Y. Cheng, W. Chen, and T. Zhao, “Adalora: Adaptive budget allocation for parameter-efficient fine-tuning,” arXiv preprint arXiv:2303.10512 , 2023. [30] S. Hayou, N. Ghosh, and B. Yu, “Lora+: Efficient low rank adaptation of large models,” arXiv preprint arXiv:2402.12354 , 2024. [31] Q. Liu, X. Wu, X. Zhao, Y. Zhu, D. Xu, F. Tian, and Y. Zheng, “Moelora: An moe-based parameter efficient fine-tuning method for multi-task medical applications,” arXiv preprint arXiv:2310.18339 , 2023. [32] S. Chen, Z. Jie, and L. Ma, “Llava-mole: Sparse mixture of lora experts for mitigating data conflicts in instruction finetuning mllms,” arXiv preprint arXiv:2401.16160 , 2024. [33] M. U. Khattak, S. T. Wasim, M. Naseer, S. Khan, M.-H. Yang, and F. S. Khan, “Self-regulating prompts: Foundational model adaptation without forgetting,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2023, pp. 15 190–15 200. [34] S. Roy and A. Etemad, “Consistency-guided prompt learning for vision-language models,” arXiv preprint arXiv:2306.01195 , 2023. [35] A. Bian, W. Li, H. Yuan, M. Wang, Z. Zhao, A. Lu, P. Ji, T. Feng 
+
+et al. , “Make continual learning stronger via c-flat,” Advances in Neural Information Processing Systems , vol. 37, pp. 7608–7630, 2024. [36] Y. Ni, S. Zhang, and P. Koniusz, “Pace: Marrying generalization in parameter-efficient fine-tuning with consistency regularization,” Ad-vances in Neural Information Processing Systems , vol. 37, pp. 61 238– 61 266, 2024. [37] Y. Peng, P. Wang, J. Liu, and S. Chen, “Glad: Generalizable tuning for vision-language models,” in Proceedings of the IEEE/CVF International Conference on Computer Vision , 2025, pp. 4310–4320. [38] P. Foret, A. Kleiner, H. Mobahi, and B. Neyshabur, “Sharpness-aware minimization for efficiently improving generalization,” arXiv preprint arXiv:2010.01412 , 2020. [39] X. Zhang, R. Xu, H. Yu, H. Zou, and P. Cui, “Gradient norm aware minimization seeks first-order flatness and improves generalization,” in Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , 2023, pp. 20 247–20 257. [40] N. Ding, Y. Qin, G. Yang, F. Wei, Z. Yang, Y. Su, S. Hu, Y. Chen, C.-M. Chan, W. Chen et al. , “Parameter-efficient fine-tuning of large-scale pre-trained language models,” Nature Machine Intelligence , 2023. [41] S. Zhang, S. Roller, N. Goyal, M. Artetxe, M. Chen, S. Chen, C. Dewan, M. Diab, X. Li, X. V. Lin et al. , “Opt: Open pre-trained transformer language models,” arXiv preprint arXiv:2205.01068 , 2022. [42] H. Touvron, T. Lavril, G. Izacard, X. Martinet, M.-A. Lachaux, T. Lacroix, B. Rozi` ere, N. Goyal, E. Hambro, F. Azhar et al. , “Llama: open and efficient foundation language models. arxiv,” arXiv preprint arXiv:2302.13971 , 2023. [43] A. Wang, Y. Pruksachatkun, N. Nangia, A. Singh, J. Michael, F. Hill, O. Levy, and S. Bowman, “Superglue: A stickier benchmark for general-purpose language understanding systems,” Advances in neural informa-tion processing systems , vol. 32, 2019. [44] T. Saikh, T. Ghosal, A. Mittal, A. Ekbal, and P. Bhattacharyya, “Sci-enceqa: A novel resource for question answering on scholarly articles,” 
+
+International Journal on Digital Libraries , vol. 23, no. 3, pp. 289–301, 2022. [45] D. Gurari, Q. Li, A. J. Stangl, A. Guo, C. Lin, K. Grauman, J. Luo, and J. P. Bigham, “Vizwiz grand challenge: Answering visual questions from blind people,” in Proceedings of the IEEE conference on computer vision and pattern recognition , 2018, pp. 3608–3617. [46] P. Lu, L. Qiu, J. Chen, T. Xia, Y. Zhao, W. Zhang, Z. Yu, X. Liang, and S.-C. Zhu, “Iconqa: A new benchmark for abstract diagram understand-ing and visual language reasoning,” arXiv preprint arXiv:2110.13214 ,2021. [47] B. A. Plummer, L. Wang, C. M. Cervantes, J. C. Caicedo, J. Hocken-maier, and S. Lazebnik, “Flickr30k entities: Collecting region-to-phrase correspondences for richer image-to-sentence models,” in Proceedings of the IEEE international conference on computer vision , 2015, pp. 2641– 2649. [48] K. Marino, M. Rastegari, A. Farhadi, and R. Mottaghi, “Ok-vqa: A visual question answering benchmark requiring external knowledge,” in 
+
+Proceedings of the IEEE/cvf conference on computer vision and pattern recognition , 2019, pp. 3195–3204. [49] A. Mishra, S. Shekhar, A. K. Singh, and A. Chakraborty, “Ocr-vqa: Visual question answering by reading text in images,” in 2019 inter-national conference on document analysis and recognition (ICDAR) .IEEE, 2019, pp. 947–952. [50] Y. Goyal, T. Khot, D. Summers-Stay, D. Batra, and D. Parikh, “Making the v in vqa matter: Elevating the role of image understanding in visual question answering,” in Proceedings of the IEEE conference on computer vision and pattern recognition , 2017, pp. 6904–6913.
