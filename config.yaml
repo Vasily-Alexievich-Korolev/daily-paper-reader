@@ -25,3 +25,48 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: Board-Search
+      description: 宽泛搜索有关等变图神经网络和LORA的文章
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: Low-Rank Adaptation
+          keyword_cn: ''
+          query: Low-Rank Adaptation
+        - keyword: PEFT
+          keyword_cn: ''
+          query: PEFT
+        - keyword: Parameter-Efficient Fine-Tuning
+          keyword_cn: ''
+          query: Parameter-Efficient Fine-Tuning
+        - keyword: SE(3)-equivariant
+          keyword_cn: ''
+          query: SE(3)-equivariant
+        - keyword: Equivariant Graph Neural Networks
+          keyword_cn: ''
+          query: Equivariant Graph Neural Networks
+      intent_queries:
+        - query: Search for papers on equivariant graphical neural networks and Low Rank Adaptation.
+          query_cn: ''
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-06-17T11:48:42.989Z'
+      paused: true
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
